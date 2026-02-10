@@ -13,11 +13,14 @@ Docs: `docs/masterplan-v0.md` (설계), `docs/session-compact.md` (현재 상태
 - **Data**: FinanceDataReader (FDR) — 전 자산 1순위. Hantoo fallback은 v0.9+에서 추가
 - **Dashboard**: React, Recharts, Vite, TypeScript
 - **Migration**: Alembic
-- **Repo**: Monorepo (`collector/`, `research_engine/`, `api/`, `dashboard/`, `db/`)
+- **Repo**: Monorepo — `backend/` (collector, research_engine, api, db, config) + `frontend/` (React)
 
 ## Common Commands
 
 ```bash
+# Backend (run from backend/)
+cd backend
+pip install -e ".[dev]"             # Install deps (first time)
 python -m pytest                    # Run all tests
 ruff check .                        # Lint
 uvicorn api.main:app --reload       # Dev server
@@ -43,7 +46,7 @@ Pydantic schemas for all I/O. FastAPI DI for services.
 - **collector**: FDR 기반 일봉 수집, 정합성 검증, UPSERT
 - **research_engine**: 팩터 생성, 전략 신호(모멘텀/추세/평균회귀), 백테스트
 - **api**: FastAPI 조회 API (`/v1/prices`, `/v1/factors`, `/v1/signals`, `/v1/backtests`)
-- **dashboard**: 시각화 (가격/수익률/상관/전략 성과)
+- **frontend**: React 시각화 (가격/수익률/상관/전략 성과)
 
 ## Encoding (Windows + Korean)
 

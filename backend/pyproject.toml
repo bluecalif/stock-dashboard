@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stock-dashboard"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "7-asset stock dashboard: collection, analysis, visualization"
+dependencies = [
+    "finance-datareader",
+    "sqlalchemy>=2.0",
+    "psycopg2-binary",
+    "fastapi>=0.100",
+    "uvicorn[standard]",
+    "pydantic>=2.0",
+    "pydantic-settings",
+    "alembic",
+    "pandas>=2.0",
+    "numpy",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio",
+    "httpx",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+include = ["collector*", "research_engine*", "api*", "db*", "config*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

@@ -19,9 +19,9 @@ venv/
 Thumbs.db
 Desktop.ini
 
-# Node (dashboard)
+# Node (frontend)
 node_modules/
-dashboard/dist/
+frontend/dist/
 
 # Database
 *.db

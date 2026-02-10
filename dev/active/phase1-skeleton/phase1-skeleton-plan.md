@@ -1,6 +1,7 @@
 # Phase 1: Project Skeleton + DB + Collector
 > Last Updated: 2026-02-10
-> Status: Planning
+> Status: In Progress
+> Current Step: 1.9 완료 (DB 불필요 그룹 전체 완료)
 
 ## 1. Summary (개요)
 

@@ -1,0 +1,4 @@
+finance-datareader>=0.9.96
+numpy==1.26.4
+pandas==2.0.3
+pykiwoom>=0.1.6

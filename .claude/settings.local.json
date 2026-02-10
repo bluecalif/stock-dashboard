@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"C:\\\\Projects-2026\\\\stock-dashboard\\\\tools\\\\kiwoom_access_check.py\")",
+      "Bash(del \"C:\\\\Projects-2026\\\\stock-dashboard\\\\tools\\\\kiwoom_api_smoke_test.py\")",
+      "Bash(del \"C:\\\\Projects-2026\\\\stock-dashboard\\\\docs\\\\kiwoom-access-check.json\")",
+      "Bash(del \"C:\\\\Projects-2026\\\\stock-dashboard\\\\docs\\\\kiwoom-api-smoke.json\")",
+      "Bash(del \"C:\\\\Projects-2026\\\\stock-dashboard\\\\docs\\\\guide_kiwoom.md\")",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" status)",
+      "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" log --oneline -5)",
+      "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" diff --staged)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

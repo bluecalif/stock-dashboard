@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Node (dashboard)
+node_modules/
+dashboard/dist/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Temp
+temp_compact.md

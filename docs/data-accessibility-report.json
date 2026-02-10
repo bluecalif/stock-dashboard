@@ -1,0 +1,607 @@
+{
+  "generated_at_utc": "2026-02-10T10:22:53Z",
+  "input": {
+    "smoke_days": 30,
+    "backfill_years": 3,
+    "repeats": 20,
+    "kiwoom_repeats": 5,
+    "retries": 2,
+    "kiwoom_max_pages": 10,
+    "kiwoom_mode": "require",
+    "check_environment": true,
+    "output_json": "docs/data-accessibility-report.json",
+    "output_md": "docs/data-accessibility-report.md"
+  },
+  "checks": [
+    {
+      "name": "kiwoom_session",
+      "success": false,
+      "skipped": false,
+      "latency_ms": null,
+      "error": "kiwoom_requires_32bit_python",
+      "details": {
+        "python_bits": 64,
+        "python_executable": "C:\\Users\\USER\\anaconda3\\python.exe"
+      }
+    },
+    {
+      "name": "postgres_connection",
+      "success": false,
+      "skipped": false,
+      "latency_ms": null,
+      "error": "DATABASE_URL_not_set",
+      "details": null
+    },
+    {
+      "name": "smoke:KS200",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 505.5575000005774,
+      "error": null,
+      "details": {
+        "asset_id": "KS200",
+        "row_count": 40,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:005930",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 864.2072999937227,
+      "error": null,
+      "details": {
+        "asset_id": "005930",
+        "row_count": 40,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:000660",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 738.7179000070319,
+      "error": null,
+      "details": {
+        "asset_id": "000660",
+        "row_count": 40,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:SOXL",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 979.8326999880373,
+      "error": null,
+      "details": {
+        "asset_id": "SOXL",
+        "row_count": 40,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-09",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:BTC/KRW",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 1000.5591999943135,
+      "error": null,
+      "details": {
+        "asset_id": "BTC/KRW",
+        "row_count": 62,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:GC=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 1016.9951999996556,
+      "error": null,
+      "details": {
+        "asset_id": "GC=F",
+        "row_count": 41,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "smoke:SI=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 965.8038000052329,
+      "error": null,
+      "details": {
+        "asset_id": "SI=F",
+        "row_count": 41,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:KS200",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 595.2855000068666,
+      "error": null,
+      "details": {
+        "asset_id": "KS200",
+        "row_count": 731,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:005930",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 705.1107000006596,
+      "error": null,
+      "details": {
+        "asset_id": "005930",
+        "row_count": 731,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:000660",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 831.7769999994198,
+      "error": null,
+      "details": {
+        "asset_id": "000660",
+        "row_count": 731,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:SOXL",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 1058.1252999982098,
+      "error": null,
+      "details": {
+        "asset_id": "SOXL",
+        "row_count": 751,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-09",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:BTC/KRW",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 987.1132999978727,
+      "error": null,
+      "details": {
+        "asset_id": "BTC/KRW",
+        "row_count": 1097,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:GC=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 1018.1107000098564,
+      "error": null,
+      "details": {
+        "asset_id": "GC=F",
+        "row_count": 757,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.003963011889035667,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "backfill:SI=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 994.4824999984121,
+      "error": null,
+      "details": {
+        "asset_id": "SI=F",
+        "row_count": 757,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.003963011889035667,
+        "latest_date": "2026-02-10",
+        "missing_columns": []
+      }
+    },
+    {
+      "name": "reliability:KS200",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "KS200",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 232.6407999935327
+      }
+    },
+    {
+      "name": "reliability:005930",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "005930",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 794.8447999951895
+      }
+    },
+    {
+      "name": "reliability:000660",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "000660",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 788.9214000024367
+      }
+    },
+    {
+      "name": "reliability:SOXL",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "SOXL",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 990.719800000079
+      }
+    },
+    {
+      "name": "reliability:BTC/KRW",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "BTC/KRW",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 986.1240000027465
+      }
+    },
+    {
+      "name": "reliability:GC=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "GC=F",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 1000.3090999962296
+      }
+    },
+    {
+      "name": "reliability:SI=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": null,
+      "error": null,
+      "details": {
+        "asset_id": "SI=F",
+        "repeats": 20,
+        "fail_no_retry": 0,
+        "fail_with_retry": 0,
+        "fail_rate_with_retry": 0.0,
+        "p95_ms": 1173.0784000101266
+      }
+    },
+    {
+      "name": "freshness:KS200",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 192.77999999758322,
+      "error": null,
+      "details": {
+        "asset_id": "KS200",
+        "row_count": 22,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "freshness:005930",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 694.7232000093209,
+      "error": null,
+      "details": {
+        "asset_id": "005930",
+        "row_count": 22,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "freshness:000660",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 692.0350000000326,
+      "error": null,
+      "details": {
+        "asset_id": "000660",
+        "row_count": 22,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "freshness:SOXL",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 899.5085999922594,
+      "error": null,
+      "details": {
+        "asset_id": "SOXL",
+        "row_count": 20,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-09",
+        "missing_columns": [],
+        "lag_days": 1
+      }
+    },
+    {
+      "name": "freshness:BTC/KRW",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 887.4326000077417,
+      "error": null,
+      "details": {
+        "asset_id": "BTC/KRW",
+        "row_count": 32,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "freshness:GC=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 951.007199997548,
+      "error": null,
+      "details": {
+        "asset_id": "GC=F",
+        "row_count": 21,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "freshness:SI=F",
+      "success": true,
+      "skipped": false,
+      "latency_ms": 1026.8851000000723,
+      "error": null,
+      "details": {
+        "asset_id": "SI=F",
+        "row_count": 21,
+        "required_ok": true,
+        "dup": 0,
+        "neg": 0,
+        "inv": 0,
+        "missing_ratio": 0.0,
+        "latest_date": "2026-02-10",
+        "missing_columns": [],
+        "lag_days": 0
+      }
+    },
+    {
+      "name": "smoke:005930:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "backfill:005930:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "reliability:005930:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "freshness:005930:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "smoke:000660:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "backfill:000660:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "reliability:000660:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    },
+    {
+      "name": "freshness:000660:kiwoom",
+      "success": false,
+      "skipped": true,
+      "latency_ms": null,
+      "error": "kiwoom_unavailable",
+      "details": null
+    }
+  ],
+  "gate_summary": {
+    "total_checks": 38,
+    "evaluated_checks": 30,
+    "success_checks": 28,
+    "skipped_checks": 8,
+    "success_rate": 0.9333333333333333,
+    "max_fail_rate_with_retry": 0.0,
+    "max_p95_ms": 1173.0784000101266,
+    "critical_errors": 0,
+    "gate": "Conditional Go",
+    "thresholds": {
+      "success_rate_min": 0.99,
+      "fail_rate_max": 0.01,
+      "missing_ratio_max": 0.005,
+      "p95_ms_max": 2000
+    }
+  }
+}

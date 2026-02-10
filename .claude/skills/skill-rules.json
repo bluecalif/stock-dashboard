@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "skills": {
+    "backend-dev": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "collector", "수집기", "FDR", "FinanceDataReader",
+          "research_engine", "팩터", "전략", "백테스트", "backtest",
+          "FastAPI", "API", "엔드포인트", "endpoint", "router", "service", "repository",
+          "SQLAlchemy", "PostgreSQL", "DB", "데이터베이스", "스키마",
+          "OHLCV", "price_daily", "asset_master", "UPSERT"
+        ],
+        "intentPatterns": [
+          "(생성|구현|추가).*(수집|collector|API|엔드포인트)",
+          "(create|implement|add).*(collector|endpoint|service|router)",
+          "(팩터|전략|신호).*(생성|계산|구현)",
+          "(factor|strategy|signal).*(generate|compute|implement)"
+        ]
+      }
+    },
+    "frontend-dev": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "dashboard", "대시보드", "시각화", "차트", "chart",
+          "React", "Recharts", "Vite", "컴포넌트", "component",
+          "페이지", "page", "프론트", "frontend", "UI",
+          "LineChart", "BarChart", "에쿼티 커브", "equity curve"
+        ],
+        "intentPatterns": [
+          "(생성|구현|추가).*(대시보드|차트|페이지|컴포넌트)",
+          "(create|implement|add).*(dashboard|chart|page|component)",
+          "(시각화|렌더링).*(가격|팩터|전략|백테스트)",
+          "(visualize|render).*(price|factor|strategy|backtest)"
+        ]
+      }
+    }
+  }
+}

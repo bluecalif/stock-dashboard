@@ -136,9 +136,9 @@
 | # | Task | Size | Dependencies |
 |---|------|------|-------------|
 | 1.1 | `pyproject.toml` + 의존성 설치 | S | - |
-| 1.2 | `.env.example` + `DATABASE_URL` 설정 | S | - |
+| 1.2 | `.env.example` + `DATABASE_URL` 설정 | S | 1.1 |
 | 1.3 | `db/models.py` — SQLAlchemy 모델 8개 테이블 | M | 1.1 |
-| 1.4 | Alembic 초기화 + 초기 마이그레이션 | M | 1.3 |
+| 1.4 | Alembic 초기화 + 초기 마이그레이션 | M | 1.2, 1.3 |
 | 1.5 | `asset_master` 시드 스크립트 | S | 1.4 |
 | 1.6 | `collector/fdr_client.py` — FDR 래퍼 | M | 1.1 |
 | 1.7 | `collector/validators.py` — 정합성 검증 | M | 1.1 |
@@ -234,6 +234,6 @@
 - Git + GitHub (CI/CD, 코드 관리)
 
 ### 선행 작업
-- `DATABASE_URL` 환경변수 설정 → DB 연결 검증 → Phase 1 시작 가능
+- `DATABASE_URL` 환경변수 설정 → DB 연결 검증 → Task 1.4(Alembic) 이후 가능 (1.1/1.3/1.6/1.7은 DB 없이 선행 가능)
 - GitHub Secrets 설정 → Phase 6 CI/CD 가능
 - 프론트엔드 호스팅 계정 준비 → Phase 6C 가능

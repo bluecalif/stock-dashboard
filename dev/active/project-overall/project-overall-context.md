@@ -29,7 +29,7 @@
 
 - **Gate**: Conditional Go
 - **FDR 7개 자산**: 전체 PASS (smoke, backfill, reliability, freshness)
-- **DB 연결**: FAIL (`DATABASE_URL` 미설정)
+- **DB 연결**: FAIL (`DATABASE_URL` 미설정) — Task 1.4(Alembic) 전까지 비차단
 - **p95 응답시간**: 최대 1173ms (SI=F reliability)
 - **실패율**: 0% (재시도 포함)
 - **백필 결측률**: 최대 0.4% (GC=F, SI=F — 허용 범위)

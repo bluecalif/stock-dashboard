@@ -11,9 +11,9 @@
 
 ## Phase 1: 프로젝트 골격 + DB + 수집 기본 (Week 1)
 - [ ] 1.1 `pyproject.toml` + 의존성 설치 `[S]`
-- [ ] 1.2 `.env.example` + `DATABASE_URL` 설정 `[S]`
+- [ ] 1.2 `.env.example` + `DATABASE_URL` 설정 `[S]` → depends: 1.1 ⚠️ DB 연결 태스크(1.4+) 전 필수
 - [ ] 1.3 `db/models.py` — SQLAlchemy 모델 8개 테이블 `[M]` → depends: 1.1
-- [ ] 1.4 Alembic 초기화 + 초기 마이그레이션 `[M]` → depends: 1.3
+- [ ] 1.4 Alembic 초기화 + 초기 마이그레이션 `[M]` → depends: 1.2, 1.3
 - [ ] 1.5 `asset_master` 시드 스크립트 `[S]` → depends: 1.4
 - [ ] 1.6 `collector/fdr_client.py` — FDR 래퍼 `[M]` → depends: 1.1
 - [ ] 1.7 `collector/validators.py` — 정합성 검증 `[M]` → depends: 1.1
@@ -87,6 +87,6 @@
 ## Summary
 - **Total Tasks**: 37
 - **Size Distribution**: S: 8, M: 18, L: 7, XL: 4
-- **Critical Path**: 1.1 → 1.3 → 1.8 → 2.2 → 3.1 → 3.2 → 4.1 → 4.4 → 5.2 → 6.7 → 6.8
-- **Blocker**: `DATABASE_URL` 설정 (Phase 1 시작 전 필수)
+- **Critical Path**: 1.1 → 1.3 → (1.2 →) 1.4 → 1.8 → 2.2 → 3.1 → 3.2 → 4.1 → 4.4 → 5.2 → 6.7 → 6.8
+- **Blocker**: `DATABASE_URL` 설정 (Task 1.4 Alembic 이전 필수 — 1.1/1.3/1.6/1.7은 선행 가능)
 - **배포 선행 조건**: GitHub Secrets 설정, 프론트엔드 호스팅 계정 준비

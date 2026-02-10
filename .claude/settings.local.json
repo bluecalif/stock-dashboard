@@ -12,7 +12,8 @@
       "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" log --oneline -5)",
       "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" diff --staged)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git -C \"C:\\\\Projects-2026\\\\stock-dashboard\" push -u origin master)"
     ]
   }
 }

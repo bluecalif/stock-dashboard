@@ -1,6 +1,6 @@
 # Phase 2 Tasks
 > Last Updated: 2026-02-11
-> Status: Planning
+> Status: Complete
 
 ## Overview
 - **Total Tasks**: 7
@@ -183,10 +183,10 @@
 
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
-| 2.1 재시도+로깅 | S | [ ] Pending | |
-| 2.2 UPSERT | M | [ ] Pending | |
-| 2.3 job_run | M | [ ] Pending | |
-| 2.4 검증 강화 | M | [ ] Pending | |
-| 2.5 스크립트 | S | [ ] Pending | |
-| 2.6 3년 백필 | L | [ ] Pending | |
-| 2.7 통합 테스트 | M | [ ] Pending | |
+| 2.1 재시도+로깅 | S | [x] Done | `21eb554` |
+| 2.2 UPSERT | M | [x] Done | `9bb7765` |
+| 2.3 job_run | M | [x] Done | `90c5a67` |
+| 2.4 검증 강화 | M | [x] Done | `21eb554` |
+| 2.5 스크립트 | S | [x] Done | `2bc5889` |
+| 2.6 3년 백필 | L | [x] Done | `6bcad30` |
+| 2.7 통합 테스트 | M | [x] Done | `6bcad30` |

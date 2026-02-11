@@ -1,6 +1,6 @@
 # Phase 2 Context
 > Last Updated: 2026-02-11
-> Status: Planning
+> Status: Complete
 
 ## 핵심 파일
 
@@ -20,7 +20,8 @@
 | `backend/config/logging.py` | 로깅 초기화 유틸 |
 | `backend/scripts/collect.py` | CLI 수집 진입점 |
 | `backend/tests/integration/__init__.py` | 통합 테스트 패키지 |
-| `backend/tests/integration/test_ingest_db.py` | DB 통합 테스트 |
+| `backend/tests/integration/conftest.py` | 통합 테스트 fixtures (INTEGRATION_TEST 게이트, SAVEPOINT 롤백) |
+| `backend/tests/integration/test_ingest_db.py` | DB 통합 테스트 (4개) |
 
 ### 참조 (읽기 전용)
 | 파일 | 참조 내용 |

@@ -1,8 +1,15 @@
 """Tests for collector.ingest."""
 
+import json
 from unittest.mock import MagicMock, patch
 
-from collector.ingest import _upsert, ingest_all, ingest_asset
+from collector.ingest import (
+    IngestResult,
+    _finish_job_run,
+    _upsert,
+    ingest_all,
+    ingest_asset,
+)
 
 
 class TestIngestAsset:
@@ -54,6 +61,73 @@ class TestUpsert:
 
         assert row_count == 3
         assert mock_session.execute.call_count == 2  # 2 + 1 rows
+
+
+class TestJobRun:
+    def test_job_run_created_on_ingest_all(self, sample_ohlcv_df):
+        """ingest_all with session must create a job_run record."""
+        mock_session = MagicMock()
+        # Make query return empty list so it falls back to SYMBOL_MAP
+        mock_session.query.return_value.filter.return_value.all.return_value = []
+
+        with (
+            patch("collector.ingest.fetch_ohlcv", return_value=sample_ohlcv_df),
+            patch("collector.fdr_client.SYMBOL_MAP", {"TEST1": {}}),
+            patch("collector.ingest._upsert", return_value=3),
+        ):
+            ingest_all("2026-01-01", "2026-01-10", session=mock_session)
+
+        # job_run should have been added to session
+        add_calls = mock_session.add.call_args_list
+        assert len(add_calls) >= 1
+        job_obj = add_calls[0][0][0]
+        assert job_obj.job_name.startswith("ingest_all(")
+        assert job_obj.status in ("success", "running")
+
+    def test_job_run_partial_failure_status(self):
+        """partial failure: some success + some failure → 'partial_failure'."""
+        mock_session = MagicMock()
+        job = MagicMock()
+        job.status = "running"
+
+        results = [
+            IngestResult(asset_id="A", status="success", row_count=10),
+            IngestResult(asset_id="B", status="fetch_failed", errors=["timeout"]),
+        ]
+        _finish_job_run(mock_session, job, results)
+
+        assert job.status == "partial_failure"
+        assert job.ended_at is not None
+        error_data = json.loads(job.error_message)
+        assert len(error_data) == 1
+        assert error_data[0]["asset_id"] == "B"
+
+    def test_job_run_all_success_status(self):
+        """All success → 'success' status, no error_message set."""
+        mock_session = MagicMock()
+        job = MagicMock()
+        job.error_message = None
+
+        results = [
+            IngestResult(asset_id="A", status="success"),
+            IngestResult(asset_id="B", status="success"),
+        ]
+        _finish_job_run(mock_session, job, results)
+
+        assert job.status == "success"
+        assert job.error_message is None
+
+    def test_job_run_all_failure_status(self):
+        """All failures → 'failure' status."""
+        mock_session = MagicMock()
+        job = MagicMock()
+
+        results = [
+            IngestResult(asset_id="A", status="fetch_failed", errors=["err"]),
+        ]
+        _finish_job_run(mock_session, job, results)
+
+        assert job.status == "failure"
 
 
 class TestIngestAll:

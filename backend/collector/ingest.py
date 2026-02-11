@@ -1,14 +1,16 @@
 """Ingest orchestration: fetch → validate → store pipeline."""
 
+import json
 import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 from sqlalchemy.dialects.postgresql import insert
 
 from collector.fdr_client import fetch_ohlcv
 from collector.validators import validate_ohlcv
-from db.models import AssetMaster, PriceDaily
+from db.models import AssetMaster, JobRun, PriceDaily
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,7 @@ class IngestResult:
     status: str  # "success" | "validation_failed" | "fetch_failed"
     row_count: int = 0
     errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     elapsed_ms: float = 0.0
 
 
@@ -47,6 +50,42 @@ def _upsert(session, df, chunk_size: int = 1000) -> int:
 
     session.flush()
     return total
+
+
+def _create_job_run(session, job_name: str):
+    """Create a job_run record with status='running'. Returns the JobRun."""
+    job = JobRun(
+        job_name=job_name,
+        started_at=datetime.now(timezone.utc),
+        status="running",
+    )
+    session.add(job)
+    session.flush()
+    return job
+
+
+def _finish_job_run(session, job, results: list["IngestResult"]):
+    """Update job_run with final status based on results."""
+    failures = [r for r in results if r.status != "success"]
+    successes = [r for r in results if r.status == "success"]
+
+    if len(failures) == 0:
+        job.status = "success"
+    elif len(successes) == 0:
+        job.status = "failure"
+    else:
+        job.status = "partial_failure"
+
+    job.ended_at = datetime.now(timezone.utc)
+
+    if failures:
+        error_summary = [
+            {"asset_id": r.asset_id, "status": r.status, "errors": r.errors}
+            for r in failures
+        ]
+        job.error_message = json.dumps(error_summary, ensure_ascii=False)
+
+    session.flush()
 
 
 def ingest_asset(asset_id: str, start: str, end: str, session=None) -> IngestResult:
@@ -120,8 +159,9 @@ def ingest_asset(asset_id: str, start: str, end: str, session=None) -> IngestRes
 def ingest_all(start: str, end: str, session=None) -> list[IngestResult]:
     """Ingest all active assets.
 
-    If session is provided, queries asset_master for active assets.
-    Otherwise falls back to SYMBOL_MAP keys.
+    If session is provided, queries asset_master for active assets
+    and records a job_run entry.
+    Otherwise falls back to SYMBOL_MAP keys (no job_run).
     """
     from collector.fdr_client import SYMBOL_MAP
 
@@ -135,10 +175,20 @@ def ingest_all(start: str, end: str, session=None) -> list[IngestResult]:
     else:
         asset_ids = list(SYMBOL_MAP.keys())
 
+    # Create job_run record
+    job = None
+    if session is not None:
+        job = _create_job_run(session, f"ingest_all({start}~{end})")
+
     results: list[IngestResult] = []
     for asset_id in asset_ids:
         result = ingest_asset(asset_id, start, end, session)
         results.append(result)
+
+    # Finish job_run
+    if session is not None and job is not None:
+        _finish_job_run(session, job, results)
+        session.commit()
 
     success = sum(1 for r in results if r.status == "success")
     total = len(results)

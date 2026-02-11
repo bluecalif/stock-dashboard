@@ -96,3 +96,73 @@ class TestValidateOhlcv:
         result = validate_ohlcv(df)
         assert result.is_valid is False
         assert any("negative_volume" in e for e in result.errors)
+
+    def test_date_gap_detection(self):
+        """Must detect missing business days as warning."""
+        # 2026-01-02 (금) → 2026-01-06 (화): 01-05 (월) 누락
+        df = pd.DataFrame({
+            "asset_id": ["KS200", "KS200"],
+            "date": pd.to_datetime(["2026-01-02", "2026-01-06"]),
+            "open": [100.0, 101.0],
+            "high": [105.0, 106.0],
+            "low": [98.0, 99.0],
+            "close": [103.0, 104.0],
+            "volume": [50000, 55000],
+            "source": ["fdr", "fdr"],
+            "ingested_at": [datetime.now(timezone.utc)] * 2,
+        })
+        result = validate_ohlcv(df, category="stock")
+        assert result.is_valid is True  # warning only
+        assert any("date_gap" in w for w in result.warnings)
+
+    def test_no_gap_for_crypto(self):
+        """Crypto uses calendar days — no false gap on weekends."""
+        # 3 consecutive calendar days, no gap
+        df = pd.DataFrame({
+            "asset_id": ["BTC", "BTC", "BTC"],
+            "date": pd.to_datetime(["2026-01-02", "2026-01-03", "2026-01-04"]),
+            "open": [100.0, 101.0, 102.0],
+            "high": [105.0, 106.0, 107.0],
+            "low": [98.0, 99.0, 100.0],
+            "close": [103.0, 104.0, 105.0],
+            "volume": [50000, 55000, 60000],
+            "source": ["fdr"] * 3,
+            "ingested_at": [datetime.now(timezone.utc)] * 3,
+        })
+        result = validate_ohlcv(df, category="crypto")
+        assert result.is_valid is True
+        assert not any("date_gap" in w for w in result.warnings)
+
+    def test_price_spike_warning(self):
+        """Must warn on >30% daily price change."""
+        df = pd.DataFrame({
+            "asset_id": ["KS200", "KS200"],
+            "date": pd.to_datetime(["2026-01-02", "2026-01-05"]),
+            "open": [100.0, 140.0],
+            "high": [105.0, 145.0],
+            "low": [98.0, 138.0],
+            "close": [100.0, 140.0],  # 40% change
+            "volume": [50000, 60000],
+            "source": ["fdr", "fdr"],
+            "ingested_at": [datetime.now(timezone.utc)] * 2,
+        })
+        result = validate_ohlcv(df)
+        assert result.is_valid is True  # warning only
+        assert any("price_spike" in w for w in result.warnings)
+
+    def test_flagged_dates_populated(self):
+        """Spike dates must appear in flagged_dates."""
+        df = pd.DataFrame({
+            "asset_id": ["KS200", "KS200"],
+            "date": pd.to_datetime(["2026-01-02", "2026-01-05"]),
+            "open": [100.0, 140.0],
+            "high": [105.0, 145.0],
+            "low": [98.0, 138.0],
+            "close": [100.0, 140.0],  # 40% change
+            "volume": [50000, 60000],
+            "source": ["fdr", "fdr"],
+            "ingested_at": [datetime.now(timezone.utc)] * 2,
+        })
+        result = validate_ohlcv(df)
+        assert len(result.flagged_dates) > 0
+        assert "2026-01-05" in result.flagged_dates

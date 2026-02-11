@@ -1,10 +1,13 @@
 """FDR (FinanceDataReader) wrapper with retry, fallback, and DataFrame standardization."""
 
 import logging
+import random
 import time
 from datetime import datetime, timezone
 
 import pandas as pd
+
+from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +21,9 @@ SYMBOL_MAP: dict[str, dict] = {
     "SI=F": {"fdr_symbol": "SI=F", "category": "commodity"},
 }
 
-MAX_RETRIES = 3
-BASE_DELAY = 1.0  # seconds
+# Legacy constants kept for backward compat in tests; runtime uses settings
+MAX_RETRIES = settings.fdr_max_retries
+BASE_DELAY = settings.fdr_base_delay
 
 
 def _fetch_raw(fdr_symbol: str, start: str, end: str) -> pd.DataFrame:
@@ -70,10 +74,12 @@ def fetch_ohlcv(asset_id: str, start: str, end: str) -> pd.DataFrame:
     if "fallback" in info:
         symbols_to_try.append(info["fallback"])
 
+    max_retries = settings.fdr_max_retries
+    base_delay = settings.fdr_base_delay
     last_error: Exception | None = None
 
     for symbol in symbols_to_try:
-        for attempt in range(MAX_RETRIES):
+        for attempt in range(max_retries):
             try:
                 df = _fetch_raw(symbol, start, end)
                 if df is None or len(df) == 0:
@@ -85,11 +91,11 @@ def fetch_ohlcv(asset_id: str, start: str, end: str) -> pd.DataFrame:
                 return _standardize(df, asset_id)
             except Exception as e:
                 last_error = e
-                if attempt < MAX_RETRIES - 1:
-                    delay = BASE_DELAY * (2 ** attempt)
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt) * (1 + random.random() * 0.3)
                     logger.warning(
                         "Retry %d/%d for %s (symbol=%s): %s. Waiting %.1fs",
-                        attempt + 1, MAX_RETRIES, asset_id, symbol, e, delay,
+                        attempt + 1, max_retries, asset_id, symbol, e, delay,
                     )
                     time.sleep(delay)
 

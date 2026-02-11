@@ -26,7 +26,7 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 - Last commit: `99047ce` — [phase2-collector] Step 2.8: Discord 알림 + JSON 로깅
 - origin/master보다 2 commits ahead (push 필요)
 
-### Phase 2 진행률 — 80% (8/10)
+### Phase 2 진행률 — 90% (9/10)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 2.1 재시도+로깅 | S | ✅ Done | `21eb554` |
@@ -37,7 +37,7 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 | 2.6 3년 백필 | L | ✅ Done | `6bcad30` |
 | 2.7 통합 테스트 | M | ✅ Done | `6bcad30` |
 | 2.8 알림+JSON로깅 | S | ✅ Done | `99047ce` |
-| 2.9 스케줄러 | S | ⬜ Pending | — |
+| 2.9 스케줄러 | S | ✅ Done | — |
 | 2.10 신선도 체크 | S | ⬜ Pending | — |
 
 ### DB 현황
@@ -53,6 +53,7 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 ## Remaining / TODO
 - [ ] **Task 2.9**: Windows Task Scheduler 일일 자동 수집
 - [ ] **Task 2.10**: 데이터 신선도 체크 (자산별 T-1 검증)
+- [ ] **배포 전**: `.env`에 실제 `ALERT_WEBHOOK_URL` 설정 (Discord 서버 > 채널 > 연동 > 웹후크)
 - [ ] **Phase 3: research_engine** — 팩터 생성, 전략 신호, 백테스트
 
 ## Key Decisions

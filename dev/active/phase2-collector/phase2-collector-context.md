@@ -76,6 +76,11 @@
 - `INTEGRATION_TEST=1` 환경변수가 설정된 경우에만 실행
 - `pytest.mark.skipif`로 게이트 처리
 
+### Step 2.9 구현 내역
+- `backend/scripts/daily_collect.bat` — 신규: venv 활성화 + collect.py T-7~T + 로그 파일 출력
+- `backend/scripts/register_scheduler.bat` — 신규: schtasks 등록 (매일 18:00, 관리자 권한)
+- `logs/.gitkeep` — 신규: 로그 디렉토리 유지
+
 ### Step 2.8 구현 내역
 - `backend/collector/alerting.py` — 신규: Discord webhook 전송 + 메시지 포맷팅
 - `backend/config/logging.py` — 수정: `JsonFormatter` 클래스, `fmt` 파라미터 추가
@@ -92,6 +97,7 @@
 - Discord Webhook 사용 (마스터플랜 §9, §17)
 - 알림 실패가 수집 프로세스를 중단하면 안 됨 (try/except로 격리)
 - `ALERT_WEBHOOK_URL`이 비어있으면 알림 스킵
+- **[배포 체크리스트]** 운영 환경에서 반드시 실제 Discord webhook URL 설정 필요
 
 #### 스케줄러 정책
 - Windows Task Scheduler 사용 (마스터플랜 §4)

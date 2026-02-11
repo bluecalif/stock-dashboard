@@ -7,31 +7,26 @@
 Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체크
 
 ## Completed
-- [x] **Phase 2 전체 완료** (Task 2.1 ~ 2.7)
-- [x] **Task 2.6 3년 백필**: 1년 단위 3회 분할 실행 완료
-  - 2023-02-11~2024-02-11: 7/7 성공, 1,856 rows (24.7s)
-  - 2024-02-11~2025-02-11: 7/7 성공, 1,842 rows (25.2s)
-  - 2025-02-11~2026-02-11: 7/7 성공, 1,869 rows (23.4s)
-  - DB 검증 완료: 총 5,559 rows, 자산별 정상 범위 확인
-- [x] **Task 2.7 DB 통합 테스트**: `tests/integration/` 생성
-  - `conftest.py`: INTEGRATION_TEST=1 게이트, SAVEPOINT 기반 트랜잭션 롤백 세션
-  - `test_ingest_db.py`: 4개 테스트 전부 통과
-    - test_upsert_twice_same_row_count (UPSERT idempotent)
-    - test_upsert_updates_ingested_at (ingested_at 갱신)
-    - test_job_run_exists_after_ingest_all (job_run 기록)
-    - test_partial_failure_status_in_db (partial_failure 상태)
-- [x] **Step-update**: dev-docs 3개 파일 Status → Complete, Progress Tracker 전체 Done
-- [x] **Git push**: 모든 커밋 origin/master에 반영 완료
+- [x] **Phase 2 코어 완료** (Task 2.1 ~ 2.7)
+- [x] **갭 분석**: 마스터플랜 §4/§9 대비 Phase 2 누락 항목 식별
+- [x] **Stage D 계획 수립**: Task 2.8~2.10으로 운영화 태스크 추가
+- [x] **dev-docs 업데이트**: plan/tasks/context 3개 파일에 Stage D 반영
+- [x] **Git commit**: `e022c7e` — Stage D 추가: Task 2.8~2.10 운영화 계획
+- [x] **Task 2.8 구현**: Discord 알림 + JSON 로깅 + .env.example
+  - `collector/alerting.py`: Discord webhook 전송 (urllib, 실패 격리)
+  - `config/logging.py`: JsonFormatter + `fmt` 파라미터
+  - `ingest.py`: failure/partial_failure 시 알림 호출
+  - `.env.example` 루트 생성, `.gitignore`에 `logs/` 추가
+  - 테스트 7개 신규 (alerting 5 + logging 2), 전체 42 passed
 
 ## Current State
 
 ### Git
 - Branch: `master`
-- Last commit: `2a88100` — Phase 2 완료: dev-docs + session-compact 갱신
-- Working tree: `.claude/settings.local.json` 미커밋 (코드 변경 없음)
-- origin/master와 동기화 완료
+- Last commit: `99047ce` — [phase2-collector] Step 2.8: Discord 알림 + JSON 로깅
+- origin/master보다 2 commits ahead (push 필요)
 
-### Phase 2 진행률 — 70% (7/10)
+### Phase 2 진행률 — 80% (8/10)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 2.1 재시도+로깅 | S | ✅ Done | `21eb554` |
@@ -41,7 +36,7 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 | 2.5 스크립트 | S | ✅ Done | `2bc5889` |
 | 2.6 3년 백필 | L | ✅ Done | `6bcad30` |
 | 2.7 통합 테스트 | M | ✅ Done | `6bcad30` |
-| 2.8 알림+JSON로깅 | S | ⬜ Pending | — |
+| 2.8 알림+JSON로깅 | S | ✅ Done | `99047ce` |
 | 2.9 스케줄러 | S | ⬜ Pending | — |
 | 2.10 신선도 체크 | S | ⬜ Pending | — |
 
@@ -50,40 +45,42 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 - 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
 
 ### 테스트 현황
-- Unit: **35 passed**
+- Unit: **42 passed**
 - Integration: **4 passed** (INTEGRATION_TEST=1)
-- 일반 pytest: 35 passed, 4 skipped
+- 일반 pytest: 42 passed, 4 skipped
 - ruff: All checks passed
 
 ## Remaining / TODO
-- [ ] **Task 2.8**: Discord 실패 알림 + .env.example + JSON 로깅
 - [ ] **Task 2.9**: Windows Task Scheduler 일일 자동 수집
 - [ ] **Task 2.10**: 데이터 신선도 체크 (자산별 T-1 검증)
 - [ ] **Phase 3: research_engine** — 팩터 생성, 전략 신호, 백테스트
-  - `docs/masterplan-v0.md` §7 참조
-  - factor_daily, signal_daily, backtest_run 테이블 활용
 
 ## Key Decisions
-- **UPSERT 방식**: PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` (`sqlalchemy.dialects.postgresql.insert`)
-- **PriceDaily PK**: `(asset_id, date, source)` — conflict 키
-- **3년 백필**: 1년 단위 분할 실행 (FDR 타임아웃 방지)
-- **통합 테스트 격리**: SAVEPOINT 기반 트랜잭션 롤백 (테스트 데이터 DB 미잔류)
-- **통합 테스트 asset_master 패치**: `_mock_asset_master_query()` 헬퍼로 session.query 대체 (실제 DB의 asset_master와 충돌 방지)
+- **Phase 2 확장 이유**: 마스터플랜 §4(스케줄러), §9(알림/JSON로그/모니터링)가 수집기 운영에 필수이나 기존 2.1~2.7에서 누락. Phase 3 전에 수집기가 자동 실행되어야 분석 엔진 개발 중 데이터 갭 방지
+- **네이밍**: Phase 2.5가 아닌 Task 2.8~2.10으로 기존 번호 체계 유지 (Task 2.5와 충돌 방지)
+- **알림 정책**: Discord Webhook, 알림 실패 시 수집 프로세스 중단 금지 (try/except 격리)
+- **알림 라이브러리**: `urllib.request` (stdlib) — 런타임 의존성 추가 없음
+- **스케줄러 정책**: Windows Task Scheduler, 매일 18:00 KST, 최근 7일 수집 (UPSERT이므로 overlap 안전)
+- **신선도 기준**: 주식/인덱스/ETF/커모디티는 전 영업일, 크립토는 전일 기준
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
 - **작업 디렉토리**: `backend/` 내에서 Python 작업 수행
 - **venv**: `backend/.venv/Scripts/activate` (Windows), Python 3.12.3
-- **dev-docs**: `dev/active/phase2-collector/` (Complete)
+- **dev-docs**: `dev/active/phase2-collector/` (Stage D In Progress)
+  - 상세 체크리스트: `phase2-collector-tasks.md` Task 2.9~2.10 섹션
+  - 결정사항/파일 목록: `phase2-collector-context.md` Stage D 섹션
 - **수집 스크립트**: `backend/scripts/collect.py` — `--start`, `--end`, `--assets` 인자
-- **테스트**: `backend/tests/unit/` (35개) + `backend/tests/integration/` (4개)
-- **마스터플랜**: `docs/masterplan-v0.md` — 전체 프로젝트 설계 문서
-- Git remote: `https://github.com/bluecalif/stock-dashboard.git` (master)
+- **테스트**: `backend/tests/unit/` (42개) + `backend/tests/integration/` (4개)
+- **마스터플랜**: `docs/masterplan-v0.md` — §9(운영/배치), §4(아키텍처), §17(환경변수)
+- Git remote: `https://github.com/bluecalif/stock-dashboard.git` (master, 2 ahead)
 - Railway PostgreSQL 연결됨
 - Shell: MINGW64 (Git Bash), 경로 형식 `/c/Projects-2026/...`
 
 ## Next Action
-1. **Task 2.8 구현**: Discord 알림 + JSON 로깅 + .env.example
-2. **Task 2.9 구현**: daily_collect.bat + schtasks 등록
-3. **Task 2.10 구현**: healthcheck.py + 스케줄러 통합
-4. Phase 2 완료 후 → Phase 3 dev-docs 생성 → research_engine 시작
+1. **Task 2.9 구현**: daily_collect.bat + register_scheduler.bat
+   - `scripts/daily_collect.bat`: venv 활성화 + collect.py --start T-7 --end T + 로그 파일
+   - `scripts/register_scheduler.bat`: schtasks /create 매일 18:00
+   - `logs/.gitkeep` 생성
+2. **Task 2.10 구현**: healthcheck.py + 스케줄러 통합
+3. Phase 2 완료 후 → Phase 3 dev-docs 생성 → research_engine 시작

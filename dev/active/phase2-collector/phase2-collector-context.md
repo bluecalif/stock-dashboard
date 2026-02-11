@@ -76,6 +76,16 @@
 - `INTEGRATION_TEST=1` 환경변수가 설정된 경우에만 실행
 - `pytest.mark.skipif`로 게이트 처리
 
+### Step 2.8 구현 내역
+- `backend/collector/alerting.py` — 신규: Discord webhook 전송 + 메시지 포맷팅
+- `backend/config/logging.py` — 수정: `JsonFormatter` 클래스, `fmt` 파라미터 추가
+- `backend/collector/ingest.py` — 수정: `_finish_job_run()`에서 failure 시 Discord 알림 호출
+- `.env.example` (루트) — 신규: 환경변수 템플릿
+- `.gitignore` — 수정: `logs/` 추가
+- `backend/tests/unit/test_alerting.py` — 신규: alerting 테스트 5개
+- `backend/tests/unit/test_logging.py` — 신규: JsonFormatter 테스트 2개
+- 알림 라이브러리: `urllib.request` (stdlib) 사용 — 추가 의존성 없음
+
 ### Stage D 결정사항
 
 #### 알림 정책

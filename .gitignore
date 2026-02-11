@@ -30,6 +30,7 @@ frontend/dist/
 
 # Logs
 *.log
+logs/
 
 # Temp
 temp_compact.md

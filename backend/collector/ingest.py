@@ -8,8 +8,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy.dialects.postgresql import insert
 
+from collector.alerting import format_failure_message, send_discord_alert
 from collector.fdr_client import fetch_ohlcv
 from collector.validators import validate_ohlcv
+from config.settings import settings
 from db.models import AssetMaster, JobRun, PriceDaily
 
 logger = logging.getLogger(__name__)
@@ -78,6 +80,7 @@ def _finish_job_run(session, job, results: list["IngestResult"]):
 
     job.ended_at = datetime.now(timezone.utc)
 
+    error_summary = []
     if failures:
         error_summary = [
             {"asset_id": r.asset_id, "status": r.status, "errors": r.errors}
@@ -86,6 +89,11 @@ def _finish_job_run(session, job, results: list["IngestResult"]):
         job.error_message = json.dumps(error_summary, ensure_ascii=False)
 
     session.flush()
+
+    # Send Discord alert on failure/partial_failure
+    if job.status in ("failure", "partial_failure"):
+        msg = format_failure_message(job.job_name, job.status, error_summary)
+        send_discord_alert(settings.alert_webhook_url, msg)
 
 
 def ingest_asset(asset_id: str, start: str, end: str, session=None) -> IngestResult:

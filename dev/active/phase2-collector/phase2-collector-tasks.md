@@ -285,6 +285,6 @@
 | 2.5 스크립트 | S | [x] Done | `2bc5889` |
 | 2.6 3년 백필 | L | [x] Done | `6bcad30` |
 | 2.7 통합 테스트 | M | [x] Done | `6bcad30` |
-| 2.8 알림+JSON로깅 | S | [ ] Pending | — |
+| 2.8 알림+JSON로깅 | S | [x] Done | `99047ce` |
 | 2.9 스케줄러 | S | [ ] Pending | — |
 | 2.10 신선도 체크 | S | [ ] Pending | — |

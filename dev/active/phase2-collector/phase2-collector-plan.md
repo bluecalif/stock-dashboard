@@ -1,7 +1,7 @@
 # Phase 2: 수집 파이프라인 완성
 > Last Updated: 2026-02-11
 > Status: In Progress
-> Current Step: 2.8 (Stage D 시작)
+> Current Step: 2.9 (Stage D)
 
 ## 1. Summary (개요)
 

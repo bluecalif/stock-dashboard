@@ -1,6 +1,6 @@
 # Phase 1 Context
-> Last Updated: 2026-02-10
-> Status: In Progress (Steps 1.1~1.9 완료, 1.4/1.5 DB 대기)
+> Last Updated: 2026-02-11
+> Status: In Progress (Steps 1.1~1.9 완료, 1.4/1.5 Railway DB 대기)
 
 ## 핵심 파일
 
@@ -46,6 +46,7 @@
 | 테스트 DB | SQLite in-memory / mock | 외부 DB 의존 없는 유닛 테스트 |
 | bulk insert | Phase 1 단순 INSERT | UPSERT는 Phase 2 (Task 2.2) |
 | BTC asset_id | `"BTC"` (FDR 심볼은 `BTC/KRW`) | asset_id에 `/` 포함 시 URL 문제 |
+| DB 호스팅 | Railway PostgreSQL (처음부터) | 로컬→Railway 전환 비용 제거, 환경 차이 리스크 제거 (2026-02-11) |
 
 ## 자산 매핑 (7개)
 

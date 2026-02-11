@@ -10,15 +10,15 @@
 - [x] Kiwoom 폐기, FDR 단일 소스 결정
 
 ## Phase 1: 프로젝트 골격 + DB + 수집 기본 (Week 1)
-- [ ] 1.1 `pyproject.toml` + 의존성 설치 `[S]`
-- [ ] 1.2 `.env.example` + `DATABASE_URL` 설정 `[S]` → depends: 1.1 ⚠️ DB 연결 태스크(1.4+) 전 필수
-- [ ] 1.3 `db/models.py` — SQLAlchemy 모델 8개 테이블 `[M]` → depends: 1.1
-- [ ] 1.4 Alembic 초기화 + 초기 마이그레이션 `[M]` → depends: 1.2, 1.3
+- [x] 1.1 `pyproject.toml` + 의존성 설치 `[S]` → `ebfd75c`
+- [x] 1.2 `.env.example` + `DATABASE_URL` 설정 `[S]` → `e39065c`
+- [x] 1.3 `db/models.py` — SQLAlchemy 모델 8개 테이블 `[M]` → `e39065c`
+- [ ] 1.4 Alembic 초기화 + 초기 마이그레이션 `[M]` → **Blocked: Railway DB 설정 필요**
 - [ ] 1.5 `asset_master` 시드 스크립트 `[S]` → depends: 1.4
-- [ ] 1.6 `collector/fdr_client.py` — FDR 래퍼 `[M]` → depends: 1.1
-- [ ] 1.7 `collector/validators.py` — 정합성 검증 `[M]` → depends: 1.1
-- [ ] 1.8 `collector/ingest.py` — 수집 오케스트레이션 `[L]` → depends: 1.3, 1.6, 1.7
-- [ ] 1.9 단위 테스트 (심볼 매핑, 검증, 수집) `[M]` → depends: 1.6, 1.7, 1.8
+- [x] 1.6 `collector/fdr_client.py` — FDR 래퍼 `[M]` → `e39065c`
+- [x] 1.7 `collector/validators.py` — 정합성 검증 `[M]` → `e39065c`
+- [x] 1.8 `collector/ingest.py` — 수집 오케스트레이션 `[L]` → `e39065c`
+- [x] 1.9 단위 테스트 (25 passed) `[M]` → `e39065c`
 
 ## Phase 2: 수집기 안정화 + 정합성/복구 (Week 2)
 - [ ] 2.1 지수 백오프 재시도 로직 `[M]` → depends: 1.6

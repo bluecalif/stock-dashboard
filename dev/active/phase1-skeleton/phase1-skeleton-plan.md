@@ -1,7 +1,7 @@
 # Phase 1: Project Skeleton + DB + Collector
-> Last Updated: 2026-02-10
-> Status: In Progress
-> Current Step: 1.9 완료 (DB 불필요 그룹 전체 완료)
+> Last Updated: 2026-02-11
+> Status: In Progress (7/9 완료, 1.4/1.5 Railway DB 대기)
+> Current Step: 1.4 대기 — Railway PostgreSQL 설정 후 진행
 
 ## 1. Summary (개요)
 

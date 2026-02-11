@@ -76,6 +76,12 @@
 - `INTEGRATION_TEST=1` 환경변수가 설정된 경우에만 실행
 - `pytest.mark.skipif`로 게이트 처리
 
+### Step 2.10 구현 내역
+- `backend/scripts/healthcheck.py` — 신규: 자산별 MAX(date) vs T-1 비교, STALE/NO_DATA/OK 판정
+- `backend/tests/unit/test_healthcheck.py` — 신규: 17개 테스트 (날짜 계산, 신선도 체크, 메시지 포맷)
+- `backend/scripts/daily_collect.bat` — 수정: 수집 완료 후 healthcheck.py 자동 실행 추가
+- 신선도 기준: crypto=전일, 기타=전 영업일. 문제 발견 시 Discord 알림 전송
+
 ### Step 2.9 구현 내역
 - `backend/scripts/daily_collect.bat` — 신규: venv 활성화 + collect.py T-7~T + 로그 파일 출력
 - `backend/scripts/register_scheduler.bat` — 신규: schtasks 등록 (매일 18:00, 관리자 권한)

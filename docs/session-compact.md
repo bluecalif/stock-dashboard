@@ -26,7 +26,7 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 - Last commit: `99047ce` — [phase2-collector] Step 2.8: Discord 알림 + JSON 로깅
 - origin/master보다 2 commits ahead (push 필요)
 
-### Phase 2 진행률 — 90% (9/10)
+### Phase 2 진행률 — 100% (10/10)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 2.1 재시도+로깅 | S | ✅ Done | `21eb554` |
@@ -38,16 +38,16 @@ Phase 2 운영화 (Task 2.8~2.10): Discord 알림 + 스케줄러 + 신선도 체
 | 2.7 통합 테스트 | M | ✅ Done | `6bcad30` |
 | 2.8 알림+JSON로깅 | S | ✅ Done | `99047ce` |
 | 2.9 스케줄러 | S | ✅ Done | — |
-| 2.10 신선도 체크 | S | ⬜ Pending | — |
+| 2.10 신선도 체크 | S | ✅ Done | — |
 
 ### DB 현황
 - price_daily: 5,559 rows (2023-02 ~ 2026-02)
 - 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
 
 ### 테스트 현황
-- Unit: **42 passed**
+- Unit: **59 passed**
 - Integration: **4 passed** (INTEGRATION_TEST=1)
-- 일반 pytest: 42 passed, 4 skipped
+- 일반 pytest: 59 passed, 4 skipped
 - ruff: All checks passed
 
 ## Remaining / TODO

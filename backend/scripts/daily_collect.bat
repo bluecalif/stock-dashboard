@@ -17,6 +17,7 @@ set BACKEND_DIR=%SCRIPT_DIR%..
 set PROJECT_ROOT=%SCRIPT_DIR%..\..
 set VENV_PYTHON=%BACKEND_DIR%\.venv\Scripts\python.exe
 set COLLECT_SCRIPT=%BACKEND_DIR%\scripts\collect.py
+set HEALTHCHECK_SCRIPT=%BACKEND_DIR%\scripts\healthcheck.py
 set LOG_DIR=%PROJECT_ROOT%\logs
 
 REM Verify venv exists
@@ -49,7 +50,21 @@ if %EXIT_CODE% EQU 0 (
     echo [%date% %time%] Collection finished with errors (exit code: %EXIT_CODE%).
 )
 
-echo [%date% %time%] Exit code: %EXIT_CODE% >> "%LOG_FILE%"
+echo [%date% %time%] Collection exit code: %EXIT_CODE% >> "%LOG_FILE%"
+
+REM Run data freshness check
+echo [%date% %time%] Running healthcheck...
+"%VENV_PYTHON%" "%HEALTHCHECK_SCRIPT%" >> "%LOG_FILE%" 2>&1
+set HC_CODE=%ERRORLEVEL%
+
+if %HC_CODE% EQU 0 (
+    echo [%date% %time%] Healthcheck passed.
+) else (
+    echo [%date% %time%] Healthcheck found stale data (exit code: %HC_CODE%).
+)
+
+echo [%date% %time%] Healthcheck exit code: %HC_CODE% >> "%LOG_FILE%"
 
 endlocal
+REM Exit with collection exit code (primary indicator)
 exit /b %EXIT_CODE%

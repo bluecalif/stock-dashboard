@@ -1,6 +1,6 @@
 # Phase 1 Tasks
-> Last Updated: 2026-02-10
-> Status: In Progress (DB 불필요 그룹 완료)
+> Last Updated: 2026-02-11
+> Status: Complete (전체 완료)
 
 ## Overview
 - **Total Tasks**: 9
@@ -90,21 +90,21 @@
 - **Commit**: `[phase1-skeleton] Step 1.4: Alembic 초기화 + initial migration`
 
 ### Checklist
-- [ ] `DATABASE_URL` 설정 확인
-- [ ] `alembic init db/alembic`
-- [ ] `alembic.ini` 수정
-  - [ ] script_location = db/alembic
-  - [ ] sqlalchemy.url 제거 (env.py에서 동적)
-- [ ] `db/alembic/env.py` 수정
-  - [ ] `from db.models import Base` import
-  - [ ] `from config.settings import settings` import
-  - [ ] target_metadata = Base.metadata
-  - [ ] run_migrations_online에서 settings.database_url 사용
-- [ ] `alembic revision --autogenerate -m "initial: 8 tables"` 성공
-- [ ] 생성된 revision 파일 검토 (8개 테이블 포함 확인)
-- [ ] `alembic upgrade head` 성공
-- [ ] DB에 8개 테이블 + alembic_version 존재 확인
-- [ ] `alembic downgrade -1` + `alembic upgrade head` 왕복 성공
+- [x] `DATABASE_URL` 설정 확인
+- [x] `alembic init db/alembic`
+- [x] `alembic.ini` 수정
+  - [x] script_location = db/alembic
+  - [x] sqlalchemy.url 제거 (env.py에서 동적)
+- [x] `db/alembic/env.py` 수정
+  - [x] `from db.models import Base` import
+  - [x] `from config.settings import settings` import
+  - [x] target_metadata = Base.metadata
+  - [x] run_migrations_online에서 settings.database_url 사용
+- [x] `alembic revision --autogenerate -m "initial: 8 tables"` 성공
+- [x] 생성된 revision 파일 검토 (8개 테이블 포함 확인)
+- [x] `alembic upgrade head` 성공
+- [x] DB에 8개 테이블 + alembic_version 존재 확인
+- [x] `alembic downgrade -1` + `alembic upgrade head` 왕복 성공
 
 ---
 
@@ -113,14 +113,14 @@
 - **Commit**: `[phase1-skeleton] Step 1.5: asset_master 시드 스크립트`
 
 ### Checklist
-- [ ] `scripts/seed_assets.py` 생성
-  - [ ] 7개 자산 데이터 정의
-  - [ ] idempotent 실행 (존재 시 skip 또는 update)
-  - [ ] `encoding='utf-8'` 명시 (한글 이름)
-  - [ ] 실행 결과 출력 (inserted/skipped 카운트)
-- [ ] 스크립트 실행: `python scripts/seed_assets.py`
-- [ ] asset_master 테이블 7개 행 확인
-- [ ] 재실행 시 에러 없음 + 중복 미발생
+- [x] `scripts/seed_assets.py` 생성
+  - [x] 7개 자산 데이터 정의
+  - [x] idempotent 실행 (존재 시 skip 또는 update)
+  - [x] `encoding='utf-8'` 명시 (한글 이름)
+  - [x] 실행 결과 출력 (inserted/skipped 카운트)
+- [x] 스크립트 실행: `python scripts/seed_assets.py`
+- [x] asset_master 테이블 7개 행 확인
+- [x] 재실행 시 에러 없음 + 중복 미발생
 
 ---
 
@@ -276,8 +276,8 @@
 | 1.1 pyproject.toml | S | [x] Done | `ebfd75c` (이전 세션) |
 | 1.2 .env + settings | S | [x] Done | 본 커밋 포함 |
 | 1.3 DB models | M | [x] Done | 본 커밋 포함 |
-| 1.4 Alembic | M | [ ] Blocked (DB) | |
-| 1.5 seed | S | [ ] Blocked (1.4) | |
+| 1.4 Alembic | M | [x] Done | 본 커밋 포함 |
+| 1.5 seed | S | [x] Done | 본 커밋 포함 |
 | 1.6 FDR client | M | [x] Done | 본 커밋 포함 |
 | 1.7 validators | M | [x] Done | 본 커밋 포함 |
 | 1.8 ingest | L | [x] Done | 본 커밋 포함 |

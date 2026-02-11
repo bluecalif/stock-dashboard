@@ -1,6 +1,6 @@
 # Phase 1 Context
-> Last Updated: 2026-02-10
-> Status: In Progress (Steps 1.1~1.9 완료, 1.4/1.5 DB 대기)
+> Last Updated: 2026-02-11
+> Status: Complete (Phase 1 전체 완료)
 
 ## 핵심 파일
 
@@ -42,6 +42,7 @@
 | ORM | SQLAlchemy 2.x (Mapped Column) | FastAPI 생태계 표준, Alembic 호환 |
 | DB 세션 | 동기 방식 (sync) | collector는 배치 작업, async 불필요 |
 | 마이그레이션 | Alembic autogenerate | 모델 기반 자동 생성 |
+| PostgreSQL 호스팅 | Railway (클라우드) | 로컬 pg_ctl 수동 관리 오버헤드 제거, dev=prod 환경 일치 |
 | FDR 래퍼 | 동기 함수 + 기본 재시도 | FDR은 sync 라이브러리, Phase 2에서 강화 |
 | 테스트 DB | SQLite in-memory / mock | 외부 DB 의존 없는 유닛 테스트 |
 | bulk insert | Phase 1 단순 INSERT | UPSERT는 Phase 2 (Task 2.2) |
@@ -133,8 +134,17 @@ Date(index) Open High Low Close Volume   asset_id date open high low close volum
 
 ### 시스템 요구사항
 - Python 3.11+
-- PostgreSQL 15+ (Railway)
+- PostgreSQL (Railway 클라우드)
 - Git
+
+## PostgreSQL 설정 (Railway)
+
+| 항목 | 값 |
+|------|-----|
+| 호스팅 | Railway (클라우드) |
+| DATABASE_URL | `backend/.env`에 설정 (Railway CLI로 획득, `mainline.proxy.rlwy.net:34025`) |
+| 장점 | 항상 가동, 수동 시작 불필요, dev=prod 환경 일치 |
+| 이전 이력 | 로컬 Anaconda pg_ctl → Railway 전환 (2026-02-11) |
 
 ## Phase 2 연계 포인트
 

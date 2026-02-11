@@ -1,7 +1,7 @@
 # Phase 1: Project Skeleton + DB + Collector
-> Last Updated: 2026-02-10
-> Status: In Progress
-> Current Step: 1.9 완료 (DB 불필요 그룹 전체 완료)
+> Last Updated: 2026-02-11
+> Status: Complete
+> Current Step: 전체 완료 (1.1~1.9, 9/9 tasks done)
 
 ## 1. Summary (개요)
 
@@ -574,7 +574,7 @@ ingest_all()
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| `DATABASE_URL` 미설정으로 Task 1.4 블록 | 1.4/1.5 지연 | 1.1/1.3/1.6/1.7/1.8/1.9는 DB 없이 선행. 1.4는 DB 설정 후 진행 |
+| `DATABASE_URL` 미설정으로 Task 1.4 블록 | 1.4/1.5 지연 | Railway PostgreSQL로 항상 가동 보장. `.env`에 Railway URL 설정 |
 | FDR API 변경/장애 | fetch 실패 | 재시도 로직, mock 테스트로 개발 진행 |
 | SQLAlchemy 2.x 호환 이슈 | 모델 정의 오류 | Mapped Column 패턴 사용, 공식 문서 참조 |
 | Windows 인코딩 이슈 | 한글 깨짐 | `PYTHONUTF8=1`, 명시적 encoding 파라미터 |

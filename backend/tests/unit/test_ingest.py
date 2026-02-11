@@ -1,8 +1,8 @@
 """Tests for collector.ingest."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from collector.ingest import ingest_all, ingest_asset
+from collector.ingest import _upsert, ingest_all, ingest_asset
 
 
 class TestIngestAsset:
@@ -29,6 +29,31 @@ class TestIngestAsset:
             assert result.status == "validation_failed"
             assert any("high_low_inversion" in e for e in result.errors)
             assert result.row_count == 2
+
+
+class TestUpsert:
+    def test_upsert_uses_on_conflict(self, sample_ohlcv_df):
+        """_upsert must use INSERT ... ON CONFLICT DO UPDATE."""
+        mock_session = MagicMock()
+        row_count = _upsert(mock_session, sample_ohlcv_df)
+
+        assert row_count == 3
+        mock_session.execute.assert_called_once()
+        mock_session.flush.assert_called_once()
+
+        # Verify the executed statement is a PostgreSQL INSERT with on_conflict
+        stmt = mock_session.execute.call_args[0][0]
+        compiled = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+        assert "ON CONFLICT" in compiled
+        assert "DO UPDATE SET" in compiled
+
+    def test_upsert_chunking(self, sample_ohlcv_df):
+        """_upsert with chunk_size=2 must execute twice for 3 rows."""
+        mock_session = MagicMock()
+        row_count = _upsert(mock_session, sample_ohlcv_df, chunk_size=2)
+
+        assert row_count == 3
+        assert mock_session.execute.call_count == 2  # 2 + 1 rows
 
 
 class TestIngestAll:

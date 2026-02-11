@@ -4,6 +4,8 @@ import logging
 import time
 from dataclasses import dataclass, field
 
+from sqlalchemy.dialects.postgresql import insert
+
 from collector.fdr_client import fetch_ohlcv
 from collector.validators import validate_ohlcv
 from db.models import AssetMaster, PriceDaily
@@ -20,24 +22,31 @@ class IngestResult:
     elapsed_ms: float = 0.0
 
 
-def _bulk_insert(session, df) -> int:
-    """Insert DataFrame rows into price_daily. Returns row count."""
+def _upsert(session, df, chunk_size: int = 1000) -> int:
+    """Upsert DataFrame rows into price_daily using ON CONFLICT DO UPDATE.
+
+    Conflict key: (asset_id, date, source).
+    Updated columns: open, high, low, close, volume, ingested_at.
+    Processes in chunks of chunk_size rows.
+
+    Returns total row count processed.
+    """
     records = df.to_dict(orient="records")
-    for record in records:
-        row = PriceDaily(
-            asset_id=record["asset_id"],
-            date=record["date"],
-            source=record["source"],
-            open=record["open"],
-            high=record["high"],
-            low=record["low"],
-            close=record["close"],
-            volume=record["volume"],
-            ingested_at=record["ingested_at"],
+    total = 0
+    update_cols = ["open", "high", "low", "close", "volume", "ingested_at"]
+
+    for i in range(0, len(records), chunk_size):
+        chunk = records[i : i + chunk_size]
+        stmt = insert(PriceDaily).values(chunk)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["asset_id", "date", "source"],
+            set_={col: stmt.excluded[col] for col in update_cols},
         )
-        session.add(row)
+        session.execute(stmt)
+        total += len(chunk)
+
     session.flush()
-    return len(records)
+    return total
 
 
 def ingest_asset(asset_id: str, start: str, end: str, session=None) -> IngestResult:
@@ -85,7 +94,7 @@ def ingest_asset(asset_id: str, start: str, end: str, session=None) -> IngestRes
     row_count = result.row_count
     if session is not None:
         try:
-            row_count = _bulk_insert(session, df)
+            row_count = _upsert(session, df)
             session.commit()
         except Exception as e:
             session.rollback()

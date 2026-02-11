@@ -1,6 +1,6 @@
 # Phase 3: Research Engine — Context
 > Last Updated: 2026-02-12
-> Status: Planning
+> Status: In Progress
 
 ## 핵심 파일
 
@@ -91,6 +91,22 @@
 # backtest_equity_curve: (run_id, date), equity, drawdown
 # backtest_trade_log: id(auto), run_id, asset_id, entry_date, exit_date, side, pnl, cost
 ```
+
+## Changed Files
+
+### Step 3.1 (`d476c52`)
+- `backend/research_engine/preprocessing.py` — 신규: 전처리 파이프라인
+- `backend/tests/unit/test_preprocessing.py` — 신규: 22개 테스트
+
+### Step 3.2-3.3 (`b1ce303`)
+- `backend/research_engine/factors.py` — 신규: 15개 팩터 계산
+- `backend/tests/unit/test_factors.py` — 신규: 25개 테스트
+
+## Decisions
+- [3.1] 크립토는 일별 캘린더, 기타 자산은 영업일 캘린더로 정렬
+- [3.1] 결측 ffill + threshold 검증 (기본 5%)
+- [3.2-3.3] RSI Wilder smoothing + edge case 처리 (avg_loss=0 → RSI=100, avg_gain=0 → RSI=0)
+- [3.2-3.3] 15개 팩터 한 파일(factors.py)에 통합, compute_all_factors()로 일괄 계산
 
 ## 참조 문서
 - `docs/masterplan-v0.md` §7 (분석 모듈 상세)

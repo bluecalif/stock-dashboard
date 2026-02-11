@@ -1,27 +1,27 @@
 # Phase 3: Research Engine — Tasks
 > Last Updated: 2026-02-12
-> Status: Planning
+> Status: In Progress
 
-## Progress: 0/12 (0%)
+## Progress: 3/12 (25%)
 
 ---
 
 ### Stage A: 전처리 + 팩터
 
-- [ ] **3.1** 전처리 파이프라인 `[M]`
+- [x] **3.1** 전처리 파이프라인 `[M]` — `d476c52`
   - preprocessing.py: price_daily → DataFrame 로드 함수
   - 캘린더 정렬 (영업일 기준, 크립토는 전일)
   - 결측 처리 (허용 임계치 초과 시 실패)
   - 이상치 플래그 생성
   - test_preprocessing.py (최소 8개 테스트)
 
-- [ ] **3.2** 수익률 + 추세 팩터 `[M]`
+- [x] **3.2** 수익률 + 추세 팩터 `[M]` — `b1ce303`
   - factors.py: 수익률 (ret_1d, ret_5d, ret_20d, ret_63d)
   - factors.py: 추세 (sma_20, sma_60, sma_120, ema_12, ema_26, macd)
   - 고정 샘플 데이터로 정확성 검증
   - test_factors.py (수익률 + 추세 부분, 최소 10개)
 
-- [ ] **3.3** 모멘텀 + 변동성 + 거래량 팩터 `[M]`
+- [x] **3.3** 모멘텀 + 변동성 + 거래량 팩터 `[M]` — `b1ce303`
   - factors.py: 모멘텀 (roc, rsi_14)
   - factors.py: 변동성 (vol_20, atr_14)
   - factors.py: 거래량 (vol_zscore_20)

@@ -40,6 +40,9 @@ def _standardize(df: pd.DataFrame, asset_id: str) -> pd.DataFrame:
     df = df.reset_index()
     # Then lowercase all column names
     df.columns = [c.lower() for c in df.columns]
+    # Some FDR symbols return unnamed index → "index" column after reset
+    if "date" not in df.columns and "index" in df.columns:
+        df = df.rename(columns={"index": "date"})
 
     df["asset_id"] = asset_id
     df["source"] = "fdr"

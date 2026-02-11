@@ -1,6 +1,6 @@
 # Phase 2 Context
 > Last Updated: 2026-02-11
-> Status: Complete
+> Status: In Progress (Stage D)
 
 ## 핵심 파일
 
@@ -22,6 +22,23 @@
 | `backend/tests/integration/__init__.py` | 통합 테스트 패키지 |
 | `backend/tests/integration/conftest.py` | 통합 테스트 fixtures (INTEGRATION_TEST 게이트, SAVEPOINT 롤백) |
 | `backend/tests/integration/test_ingest_db.py` | DB 통합 테스트 (4개) |
+
+### 신규 생성 (Stage D: 2.8~2.10)
+| 파일 | 용도 |
+|------|------|
+| `backend/collector/alerting.py` | Discord webhook 알림 전송 |
+| `backend/scripts/healthcheck.py` | 자산별 데이터 신선도 검증 |
+| `backend/scripts/daily_collect.bat` | Windows 일일 수집 배치 래퍼 |
+| `backend/scripts/register_scheduler.bat` | schtasks 등록 스크립트 |
+| `.env.example` | 환경변수 템플릿 |
+
+### 수정 대상 (Stage D)
+| 파일 | 변경 내용 |
+|------|-----------|
+| `backend/config/settings.py` | `alert_webhook_url` 필드 추가 |
+| `backend/config/logging.py` | JSON 포맷터 추가 |
+| `backend/collector/ingest.py` | 실패 시 알림 호출 |
+| `.gitignore` | `logs/` 추가 |
 
 ### 참조 (읽기 전용)
 | 파일 | 참조 내용 |
@@ -59,6 +76,24 @@
 - `INTEGRATION_TEST=1` 환경변수가 설정된 경우에만 실행
 - `pytest.mark.skipif`로 게이트 처리
 
+### Stage D 결정사항
+
+#### 알림 정책
+- Discord Webhook 사용 (마스터플랜 §9, §17)
+- 알림 실패가 수집 프로세스를 중단하면 안 됨 (try/except로 격리)
+- `ALERT_WEBHOOK_URL`이 비어있으면 알림 스킵
+
+#### 스케줄러 정책
+- Windows Task Scheduler 사용 (마스터플랜 §4)
+- 매일 18:00 KST (장 마감 15:30 + 2.5시간 여유)
+- 최근 7일 수집 (갭 방지용 overlap — UPSERT이므로 안전)
+- 로그 파일: `logs/collect_YYYYMMDD.log`
+
+#### 신선도 기준
+- 주식/인덱스/ETF/커모디티: 전 영업일 기준
+- 크립토(BTC): 전일 기준 (매일 거래)
+- T-1 기준으로 1일 이상 누락 시 STALE 판정
+
 ## 마스터플랜 매핑
 
 | 마스터플랜 절 | Phase 2 태스크 |
@@ -69,5 +104,8 @@
 | §9 지수 백오프 재시도 | 2.1 재시도 강화 |
 | §9 idempotent UPSERT | 2.2 UPSERT |
 | §9 부분 성공 허용 | 2.3 job_run |
-| §9 JSON 로그 | 2.1 로깅 설정 |
+| §9 JSON 로그 | 2.8 JSON 로깅 전환 |
+| §9 실패 알림(Discord Webhook) | 2.8 알림 |
+| §4 Windows Task Scheduler | 2.9 스케줄러 |
+| §9 작업별 성공/실패율 | 2.10 신선도 체크 |
 | §12 2주차: 수집기 안정화, 정합성/복구 | Phase 2 전체 |

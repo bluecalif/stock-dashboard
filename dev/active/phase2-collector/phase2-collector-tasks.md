@@ -1,10 +1,10 @@
 # Phase 2 Tasks
 > Last Updated: 2026-02-11
-> Status: Complete
+> Status: In Progress (2.8~2.10 추가)
 
 ## Overview
-- **Total Tasks**: 7
-- **Size Distribution**: S: 2, M: 3, L: 1, XL: 0 (+ 통합 테스트 M: 1)
+- **Total Tasks**: 10
+- **Size Distribution**: S: 5, M: 3, L: 1, XL: 0 (+ 통합 테스트 M: 1)
 - **DB 필수**: 2.2, 2.3, 2.5, 2.6, 2.7
 
 ---
@@ -179,6 +179,101 @@
 2.7 (통합 테스트)
 ```
 
+## Task 2.8: Discord 실패 알림 + .env.example + JSON 로깅 `[S]`
+- **Dependencies**: 2.3 (job_run)
+- **Commit**: `[phase2-collector] Step 2.8: Discord 알림 + JSON 로깅`
+- **마스터플랜**: §9 "지속 실패 시 알림 발송", §17 `.env.example`
+
+### Checklist
+- [ ] `collector/alerting.py` 생성
+  - [ ] `send_discord_alert(webhook_url, message)` 함수
+  - [ ] `aiohttp` 또는 `httpx` 사용 (동기 `requests` 대안: `urllib`)
+  - [ ] 에러 시 로깅만 (알림 실패가 수집을 중단하면 안 됨)
+- [ ] `config/settings.py` 수정
+  - [ ] `alert_webhook_url: str = ""` 필드 추가 (비어있으면 알림 스킵)
+- [ ] `collector/ingest.py` 수정
+  - [ ] `_finish_job_run()` 내 `partial_failure` / `failure` 시 Discord 알림 호출
+  - [ ] 메시지 포맷: job_name, status, 실패 자산 목록, 타임스탬프
+- [ ] `config/logging.py` 수정
+  - [ ] JSON 포맷터 추가 (`json.dumps` 기반 또는 `python-json-logger`)
+  - [ ] `setup_logging(level, fmt="json"|"text")` 시그니처 변경
+- [ ] `.env.example` 생성 (루트)
+  - [ ] `DATABASE_URL`, `FDR_TIMEOUT`, `LOG_LEVEL`, `ALERT_WEBHOOK_URL`, `PYTHONUTF8=1`
+- [ ] 테스트
+  - [ ] `test_send_discord_alert_success` (mock httpx/urllib)
+  - [ ] `test_alert_skipped_when_no_webhook` (빈 URL → 스킵)
+  - [ ] `test_alert_failure_does_not_raise` (알림 실패 시 예외 안 남)
+- [ ] `ruff check .` + `pytest` 통과
+
+---
+
+## Task 2.9: 일일 스케줄러 `[S]`
+- **Dependencies**: 2.5 (collect.py), 2.8 (알림)
+- **Commit**: `[phase2-collector] Step 2.9: 일일 스케줄러`
+- **마스터플랜**: §4 "Windows Task Scheduler", §9 "장 마감 후 실행"
+
+### Checklist
+- [ ] `scripts/daily_collect.bat` 생성
+  - [ ] venv 활성화 (`backend\.venv\Scripts\activate`)
+  - [ ] `python scripts/collect.py --start T-7 --end T` (최근 7일 수집 — 갭 방지)
+  - [ ] 로그 파일 출력 (`logs/collect_YYYYMMDD.log`)
+  - [ ] `PYTHONUTF8=1` 환경변수 설정
+- [ ] `scripts/register_scheduler.bat` 생성
+  - [ ] `schtasks /create` 명령으로 Windows Task Scheduler 등록
+  - [ ] 이름: `StockDashboard_DailyCollect`
+  - [ ] 스케줄: 매일 18:00 (한국 장 마감 15:30 + 여유)
+  - [ ] 실행 경로: 프로젝트 루트
+- [ ] `logs/` 디렉토리 + `.gitkeep`
+- [ ] `logs/` → `.gitignore`에 추가
+- [ ] README 또는 scripts/README.md에 스케줄러 등록 방법 기록
+- [ ] 수동 테스트: `daily_collect.bat` 실행 → 로그 파일 생성 + 수집 성공 확인
+
+---
+
+## Task 2.10: 데이터 신선도 체크 `[S]`
+- **Dependencies**: 2.8 (알림)
+- **Commit**: `[phase2-collector] Step 2.10: 데이터 신선도 체크`
+- **마스터플랜**: §9 "작업별 성공/실패율"
+
+### Checklist
+- [ ] `scripts/healthcheck.py` 생성
+  - [ ] 자산별 `MAX(date)` 조회
+  - [ ] 기대일(T-1 영업일) vs 실제 최신일 비교
+    - [ ] 주식/ETF/인덱스: 전 영업일 기준
+    - [ ] 크립토: 전일 기준 (매일 거래)
+    - [ ] 커모디티: 전 영업일 기준
+  - [ ] 누락 자산 목록 생성
+  - [ ] 누락 시 Discord webhook 경고 전송
+  - [ ] stdout 요약 출력 (OK / STALE 상태)
+- [ ] `scripts/daily_collect.bat` 수정
+  - [ ] 수집 완료 후 `healthcheck.py` 자동 실행 추가
+- [ ] 테스트
+  - [ ] `test_healthcheck_detects_stale_asset` (mock DB, 오래된 날짜)
+  - [ ] `test_healthcheck_all_fresh` (mock DB, 정상)
+- [ ] `ruff check .` + `pytest` 통과
+
+---
+
+## 실행 순서
+
+```
+[Stage A — 병렬]
+2.1 (재시도+로깅) ──┐
+2.4 (검증 강화) ────┤
+                    ↓
+[Stage B — 순차]
+2.2 (UPSERT) ★ ────→ 2.3 (job_run)
+                          ↓
+[Stage C — 순차]
+2.5 (스크립트+스모크) ──→ 2.6 (3년 백필)
+                          ↓
+2.7 (통합 테스트)
+                          ↓
+[Stage D — 운영화]
+2.8 (알림+JSON로깅) ──→ 2.9 (스케줄러)
+                    ──→ 2.10 (신선도 체크)
+```
+
 ## Progress Tracker
 
 | Task | Size | Status | Commit |
@@ -190,3 +285,6 @@
 | 2.5 스크립트 | S | [x] Done | `2bc5889` |
 | 2.6 3년 백필 | L | [x] Done | `6bcad30` |
 | 2.7 통합 테스트 | M | [x] Done | `6bcad30` |
+| 2.8 알림+JSON로깅 | S | [ ] Pending | — |
+| 2.9 스케줄러 | S | [ ] Pending | — |
+| 2.10 신선도 체크 | S | [ ] Pending | — |

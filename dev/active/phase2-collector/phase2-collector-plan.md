@@ -1,7 +1,7 @@
 # Phase 2: 수집 파이프라인 완성
 > Last Updated: 2026-02-11
-> Status: Complete
-> Current Step: 2.7 (Final)
+> Status: In Progress
+> Current Step: 2.8 (Stage D 시작)
 
 ## 1. Summary (개요)
 
@@ -13,12 +13,16 @@ Phase 1에서 구축한 수집 파이프라인 골격(fetch → validate → sto
 - job_run 이력 추적
 - 3년 히스토리컬 데이터 백필
 - 통합 테스트
+- **운영화**: 실패 알림, 일일 스케줄러, 데이터 신선도 감시 (Stage D — 2.8~2.10)
 
 ### 예상 결과물
 - 7개 자산 × 3년 일봉 데이터가 Railway PostgreSQL에 적재
 - 재실행 안전한 idempotent 파이프라인
 - 수집 이력이 job_run 테이블에 기록
 - CLI 수집 스크립트 (`scripts/collect.py`)
+- Discord 실패 알림 + JSON 구조화 로깅
+- Windows Task Scheduler 일일 자동 수집
+- 데이터 신선도 자동 체크
 
 ## 2. Current State (현재 상태)
 
@@ -59,6 +63,11 @@ Phase 1에서 구축한 수집 파이프라인 골격(fetch → validate → sto
 - CLI 스크립트 + 스모크 테스트
 - 3년 백필 실행
 - DB 통합 테스트
+
+### Stage D: 운영화 (2.8, 2.9, 2.10)
+- Discord 실패 알림 + JSON 로깅 + .env.example
+- Windows Task Scheduler 일일 자동 수집
+- 데이터 신선도 체크 (자산별 최신일 vs T-1 비교)
 
 ## 5. Task Breakdown
 

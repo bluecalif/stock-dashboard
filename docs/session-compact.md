@@ -18,22 +18,26 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
   - 수익률(4), 추세(6), 모멘텀(2), 변동성(2), 거래량(1)
   - RSI Wilder smoothing + edge case 처리
   - 테스트 25개 신규
+- [x] **Task 3.4**: 팩터 DB 저장 (`b9d4878`)
+  - `factor_store.py`: factor_daily UPSERT + 오케스트레이션
+  - NaN 자동 제외, wide→long 변환, chunk 처리
+  - 테스트 17개 신규
 
 ## Current State
 
 ### Git
 - Branch: `master`
-- Last commit: `b1ce303` — [phase3-research] Step 3.2-3.3: 15개 팩터 생성
-- origin/master: 2 commits ahead (unpushed)
+- Last commit: `b9d4878` — [phase3-research] Step 3.4: 팩터 DB 저장
+- origin/master: 3 commits ahead (unpushed)
 
-### Phase 3 진행률 — 25% (3/12)
+### Phase 3 진행률 — 33% (4/12)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 3.1 전처리 파이프라인 | M | ✅ Done | `d476c52` |
 | 3.2 수익률+추세 팩터 | M | ✅ Done | `b1ce303` |
 | 3.3 모멘텀+변동성+거래량 | M | ✅ Done | `b1ce303` |
-| 3.4 팩터 DB 저장 | M | ⬜ Next | — |
-| 3.5 전략 프레임워크 | M | ⬜ | — |
+| 3.4 팩터 DB 저장 | M | ✅ Done | `b9d4878` |
+| 3.5 전략 프레임워크 | M | ⬜ Next | — |
 | 3.6 3종 전략 구현 | M | ⬜ | — |
 | 3.7 시그널+DB 저장 | S | ⬜ | — |
 | 3.8 백테스트 엔진 | L | ⬜ | — |
@@ -47,14 +51,14 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
 
 ### 테스트 현황
-- Unit: **106 passed** (기존 59 + 전처리 22 + 팩터 25)
+- Unit: **123 passed** (기존 59 + 전처리 22 + 팩터 25 + 팩터저장 17)
 - Integration: **4 passed** (INTEGRATION_TEST=1)
-- 일반 pytest: 106 passed, 4 skipped
+- 일반 pytest: 123 passed, 4 skipped
 - ruff: All checks passed
 
 ## Remaining / TODO
 - [ ] **배포 전**: `.env`에 실제 `ALERT_WEBHOOK_URL` 설정
-- [ ] **Task 3.4~3.12**: Phase 3 나머지 구현
+- [ ] **Task 3.5~3.12**: Phase 3 나머지 구현
 - [ ] **Phase 4: API** — FastAPI 조회 엔드포인트
 - [ ] **Phase 5: Frontend** — React 시각화 대시보드
 
@@ -62,6 +66,7 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - [3.1] 크립토=일별 캘린더, 기타=영업일 캘린더 / 결측 ffill + 5% threshold
 - [3.2-3.3] 15개 팩터 단일 파일 / RSI edge case 처리 (loss=0→100, gain=0→0)
 - [3.2-3.3] Wilder smoothing: ewm(alpha=1/14) / MACD: ema_12 - ema_26
+- [3.4] NaN → 레코드 제외 (NOT NULL 제약) / wide→long 변환 per row×factor
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
@@ -76,6 +81,6 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - Railway PostgreSQL 연결됨
 
 ## Next Action
-1. **Task 3.4**: 팩터 DB 저장 — factor_store.py (factor_daily UPSERT, 오케스트레이션)
-2. **Task 3.5~3.7**: 전략 엔진 (Strategy ABC + 3종 전략 + 시그널 저장)
-3. **Task 3.8~3.10**: 백테스트 + 성과 지표 + 결과 DB 저장
+1. **Task 3.5**: 전략 프레임워크 — Strategy ABC + 공통 체결 규칙
+2. **Task 3.6**: 3종 전략 구현 — 모멘텀/추세/평균회귀
+3. **Task 3.7**: 시그널 생성 + DB 저장 — signal_daily UPSERT

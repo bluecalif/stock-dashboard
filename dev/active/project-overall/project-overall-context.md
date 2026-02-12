@@ -1,15 +1,13 @@
 # Project Overall Context
-> Last Updated: 2026-02-10
-> Status: Planning
+> Last Updated: 2026-02-12
+> Status: In Progress (Phase 3 완료, Phase 4 Planning)
 
 ## 핵심 파일
 
 | 파일 | 용도 |
 |------|------|
-| `docs/masterplan-v0.md` | 프로젝트 설계 명세서 (아키텍처, DB 스키마, API, 마일스톤) |
+| `docs/masterplan-v0.md` | 프로젝트 설계 명세서 (아키텍처, DB 스키마, API 12개, 프론트엔드 6페이지, Phase 1~6) |
 | `docs/session-compact.md` | 현재 진행 상태 |
-| `docs/data-accessibility-plan.md` | 데이터 접근성 검증 계획 |
-| `docs/data-accessibility-report.md` | 데이터 접근성 검증 결과 (Conditional Go) |
 | `CLAUDE.md` | 프로젝트 규칙, 기술 스택, 컨벤션 |
 | `.claude/skills/backend-dev/SKILL.md` | 백엔드 개발 가이드 |
 | `.claude/skills/frontend-dev/SKILL.md` | 프론트엔드 개발 가이드 |
@@ -24,15 +22,10 @@
 | 2026-02-10 | Dashboard: React + Recharts + Vite + TS | 시각화 라이브러리 풍부, 타입 안전성 |
 | 2026-02-10 | DB Migration: Alembic | SQLAlchemy 네이티브 통합 |
 | 2026-02-10 | 알림: Discord Webhook | 무료, 설정 간편 |
-
-## 데이터 접근성 검증 요약
-
-- **Gate**: Conditional Go
-- **FDR 7개 자산**: 전체 PASS (smoke, backfill, reliability, freshness)
-- **DB 연결**: FAIL (`DATABASE_URL` 미설정) — Task 1.4(Alembic) 전까지 비차단
-- **p95 응답시간**: 최대 1173ms (SI=F reliability)
-- **실패율**: 0% (재시도 포함)
-- **백필 결측률**: 최대 0.4% (GC=F, SI=F — 허용 범위)
+| 2026-02-12 | 상관행렬: API on-the-fly 계산 | 별도 DB 테이블 불필요, 7자산 데이터 소규모 |
+| 2026-02-12 | Phase 구조 리비전 | 기존 Phase 4(백테스트+API+대시보드) → Phase 4(API), Phase 5(Frontend) 분리 |
+| 2026-02-12 | API 12개 엔드포인트 | 기존 9개 + dashboard/summary, correlation, backtests list 추가 |
+| 2026-02-12 | 프론트엔드 6개 페이지 | 기존 4개(가격/수익률/상관/전략) → 6개(홈/가격/상관/팩터/시그널/전략) 확대 |
 
 ## 자산 목록
 
@@ -46,67 +39,88 @@
 | GC=F | Gold | commodity | GC=F |
 | SI=F | Silver | commodity | SI=F |
 
-## DB 테이블 목록
+## DB 테이블 목록 (8개, 모두 생성 완료)
 
-1. `asset_master` — 자산 마스터
-2. `price_daily` — 일봉 PK: (asset_id, date, source)
+1. `asset_master` — 자산 마스터 (7개 자산 시드 완료)
+2. `price_daily` — 일봉 PK: (asset_id, date, source) — 5,559 rows
 3. `factor_daily` — 팩터 PK: (asset_id, date, factor_name, version)
-4. `signal_daily` — 전략 신호
-5. `backtest_run` — 백테스트 실행
-6. `backtest_equity_curve` — 에쿼티 커브
-7. `backtest_trade_log` — 트레이드 로그
-8. `job_run` — 작업 실행 이력
+4. `signal_daily` — 전략 신호 (id PK, ix: asset_id+date+strategy_id)
+5. `backtest_run` — 백테스트 실행 (run_id UUID PK)
+6. `backtest_equity_curve` — 에쿼티 커브 (run_id+date PK)
+7. `backtest_trade_log` — 트레이드 로그 (id PK)
+8. `job_run` — 작업 실행 이력 (job_id UUID PK)
 
-## API 엔드포인트 (v1)
+## API 엔드포인트 (v1) — 12개
 
+### 조회 API (5개)
 | Method | Path | 설명 |
 |--------|------|------|
-| GET | `/v1/assets` | 자산 목록 |
-| GET | `/v1/prices/daily` | 일봉 조회 |
-| GET | `/v1/factors` | 팩터 조회 |
-| GET | `/v1/signals` | 전략 신호 조회 |
-| POST | `/v1/backtests/run` | 백테스트 실행 |
-| GET | `/v1/backtests/{run_id}` | 백테스트 결과 |
+| GET | `/v1/health` | 헬스체크 (DB 연결 상태) |
+| GET | `/v1/assets` | 자산 목록 (asset_master) |
+| GET | `/v1/prices/daily?asset_id=&from=&to=` | 가격 조회 (pagination) |
+| GET | `/v1/factors?asset_id=&factor_name=&from=&to=` | 팩터 조회 |
+| GET | `/v1/signals?asset_id=&strategy_id=&from=&to=` | 시그널 조회 |
+
+### 백테스트 API (4개 + 1 POST)
+| Method | Path | 설명 |
+|--------|------|------|
+| POST | `/v1/backtests/run` | 온디맨드 백테스트 실행 |
+| GET | `/v1/backtests` | 백테스트 실행 목록 |
+| GET | `/v1/backtests/{run_id}` | 백테스트 요약 (metrics 포함) |
 | GET | `/v1/backtests/{run_id}/equity` | 에쿼티 커브 |
-| GET | `/v1/backtests/{run_id}/trades` | 트레이드 로그 |
-| GET | `/v1/health` | 헬스 체크 |
+| GET | `/v1/backtests/{run_id}/trades` | 거래 이력 |
+
+### 집계/분석 API (2개)
+| Method | Path | 설명 |
+|--------|------|------|
+| GET | `/v1/dashboard/summary` | 대시보드 요약 (최신가격/시그널/성과) |
+| GET | `/v1/correlation?asset_ids=&from=&to=&window=` | 자산 간 상관행렬 (on-the-fly) |
+
+## 프론트엔드 페이지 (6개)
+
+| # | 페이지 | 주요 API 소비 | 차트 종류 |
+|---|--------|-------------|----------|
+| 1 | 대시보드 홈 | `/dashboard/summary` | 요약 카드 + 미니 라인 |
+| 2 | 가격/수익률 | `/prices/daily` | 라인/캔들 + 정규화 비교 |
+| 3 | 상관 히트맵 | `/correlation` | 히트맵 (Recharts) |
+| 4 | 팩터 현황 | `/factors` | RSI/MACD 서브차트 |
+| 5 | 시그널 타임라인 | `/signals` + `/prices/daily` | 가격 + 매매 마커 |
+| 6 | 전략 성과 | `/backtests/*` | 에쿼티 커브 + 메트릭스 |
 
 ## 컨벤션 체크리스트
 
 ### 데이터 관련
-- [ ] OHLCV 표준 스키마 준수 (asset_id, date, open, high, low, close, volume, source, ingested_at)
-- [ ] FDR primary source 사용 (모든 자산)
-- [ ] price_daily PK: (asset_id, date, source)
+- [x] OHLCV 표준 스키마 준수 (asset_id, date, open, high, low, close, volume, source, ingested_at)
+- [x] FDR primary source 사용 (모든 자산)
+- [x] price_daily PK: (asset_id, date, source)
+- [x] idempotent UPSERT (collector + factor_store)
+- [x] 지수 백오프 재시도 (fdr_client)
+- [x] 정합성 검증 (고가/저가 역전, 음수 가격, 중복)
 
 ### API 관련
 - [ ] Router → Service → Repository 레이어 분리
 - [ ] Pydantic 스키마 정의
 - [ ] 의존성 주입 패턴
-
-### 수집 관련
-- [ ] idempotent UPSERT
-- [ ] 지수 백오프 재시도
-- [ ] 정합성 검증 (고가/저가 역전, 음수 가격, 중복)
+- [ ] CORS 설정
+- [ ] Pagination (limit/offset)
 
 ### 인코딩 관련
-- [ ] CSV/File read: `encoding='utf-8-sig'`
-- [ ] File write: `encoding='utf-8'` explicit
-- [ ] `PYTHONUTF8=1` 환경변수
+- [x] CSV/File read: `encoding='utf-8-sig'`
+- [x] File write: `encoding='utf-8'` explicit
+- [x] `PYTHONUTF8=1` 환경변수
 
 ### 배포/운영 관련
-- [ ] 환경변수 하드코딩 금지 (`.env` + Railway env vars)
-- [ ] `.env` 파일 gitignore 확인
+- [x] 환경변수 하드코딩 금지 (`.env` + Pydantic Settings)
+- [x] `.env` 파일 gitignore 확인
 - [ ] CORS 화이트리스트 설정
 - [ ] DB TLS 연결 강제
 - [ ] GitHub Secrets로 시크릿 관리
-- [ ] CI 파이프라인 필수 통과 (lint + test + build)
-- [ ] 프로덕션 빌드 최적화 (코드 스플리팅, 에셋 해시)
-- [ ] 프로세스 매니저로 API 서버 등록
+- [ ] CI 파이프라인 (lint + test + build)
+- [ ] 프로덕션 빌드 최적화
 - [ ] 배치 실패 시 Discord 알림 동작 확인
 - [ ] DB 백업 + 복구 절차 검증
-- [ ] Alembic downgrade 롤백 테스트
 
-## 배포 인프라 결정 사항 (TBD)
+## 배포 인프라 결정 사항
 
 | 항목 | 후보 | 상태 |
 |------|------|------|

@@ -1,6 +1,6 @@
 # Phase 3: Research Engine — Context
 > Last Updated: 2026-02-12
-> Status: In Progress
+> Status: Complete
 
 ## 핵심 파일
 
@@ -116,6 +116,23 @@
 - `backend/tests/unit/test_strategies.py` — 신규: 30개 테스트
 - `backend/tests/unit/test_signal_store.py` — 신규: 13개 테스트
 
+### Step 3.8 (`da01cef`)
+- `backend/research_engine/backtest.py` — 신규: BacktestEngine (단일/다중 자산, equity curve, trade log)
+- `backend/tests/unit/test_backtest.py` — 신규: 백테스트 엔진 테스트
+
+### Step 3.9 (`c433392`)
+- `backend/research_engine/metrics.py` — 신규: 성과 평가 지표 (CAGR, MDD, Sharpe, Sortino, Calmar 등)
+- `backend/tests/unit/test_metrics.py` — 신규: 성과 지표 테스트
+
+### Step 3.10 (`4f9cdc9`)
+- `backend/research_engine/backtest_store.py` — 신규: backtest_run/equity_curve/trade_log DB 저장
+- `backend/tests/unit/test_backtest_store.py` — 신규: 백테스트 저장 테스트
+
+### Step 3.11 (`fc8fc4f`)
+- `backend/scripts/run_research.py` — 신규: CLI 배치 스크립트 (argparse, run_pipeline)
+- `backend/tests/unit/test_run_research.py` — 신규: CLI 파싱/전략 resolve 유닛 테스트 9개
+- `backend/tests/integration/test_research_pipeline.py` — 신규: E2E 통합 테스트 3개
+
 ## Decisions
 - [3.1] 크립토는 일별 캘린더, 기타 자산은 영업일 캘린더로 정렬
 - [3.1] 결측 ffill + threshold 검증 (기본 5%)
@@ -125,6 +142,12 @@
 - [3.5] Strategy ABC + SignalResult dataclass / next-day open 체결 규칙
 - [3.6] 3종 전략: 모멘텀(ret_63d+vol_20), 추세(SMA 골든크로스), 평균회귀(z-score 밴드)
 - [3.7] signal_daily DELETE+INSERT 방식 (UPSERT 대신) — auto-increment PK 구조에 최적
+- [3.8] BacktestEngine: vectorized pandas, next-day open 체결, 수수료/슬리피지 반영
+- [3.9] 성과지표: CAGR, MDD, Sharpe, Sortino, Calmar, 승률, Turnover, B&H 비교
+- [3.10] backtest_store: run_id UUID, status 관리 (running→success/failure), equity_curve+trade_log 저장
+- [3.11] run_research.py: collect.py 패턴 따라 argparse CLI, SessionLocal 직접 사용
+- [3.11] run_pipeline()이 factor_store + signal_store + backtest + metrics + backtest_store 전체 오케스트레이션
+- [3.11] 통합 테스트: 200+ rows 있는 실제 자산으로 E2E 테스트 (INTEGRATION_TEST=1)
 
 ## 참조 문서
 - `docs/masterplan-v0.md` §7 (분석 모듈 상세)

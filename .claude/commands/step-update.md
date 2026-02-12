@@ -1,6 +1,6 @@
 ---
-description: 개발 단계 완료 시 문서 업데이트, 커밋, PR 생성/푸시
-argument-hint: task-name step-number (예: "fdr-collector 1.2")
+description: Step 완료 → Phase docs + project-overall 동시 업데이트 → Git commit
+argument-hint: phase-name step-number (예: "phase4-api 4.3")
 ---
 
 # 단계 업데이트 (Step Update)
@@ -9,10 +9,10 @@ argument-hint: task-name step-number (예: "fdr-collector 1.2")
 
 ## Overview
 
-개발 단계(step/sub-phase) 완료 시 실행하는 통합 업데이트 커맨드.
+개발 단계(step) 완료 시 실행. Phase 문서와 project-overall 문서를 **동시에** 업데이트한 뒤 커밋.
 
 ```
-문서 업데이트 → Git Commit → PR 생성/업데이트 → Push
+Phase docs 업데이트 + project-overall 동기화 → Git Commit
 ```
 
 ---
@@ -21,101 +21,107 @@ argument-hint: task-name step-number (예: "fdr-collector 1.2")
 
 ### 1. 인자 파싱 (Parse Arguments)
 
-입력 형식: `[task-name] [step-id]`
+입력 형식: `[phase-name] [step-id]`
 
 예시:
-- `fdr-collector 1.2` → Phase 1, Step 2
-- `backtest-engine 2.1` → Phase 2, Step 1
+- `phase4-api 4.3` → Phase 4, Step 3
+- `phase5-frontend 5.6` → Phase 5, Step 6
 
 ### 2. 현재 상태 확인 (Check Current State)
 
-```bash
-ls dev/active/[task-name]/
-git status
-git branch
+읽어야 할 파일 (전부 읽기):
+```
+dev/active/[phase-name]/[phase-name]-tasks.md
+dev/active/[phase-name]/[phase-name]-context.md
+dev/active/[phase-name]/[phase-name]-plan.md
+dev/active/project-overall/project-overall-tasks.md
+dev/active/project-overall/project-overall-plan.md
+dev/active/project-overall/project-overall-context.md
+docs/session-compact.md
 ```
 
 확인 사항:
-- [ ] dev-docs 파일 존재 여부
-- [ ] 현재 브랜치 확인
-- [ ] 커밋되지 않은 변경사항
+- [ ] Phase dev-docs 파일 존재 여부 (없으면 `/dev-docs` 먼저 실행 안내)
+- [ ] 현재 브랜치, 커밋되지 않은 변경사항
+- [ ] 완료된 step의 실제 코드 변경 내역 (`git diff --stat`)
 
-### 3. Dev-Docs 업데이트 (Update Documentation)
+### 3. Phase Dev-Docs 업데이트
 
-#### 3.1 tasks.md 업데이트
-완료된 태스크 체크:
+#### 3.1 `[phase-name]-tasks.md`
+- 완료된 step 체크: `- [ ]` → `- [x]` + commit hash
+- Progress 카운터 갱신 (예: `3/14 (21%)`)
 ```markdown
-## Phase 1: [Phase Name]
-### Step 1.2: [Step Name] ← 현재
-- [x] Task C (완료)  ← 업데이트
-- [ ] Task D (진행중)
+- [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]` — `abc1234`
 ```
 
-#### 3.2 context.md 업데이트
-변경된 파일 및 결정사항 추가:
+#### 3.2 `[phase-name]-context.md`
+- 변경/생성된 파일 목록 추가
+- 새 결정사항 추가 (있을 경우)
 ```markdown
-## Changed Files (Step 1.2)
-- `collector/fdr_client.py` - 신규 생성
-- `collector/validators.py` - 수정
-
-## Decisions
-- [Step 1.2] FDR 호출 시 지수 백오프 최대 3회 재시도
+## Changed Files (Step 4.3)
+- `api/repositories/price_repo.py` — 신규 생성
+- `api/repositories/base.py` — 신규 생성
 ```
 
-#### 3.3 plan.md 업데이트
-진행 상태 갱신:
-```markdown
-> Last Updated: YYYY-MM-DD
-> Status: In Progress
-> Current Step: 1.2
-```
+#### 3.3 `[phase-name]-plan.md`
+- Last Updated 날짜 갱신
+- Status / Current Step 갱신
+- Current State 섹션에 완료 항목 추가
 
-### 4. Git Commit (커밋)
+### 4. project-overall 동기화 (CRITICAL — 반드시 수행)
 
-#### 4.1 Staging
+#### 4.1 `project-overall-tasks.md`
+- 해당 Phase의 동일 step을 체크: `- [ ]` → `- [x]` + commit hash
+- Phase tasks.md와 **정확히 동일한 상태** 유지
+- Summary 섹션 갱신 (완료 태스크 수)
+
+#### 4.2 `project-overall-plan.md`
+- Current State 섹션 갱신 (진행률 업데이트)
+- 해당 Phase 설명이 실제 구현과 일치하는지 확인
+
+#### 4.3 `project-overall-context.md`
+- 새 결정사항 → 주요 결정사항 테이블에 추가
+- 컨벤션 체크리스트 중 완료 항목 체크
+
+### 5. session-compact.md 업데이트
+
+- Remaining/TODO 해당 항목 진행 상태 반영
+- Phase 마지막 step 완료 시: Phase 자체를 `[x]` 완료 처리
+
+### 6. 정합성 검증 (Consistency Check)
+
+업데이트 후 아래를 검증:
+- [ ] Phase tasks.md 체크 상태 == project-overall-tasks.md 해당 섹션
+- [ ] Phase tasks.md 진행률 == project-overall-plan.md 해당 Phase 설명
+- [ ] session-compact.md의 TODO가 실제 진행률과 일치
+
+### 7. Git Commit
+
+#### 7.1 Staging
 ```bash
-git add collector/ research_engine/ api/ dashboard/
-git add dev/active/[task-name]/
+# 코드 변경 + 문서 변경 모두 포함
+git add backend/api/ frontend/       # 해당 Phase 코드
+git add dev/active/[phase-name]/     # Phase dev-docs
+git add dev/active/project-overall/  # project-overall (항상 포함!)
+git add docs/session-compact.md      # session-compact (변경 시)
 ```
 
-#### 4.2 Commit Message 형식
+#### 7.2 Commit Message 형식
 ```
-[task-name] Step X.Y: 간단한 설명
+[phase-name] Step X.Y: 간단한 설명
 
 - 주요 변경 1
 - 주요 변경 2
 
-Refs: dev/active/[task-name]/[task-name]-tasks.md
+Refs: dev/active/[phase-name]/[phase-name]-tasks.md
 ```
 
-### 5. PR 생성/업데이트 (Pull Request)
-
-#### 5.1 브랜치
-```bash
-git checkout -b feature/[task-name]  # 신규시
-git checkout feature/[task-name]      # 기존시
-```
-
-#### 5.2 Push & PR
-```bash
-git push -u origin feature/[task-name]
-```
-
-PR 최초 생성:
-```bash
-gh pr create \
-  --title "[task-name] Implementation" \
-  --body "## Summary
-[task-name] 구현 PR
-
-## Progress
-- [x] Step 1.1
-- [x] Step 1.2 ← Current
-
-## Related
-- Plan: dev/active/[task-name]/[task-name]-plan.md
-- Tasks: dev/active/[task-name]/[task-name]-tasks.md"
-```
+#### 7.3 Phase 완료 시 추가 작업
+Phase 마지막 step 완료 시:
+- Phase plan.md Status → `Complete`
+- Phase tasks.md Progress → `N/N (100%)`
+- project-overall-tasks.md 해당 Phase 헤더에 `✅ 완료` 추가
+- session-compact.md 해당 Phase `[x]` 체크
 
 ---
 
@@ -124,20 +130,25 @@ gh pr create \
 ```
 Step Update 완료
 
-Task: [task-name]
-Step: X.Y - [Step Name]
+Task: [phase-name]
+Step: X.Y — [Step Name]
 
-문서 업데이트:
-- tasks.md: N개 태스크 완료 체크
-- context.md: N개 파일 추가
+Phase docs 업데이트:
+- tasks.md: Step X.Y 완료 체크 (N/M, P%)
+- context.md: N개 파일/결정사항 추가
 - plan.md: 상태 업데이트
+
+project-overall 동기화:
+- tasks.md: 동일 step 체크 완료
+- plan.md: Current State 갱신
+- context.md: 결정사항 반영
 
 Git:
 - Commit: [hash] [message]
-- Branch: feature/[task-name]
-- PR: #[number] [url]
+- Branch: [branch-name]
 
-전체 진행률: X/Y steps (N%)
+전체 진행률: Phase X/Y steps (N%)
+프로젝트 진행률: N/76 tasks (N%)
 ```
 
 ---
@@ -146,7 +157,8 @@ Git:
 
 | 상황 | 대응 |
 |------|------|
-| dev-docs 없음 | `/dev-docs` 먼저 실행 안내 |
-| 커밋할 변경 없음 | 문서만 업데이트 후 스킵 |
-| PR 이미 존재 | 기존 PR에 코멘트 추가 |
-| 충돌 발생 | 충돌 해결 안내 |
+| Phase dev-docs 없음 | `/dev-docs` 먼저 실행 안내 |
+| project-overall 없음 | 경고 후 Phase docs만 업데이트 |
+| 커밋할 변경 없음 | 문서만 업데이트 후 커밋 스킵 |
+| tasks.md 불일치 | 경고 메시지 출력 + 수동 확인 요청 |
+| Phase 완료 감지 | 자동으로 완료 처리 + 다음 Phase 안내 |

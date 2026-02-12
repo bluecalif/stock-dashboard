@@ -153,20 +153,52 @@
 - 벤치마크: Buy&Hold 대비 초과성과
 
 ## 8. API 명세 (v1)
-- `GET /v1/assets`
-- `GET /v1/prices/daily?asset_id=&from=&to=`
-- `GET /v1/factors?asset_id=&from=&to=`
-- `GET /v1/signals?asset_id=&asof=`
-- `POST /v1/backtests/run`
-- `GET /v1/backtests/{run_id}`
-- `GET /v1/backtests/{run_id}/equity`
-- `GET /v1/backtests/{run_id}/trades`
-- `GET /v1/health`
 
-응답 원칙:
+### 8.1 조회 API (Read-Only)
+- `GET /v1/health` — 헬스체크 (DB 연결 상태)
+- `GET /v1/assets` — 자산 목록 (asset_master 전체)
+- `GET /v1/prices/daily?asset_id=&from=&to=` — 가격 조회 (pagination 지원)
+- `GET /v1/factors?asset_id=&factor_name=&from=&to=` — 팩터 조회
+- `GET /v1/signals?asset_id=&strategy_id=&from=&to=` — 시그널 조회
+
+### 8.2 백테스트 API
+- `POST /v1/backtests/run` — 온디맨드 백테스트 실행 (research_engine 호출)
+- `GET /v1/backtests` — 백테스트 실행 목록
+- `GET /v1/backtests/{run_id}` — 백테스트 요약 (metrics 포함)
+- `GET /v1/backtests/{run_id}/equity` — 에쿼티 커브
+- `GET /v1/backtests/{run_id}/trades` — 거래 이력
+
+### 8.3 집계/분석 API (프론트엔드 대시보드용)
+- `GET /v1/dashboard/summary` — 대시보드 요약 (7자산 최신가격, 최신시그널, 최근 백테스트 성과)
+- `GET /v1/correlation?asset_ids=&from=&to=&window=` — 자산 간 상관행렬 (on-the-fly 계산)
+
+### 8.4 응답 원칙
 - UTC 타임스탬프
 - 숫자 타입 일관성
 - 오류 코드 표준화(`4xx` 입력 오류, `5xx` 서버 오류)
+- Pagination: `limit`, `offset` 파라미터 (기본 limit=500)
+- CORS 설정: 프론트엔드 origin 허용
+
+## 8.5 프론트엔드 상세
+
+### 8.5.1 페이지 구성
+- **대시보드 홈**: 7자산 요약 카드(최신가격/등락률) + 최신 시그널 매트릭스 + 미니 차트
+- **가격/수익률**: 자산별 가격 라인 차트 + 정규화 누적수익률 비교
+- **상관 히트맵**: 자산 간 rolling correlation 히트맵 (기간/윈도우 조절)
+- **팩터 현황**: 자산별 팩터 서브차트(RSI, MACD 등) + 팩터 비교 테이블
+- **시그널 타임라인**: 가격 차트 위 매수/청산 마커 오버레이 + 3전략 시그널 매트릭스
+- **전략 성과**: 에쿼티 커브 비교 + 성과 메트릭스 카드 + 거래 이력 테이블
+
+### 8.5.2 기술 스택
+- React 18 + TypeScript + Vite
+- Recharts (차트), Axios (API 클라이언트)
+- React Router (페이지 라우팅)
+- TailwindCSS 또는 CSS Modules (스타일링)
+
+### 8.5.3 데이터 흐름
+```
+API 호출 → React Query/SWR 캐싱 → 컴포넌트 렌더 → Recharts 시각화
+```
 
 ## 9. 운영 및 배치
 - 스케줄:
@@ -208,12 +240,16 @@
 - 대시보드 핵심 화면 렌더 성공
 - 배치 실패 알림 수신 확인
 
-## 12. 마일스톤 (5주)
-- 1주차: 프로젝트 골격, DB 스키마, FDR 수집 기본
-- 2주차: 수집기 안정화, 정합성/복구
-- 3주차: 팩터/전략 엔진
-- 4주차: 백테스트/API/대시보드
-- 5주차: Hantoo fallback 통합, 통합테스트, 운영문서, 배포
+## 12. 마일스톤 (6 Phases)
+
+| Phase | 이름 | 범위 | 상태 |
+|-------|------|------|------|
+| 1 | Skeleton | 프로젝트 골격, DB 스키마, Alembic 마이그레이션 | ✅ 완료 |
+| 2 | Collector | FDR 수집기, 정합성 검증, UPSERT, 복구/알림 | ✅ 완료 |
+| 3 | Research Engine | 전처리, 팩터 15개, 전략 3종, 백테스트, 성과지표, 배치 | ✅ 완료 |
+| 4 | API | FastAPI 조회/백테스트/집계 엔드포인트 12개, 상관행렬, CORS | 예정 |
+| 5 | Frontend | React 대시보드 6개 페이지, 차트 시각화, API 소비 | 예정 |
+| 6 | Deploy & Ops | 통합 테스트 E2E, 운영 문서, 배포, Hantoo fallback(선택) | 예정 |
 
 ## 13. 리스크 및 대응
 - FDR 단일 소스 의존:
@@ -234,39 +270,64 @@
 ## 15. 프로젝트 구조
 ```
 stock-dashboard/
-├── collector/              # FDR 데이터 수집
-│   ├── __init__.py
-│   ├── fdr_client.py       # FDR 래퍼
-│   ├── ingest.py           # 수집 오케스트레이션
-│   └── validators.py       # OHLCV 정합성 검증
-├── research_engine/        # 분석 모듈
-│   ├── __init__.py
-│   ├── factors.py          # 팩터 생성
-│   ├── strategies.py       # 전략 엔진 (3종)
-│   └── backtest.py         # 백테스트 실행기
-├── api/                    # FastAPI 서버
-│   ├── __init__.py
-│   ├── main.py             # 앱 엔트리포인트
-│   ├── routers/            # 엔드포인트별 라우터
-│   ├── services/           # 비즈니스 로직
-│   ├── repositories/       # DB 접근 계층
-│   └── schemas/            # Pydantic 모델
-├── dashboard/              # React + Recharts SPA
+├── backend/
+│   ├── collector/              # FDR 데이터 수집 (Phase 2)
+│   │   ├── __init__.py
+│   │   ├── fdr_client.py       # FDR 래퍼 + 심볼 매핑
+│   │   ├── ingest.py           # 수집 오케스트레이션
+│   │   ├── validators.py       # OHLCV 정합성 검증
+│   │   └── alerting.py         # Discord 실패 알림
+│   ├── research_engine/        # 분석 모듈 (Phase 3)
+│   │   ├── __init__.py
+│   │   ├── preprocessing.py    # 캘린더 정렬, 결측 처리, 이상치
+│   │   ├── factors.py          # 15개 팩터 계산
+│   │   ├── factor_store.py     # factor_daily UPSERT
+│   │   ├── strategies/         # Strategy ABC + 3종 전략
+│   │   │   ├── __init__.py     # STRATEGY_REGISTRY
+│   │   │   ├── base.py         # Strategy ABC, SignalResult
+│   │   │   ├── momentum.py
+│   │   │   ├── trend.py
+│   │   │   └── mean_reversion.py
+│   │   ├── signal_store.py     # signal_daily 저장
+│   │   ├── backtest.py         # 백테스트 엔진
+│   │   ├── metrics.py          # 성과 평가 지표
+│   │   └── backtest_store.py   # backtest_* 테이블 저장
+│   ├── api/                    # FastAPI 서버 (Phase 4)
+│   │   ├── __init__.py
+│   │   ├── main.py             # 앱 엔트리포인트, CORS, 에러 핸들러
+│   │   ├── routers/            # 엔드포인트별 라우터
+│   │   ├── services/           # 비즈니스 로직 (상관행렬 on-the-fly 등)
+│   │   ├── repositories/       # DB 접근 계층
+│   │   └── schemas/            # Pydantic 모델
+│   ├── db/                     # DB 관련 (Phase 1)
+│   │   ├── __init__.py
+│   │   ├── models.py           # 8개 SQLAlchemy 모델
+│   │   ├── session.py          # SessionLocal 엔진
+│   │   └── alembic/            # 마이그레이션
+│   ├── config/                 # 설정
+│   │   ├── __init__.py
+│   │   ├── settings.py         # Pydantic BaseSettings
+│   │   └── logging.py          # JSON 로깅 설정
+│   ├── scripts/                # CLI 스크립트
+│   │   ├── collect.py          # 일일 수집 배치
+│   │   ├── run_research.py     # 분석 파이프라인 배치
+│   │   ├── seed_assets.py      # asset_master 초기화
+│   │   └── healthcheck.py      # DB 헬스체크
+│   ├── tests/
+│   │   ├── unit/               # 223+ 단위 테스트
+│   │   └── integration/        # 7+ 통합 테스트
+│   └── pyproject.toml
+├── frontend/                   # React 대시보드 (Phase 5)
 │   ├── package.json
 │   ├── src/
-│   └── public/
-├── db/                     # DB 관련
-│   ├── models.py           # SQLAlchemy 모델
-│   └── alembic/            # 마이그레이션
-├── scripts/                # 유틸리티 스크립트
-├── tests/                  # 테스트
-│   ├── unit/
-│   └── integration/
-├── docs/                   # 문서
-├── dev/                    # dev-docs (active/done)
-├── .env.example            # 환경변수 템플릿
-├── pyproject.toml          # Python 프로젝트 설정
-└── alembic.ini             # Alembic 설정
+│   │   ├── api/                # Axios 클라이언트 + 타입
+│   │   ├── components/         # 공통 컴포넌트
+│   │   ├── pages/              # 6개 페이지
+│   │   └── App.tsx
+│   └── vite.config.ts
+├── docs/                       # 문서
+├── dev/                        # dev-docs (active/done)
+└── .env.example
 ```
 
 ## 16. 의존성

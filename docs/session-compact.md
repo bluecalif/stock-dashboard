@@ -1,109 +1,109 @@
 # Session Compact
 
-> Generated: 2026-02-12 (updated after Task 3.8)
+> Generated: 2026-02-12
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 3 research_engine 구현 (팩터/전략/백테스트)
+Phase 4 API dev-docs 생성 + project-overall 동기화 — **완료**
 
 ## Completed
-- [x] **Phase 2 전체 완료** (Task 2.1 ~ 2.10, 100%)
-- [x] **Phase 3 dev-docs 생성**: `dev/active/phase3-research/` (plan, context, tasks)
-- [x] **Task 3.1**: 전처리 파이프라인 (`d476c52`)
-  - `preprocessing.py`: load_prices, align_calendar, check_missing, flag_outliers
-  - 영업일/일별 캘린더 정렬, ffill + threshold 검증, 이상치 z-score 플래그
-  - 테스트 22개 신규
-- [x] **Task 3.2-3.3**: 15개 팩터 생성 (`b1ce303`)
-  - `factors.py`: compute_all_factors() + 개별 팩터 함수
-  - 수익률(4), 추세(6), 모멘텀(2), 변동성(2), 거래량(1)
-  - RSI Wilder smoothing + edge case 처리
-  - 테스트 25개 신규
-- [x] **Task 3.4**: 팩터 DB 저장 (`1e35fd9`)
-  - `factor_store.py`: _factors_to_records (wide→long, NaN 스킵), _upsert_factors (ON CONFLICT)
-  - store_factors_for_asset: preprocess→compute→UPSERT 파이프라인
-  - store_factors_all: 전 자산 오케스트레이션
-  - 테스트 16개 신규
-- [x] **Task 3.5-3.7**: 전략 엔진 + 시그널 저장 (`6956015`)
-  - `strategies/base.py`: Strategy ABC, SignalResult dataclass, next-day execution rule
-  - `strategies/momentum.py`: ret_63d + vol_20 기반 모멘텀 전략
-  - `strategies/trend.py`: SMA20/60 골든/데드크로스 추세 전략
-  - `strategies/mean_reversion.py`: z-score 밴드 이탈/복귀 평균회귀 전략
-  - `strategies/__init__.py`: STRATEGY_REGISTRY + get_strategy()
-  - `signal_store.py`: DELETE+INSERT 방식 idempotent 시그널 저장
-  - 테스트 43개 신규 (전략 30 + 시그널 저장 13)
-- [x] **Task 3.8**: 백테스트 엔진 (uncommitted)
-  - `research_engine/backtest.py`: BacktestConfig, TradeRecord, BacktestResult dataclass
-  - `run_backtest()`: 단일 자산 — next-day open 체결, 포지션 추적, equity curve + drawdown + trade log + buy&hold 벤치마크
-  - `run_backtest_multi()`: 다중 자산 1/N 동일 가중, 개별 실행 후 equity 합산
-  - `tests/unit/test_backtest.py`: 15개 테스트 전체 통과
-  - ruff lint 통과
+- [x] **Phase 4 dev-docs 생성** (`dev/active/phase4-api/`)
+  - `phase4-api-plan.md` — 4 Stages (A:기반 B:조회 C:백테스트 D:집계+테스트), 14 tasks, 리스크/의존성
+  - `phase4-api-context.md` — 핵심 파일, 데이터 인터페이스, 디렉토리 구조, Pydantic 스키마 설계, 컨벤션 체크리스트
+  - `phase4-api-tasks.md` — 14개 태스크 체크리스트 (S:3, M:9, L:1)
+- [x] **project-overall 동기화** (3개 파일)
+  - `project-overall-plan.md` — Phase 4 섹션: Stage A~D 상세화
+  - `project-overall-context.md` — 상태 업데이트 (Phase 4 Planning)
+  - `project-overall-tasks.md` — Phase 4 태스크: 4A~4D 서브그룹 재구성
+- [x] **정합성 검증 ALL PASS** (4/4)
+  - phase4-tasks ↔ project-overall-tasks: PASS
+  - phase4-plan Stages ↔ project-overall-plan: PASS
+  - masterplan §8 (12 엔드포인트) ↔ phase4-tasks: PASS
+  - Size 분포 (S:3, M:9, L:1): PASS
 
 ## Current State
 
-### Git
-- Branch: `claude/update-docs-steps-complete-4ccpm` (또는 master)
-- Task 3.8 파일은 아직 uncommitted
-- origin에 이전 커밋까지 push 완료
+### 프로젝트 진행률
+| Phase | 이름 | 상태 | Tasks |
+|-------|------|------|-------|
+| 1 | Skeleton | ✅ 완료 | 9/9 |
+| 2 | Collector | ✅ 완료 | 10/10 |
+| 3 | Research Engine | ✅ 완료 | 12/12 |
+| 4 | API | Planning | 0/14 |
+| 5 | Frontend | 미착수 | 0/10 |
+| 6 | Deploy & Ops | 미착수 | 0/16 |
 
-### Phase 3 진행률 — 67% (8/12)
-| Task | Size | Status | Commit |
-|------|------|--------|--------|
-| 3.1 전처리 파이프라인 | M | ✅ Done | `d476c52` |
-| 3.2 수익률+추세 팩터 | M | ✅ Done | `b1ce303` |
-| 3.3 모멘텀+변동성+거래량 | M | ✅ Done | `b1ce303` |
-| 3.4 팩터 DB 저장 | M | ✅ Done | `1e35fd9` |
-| 3.5 전략 프레임워크 | M | ✅ Done | `6956015` |
-| 3.6 3종 전략 구현 | M | ✅ Done | `6956015` |
-| 3.7 시그널+DB 저장 | S | ✅ Done | `6956015` |
-| 3.8 백테스트 엔진 | L | ✅ Done | uncommitted |
-| 3.9 성과 평가 지표 | M | ⬜ Next | — |
-| 3.10 백테스트 결과 DB | S | ⬜ | — |
-| 3.11 배치 스크립트+통합 | M | ⬜ | — |
-| 3.12 문서 갱신 | S | ⬜ | — |
+### Git / Tests
+- Branch: `master`, 미커밋 변경 다수
+- Unit: **223 passed**, ruff clean
+- DB: price_daily 5,559 rows, 7개 자산
 
-### DB 현황
-- price_daily: 5,559 rows (2023-02 ~ 2026-02)
-- 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
+### 미커밋 변경 파일
+**이전 세션 docs 리비전 (아직 미커밋):**
+- `.claude/commands/dev-docs.md` — project-overall 동기화 추가
+- `.claude/commands/step-update.md` — project-overall 동기화 추가
+- `.claude/settings.local.json`
+- `dev/active/phase3-research/` — 3개 파일 (완료 반영)
+- `dev/active/project-overall/` — 3개 파일 (Phase 4 Planning 반영)
+- `docs/masterplan-v0.md` — §8, §8.5, §12, §15 리비전
+- `docs/session-compact.md` — 리비전 반영
 
-### 테스트 현황
-- Unit: **180 collected** (기존 165 + 백테스트 15)
-- Integration: **4 passed** (INTEGRATION_TEST=1)
-- ruff: All checks passed
+**이번 세션 신규 생성:**
+- `dev/active/phase4-api/phase4-api-plan.md` — Phase 4 종합 계획
+- `dev/active/phase4-api/phase4-api-context.md` — Phase 4 컨텍스트
+- `dev/active/phase4-api/phase4-api-tasks.md` — Phase 4 태스크
 
 ## Remaining / TODO
-- [ ] **Task 3.8 커밋**: 백테스트 엔진 변경사항 커밋 필요
-- [ ] **Task 3.9**: 성과 평가 지표 — CAGR, MDD, Sharpe, Sortino, Calmar
-- [ ] **Task 3.10**: 백테스트 결과 DB 저장
-- [ ] **Task 3.11~3.12**: 배치 스크립트 + 통합 테스트 + 문서 갱신
-- [ ] **Phase 4: API** — FastAPI 조회 엔드포인트
-- [ ] **Phase 5: Frontend** — React 시각화 대시보드
+
+### Phase 4: API (14 tasks, 4 Stages)
+**Stage A: 기반 구조**
+- [ ] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
+- [ ] 4.2 Pydantic 스키마 정의 `[M]`
+- [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
+
+**Stage B: 조회 API**
+- [ ] 4.4 `GET /v1/health` — 헬스체크 `[S]`
+- [ ] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
+- [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
+- [ ] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
+- [ ] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
+
+**Stage C: 백테스트 API**
+- [ ] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]`
+- [ ] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]`
+- [ ] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]`
+
+**Stage D: 집계 + 테스트**
+- [ ] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]`
+- [ ] 4.13 `GET /v1/correlation` — 상관행렬 (on-the-fly) `[M]`
+- [ ] 4.14 API 단위 + 통합 테스트 `[M]`
+
+### Phase 5~6
+- Phase 5: Frontend (10 tasks) — Phase 4 완료 후
+- Phase 6: Deploy & Ops (16 tasks) — Phase 5 완료 후
 
 ## Key Decisions
-- [3.1] 크립토=일별 캘린더, 기타=영업일 캘린더 / 결측 ffill + 5% threshold
-- [3.2-3.3] 15개 팩터 단일 파일 / RSI edge case 처리 (loss=0→100, gain=0→0)
-- [3.2-3.3] Wilder smoothing: ewm(alpha=1/14) / MACD: ema_12 - ema_26
-- [3.4] wide→long 변환 시 NaN 스킵, chunk_size=2000 UPSERT
-- [3.5] Strategy ABC + SignalResult dataclass / next-day open 체결 규칙
-- [3.6] 3종 전략: 모멘텀(ret_63d+vol_20), 추세(SMA 골든크로스), 평균회귀(z-score 밴드)
-- [3.7] signal_daily DELETE+INSERT 방식 (UPSERT 대신) — PK 구조에 최적
-- [3.8] 백테스트: next-day open 체결, long-only MVP, 수수료 편도 0.1%, 다중 자산 1/N 균등분배
-- [3.8] pandas 최신 버전: fillna(method=) 대신 .ffill().bfill() 사용
+- Phase 4 아키텍처: Router → Service → Repository 3계층
+- DI 패턴: FastAPI `Depends(get_db)` 세션 관리
+- Pagination: limit/offset (기본 500, 최대 5000)
+- 상관행렬: on-the-fly pandas 계산 (별도 DB 불필요)
+- 백테스트 실행: 동기 (sync) — 데이터 소규모, 수초 내 완료 예상
+- CORS: localhost:5173 (dev) + 프로덕션 origin
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
 - **작업 디렉토리**: `backend/` 내에서 Python 작업 수행
 - **venv**: `backend/.venv/Scripts/activate` (Windows), Python 3.12.3
-- **dev-docs**: `dev/active/phase3-research/` (진행 중)
-- **수집 스크립트**: `backend/scripts/collect.py` — `--start`, `--end`, `--assets` 인자
-- **스케줄러**: `backend/scripts/daily_collect.bat` (수집 + healthcheck 자동 실행)
-- **테스트**: `backend/tests/unit/` (180개) + `backend/tests/integration/` (4개)
-- **마스터플랜**: `docs/masterplan-v0.md` — §7(분석 모듈 상세)
+- **Bash 경로**: `/c/Projects-2026/stock-dashboard/backend` (Windows 백슬래시 불가)
+- **dev-docs**: `dev/active/phase4-api/` (신규), `dev/active/project-overall/` (동기화 완료)
+- **테스트**: `backend/tests/unit/` (223개) + `backend/tests/integration/` (7개)
+- **마스터플랜**: `docs/masterplan-v0.md` — §8(API 12개), §8.5(프론트엔드 6페이지)
+- **커맨드**: `/dev-docs`와 `/step-update` 모두 project-overall 동기화 포함
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
-- Railway PostgreSQL 연결됨
-- **백테스트 참조**: `research_engine/backtest.py` — BacktestResult.equity_curve (date, equity, drawdown), trades (TradeRecord list)
+- **데이터 흐름**: `collector(FDR) → price_daily → research_engine → factor/signal/backtest DB → API(Phase4) → Frontend(Phase5)`
+- **미커밋 변경**: docs 리비전 + Phase 4 dev-docs — 커밋 필요
+- **Phase 4 핵심 참조**: `dev/active/phase4-api/phase4-api-context.md` (디렉토리 구조, 스키마 설계, 데이터 인터페이스)
 
 ## Next Action
-1. **Task 3.8 커밋**: 백테스트 엔진 파일 커밋
-2. **Task 3.9**: 성과 평가 지표 — `research_engine/metrics.py` 구현 (CAGR, MDD, Sharpe, Sortino, Calmar, win_rate 등)
-3. **Task 3.10**: 백테스트 결과 DB 저장
-4. **Task 3.11~3.12**: 배치 스크립트 + 통합 테스트 + 문서 갱신
+1. **미커밋 변경사항 커밋** (docs 리비전 + Phase 4 dev-docs)
+2. **Phase 4 구현 시작**: Step 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI)

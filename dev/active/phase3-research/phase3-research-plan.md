@@ -1,7 +1,7 @@
 # Phase 3: Research Engine
 > Last Updated: 2026-02-12
-> Status: In Progress
-> Current Step: 3.7 (Stage A + B 완료)
+> Status: Complete
+> All 12 tasks done (Stage A + B + C + D)
 
 ## 1. Summary (개요)
 
@@ -18,24 +18,21 @@
 
 ## 2. Current State (현재 상태)
 
-### 존재하는 것 (Stage A + B 완료)
+### 완료된 것 (Stage A + B + C + D 전체)
 - `research_engine/__init__.py`
 - `research_engine/preprocessing.py` — 전처리 파이프라인 (3.1)
 - `research_engine/factors.py` — 15개 팩터 계산 (3.2-3.3)
 - `research_engine/factor_store.py` — factor_daily UPSERT (3.4)
 - `research_engine/strategies/` — Strategy ABC + 3종 전략 (3.5-3.6)
 - `research_engine/signal_store.py` — signal_daily 저장 (3.7)
+- `research_engine/backtest.py` — 백테스트 엔진 (3.8)
+- `research_engine/metrics.py` — 성과 평가 지표 (3.9)
+- `research_engine/backtest_store.py` — 백테스트 결과 DB 저장 (3.10)
+- `scripts/run_research.py` — 분석 배치 스크립트 (3.11)
 - DB 테이블 정의 완료: `factor_daily`, `signal_daily`, `backtest_run`, `backtest_equity_curve`, `backtest_trade_log` (models.py)
 - Alembic 마이그레이션 완료: 8개 테이블 생성 (`a5bd6e50f51e`)
 - `price_daily` 데이터: 5,559 rows (2023-02 ~ 2026-02), 7개 자산
-- 테스트: 165 unit tests + 4 integration tests
-
-### 없는 것 (Stage C + D)
-- 백테스트 엔진
-- 성과 지표 계산
-- 백테스트 결과 DB 저장
-- 분석 배치 스크립트
-- 통합 테스트 (research_engine E2E)
+- 테스트: 223 unit tests + 7 integration tests
 
 ## 3. Target State (목표 상태)
 
@@ -83,13 +80,13 @@ backend/tests/unit/
 - 목표: 팩터 기반으로 3종 전략 신호 생성 → signal_daily 저장
 - 산출물: strategies/ 패키지 + signal_store.py + 테스트 43개
 
-### Stage C: 백테스트 + 성과 (Task 3.8 ~ 3.10)
+### Stage C: 백테스트 + 성과 (Task 3.8 ~ 3.10) ✅ 완료
 - 목표: 시그널 기반 백테스트 실행 → 성과 지표 산출 → DB 저장
 - 산출물: backtest.py, metrics.py, backtest_store.py + 테스트
 
-### Stage D: 통합 + 배치 (Task 3.11 ~ 3.12)
+### Stage D: 통합 + 배치 (Task 3.11 ~ 3.12) ✅ 완료
 - 목표: 전체 파이프라인 통합 배치 스크립트 + 통합 테스트
-- 산출물: scripts/run_research.py + 통합 테스트
+- 산출물: scripts/run_research.py + 통합 테스트 + dev-docs 갱신
 
 ## 5. Task Breakdown (태스크 목록)
 

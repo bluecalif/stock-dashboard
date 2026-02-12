@@ -1,8 +1,8 @@
 # Phase 3: Research Engine — Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress
+> Status: Complete
 
-## Progress: 7/12 (58%)
+## Progress: 12/12 (100%)
 
 ---
 
@@ -60,7 +60,7 @@
 
 ### Stage C: 백테스트 + 성과
 
-- [ ] **3.8** 백테스트 엔진 `[L]`
+- [x] **3.8** 백테스트 엔진 `[L]` — `da01cef`
   - backtest.py: BacktestEngine 클래스
     - 단일 자산 백테스트
     - equity curve 생성
@@ -70,7 +70,7 @@
   - look-ahead bias 방지 검증
   - test_backtest.py (최소 10개)
 
-- [ ] **3.9** 성과 평가 지표 `[M]`
+- [x] **3.9** 성과 평가 지표 `[M]` — `c433392`
   - metrics.py: 지표 계산 함수
     - 누적수익률, CAGR, MDD
     - 변동성 (연환산)
@@ -79,7 +79,7 @@
     - Buy & Hold 비교
   - test_metrics.py (고정 값 검증, 최소 8개)
 
-- [ ] **3.10** 백테스트 결과 DB 저장 `[S]`
+- [x] **3.10** 백테스트 결과 DB 저장 `[S]` — `4f9cdc9`
   - backtest_store.py: backtest_run, equity_curve, trade_log 저장
   - status 관리 (running → success/failure)
   - 테스트
@@ -88,14 +88,15 @@
 
 ### Stage D: 통합
 
-- [ ] **3.11** 분석 배치 스크립트 + 통합 테스트 `[M]`
+- [x] **3.11** 분석 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
   - scripts/run_research.py: CLI 스크립트
     - 전처리 → 팩터 생성 → 시그널 생성 → 백테스트 실행
-    - --assets, --strategy, --start, --end 인자
-    - daily_collect.bat에 후속 실행 연동
-  - 통합 테스트 (DB → 팩터 → 시그널 → 백테스트 E2E)
+    - --assets, --strategy, --start, --end, --skip-backtest, --initial-cash 인자
+    - run_pipeline() 함수로 전체 오케스트레이션
+  - 통합 테스트 3개 (INTEGRATION_TEST=1 필요)
+  - 유닛 테스트 9개 (CLI 파싱/전략 resolve)
 
-- [ ] **3.12** dev-docs + session-compact 갱신 `[S]`
+- [x] **3.12** dev-docs + session-compact 갱신 `[S]`
   - phase3-research-tasks.md 완료 마킹
   - session-compact.md 업데이트
   - Phase 4 준비 안내
@@ -103,6 +104,6 @@
 ---
 
 ## Summary
-- **Total**: 12 tasks
+- **Total**: 12 tasks — **ALL COMPLETE**
 - **Size**: S(3) + M(7) + L(1) = 12
-- **Estimated test count**: ~60+
+- **Final test count**: 223 unit + 7 integration

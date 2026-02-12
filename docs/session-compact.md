@@ -1,6 +1,6 @@
 # Session Compact
 
-> Generated: 2026-02-12 (updated)
+> Generated: 2026-02-12 (updated after Task 3.8)
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
@@ -31,15 +31,21 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
   - `strategies/__init__.py`: STRATEGY_REGISTRY + get_strategy()
   - `signal_store.py`: DELETE+INSERT 방식 idempotent 시그널 저장
   - 테스트 43개 신규 (전략 30 + 시그널 저장 13)
+- [x] **Task 3.8**: 백테스트 엔진 (uncommitted)
+  - `research_engine/backtest.py`: BacktestConfig, TradeRecord, BacktestResult dataclass
+  - `run_backtest()`: 단일 자산 — next-day open 체결, 포지션 추적, equity curve + drawdown + trade log + buy&hold 벤치마크
+  - `run_backtest_multi()`: 다중 자산 1/N 동일 가중, 개별 실행 후 equity 합산
+  - `tests/unit/test_backtest.py`: 15개 테스트 전체 통과
+  - ruff lint 통과
 
 ## Current State
 
 ### Git
-- Branch: `claude/update-docs-steps-complete-4ccpm`
-- Last commit: `6956015` — [phase3-research] Step 3.5-3.7: 전략 엔진 + 시그널 저장 (Stage B)
-- origin에 push 완료
+- Branch: `claude/update-docs-steps-complete-4ccpm` (또는 master)
+- Task 3.8 파일은 아직 uncommitted
+- origin에 이전 커밋까지 push 완료
 
-### Phase 3 진행률 — 58% (7/12)
+### Phase 3 진행률 — 67% (8/12)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 3.1 전처리 파이프라인 | M | ✅ Done | `d476c52` |
@@ -49,8 +55,8 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 | 3.5 전략 프레임워크 | M | ✅ Done | `6956015` |
 | 3.6 3종 전략 구현 | M | ✅ Done | `6956015` |
 | 3.7 시그널+DB 저장 | S | ✅ Done | `6956015` |
-| 3.8 백테스트 엔진 | L | ⬜ Next | — |
-| 3.9 성과 평가 지표 | M | ⬜ | — |
+| 3.8 백테스트 엔진 | L | ✅ Done | uncommitted |
+| 3.9 성과 평가 지표 | M | ⬜ Next | — |
 | 3.10 백테스트 결과 DB | S | ⬜ | — |
 | 3.11 배치 스크립트+통합 | M | ⬜ | — |
 | 3.12 문서 갱신 | S | ⬜ | — |
@@ -60,13 +66,15 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
 
 ### 테스트 현황
-- Unit: **165 collected** (기존 59 + 전처리 22 + 팩터 25 + factor_store 16 + 전략 30 + signal_store 13)
+- Unit: **180 collected** (기존 165 + 백테스트 15)
 - Integration: **4 passed** (INTEGRATION_TEST=1)
 - ruff: All checks passed
 
 ## Remaining / TODO
-- [ ] **배포 전**: `.env`에 실제 `ALERT_WEBHOOK_URL` 설정
-- [ ] **Task 3.8~3.12**: Phase 3 나머지 구현 (Stage C + D)
+- [ ] **Task 3.8 커밋**: 백테스트 엔진 변경사항 커밋 필요
+- [ ] **Task 3.9**: 성과 평가 지표 — CAGR, MDD, Sharpe, Sortino, Calmar
+- [ ] **Task 3.10**: 백테스트 결과 DB 저장
+- [ ] **Task 3.11~3.12**: 배치 스크립트 + 통합 테스트 + 문서 갱신
 - [ ] **Phase 4: API** — FastAPI 조회 엔드포인트
 - [ ] **Phase 5: Frontend** — React 시각화 대시보드
 
@@ -78,6 +86,8 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - [3.5] Strategy ABC + SignalResult dataclass / next-day open 체결 규칙
 - [3.6] 3종 전략: 모멘텀(ret_63d+vol_20), 추세(SMA 골든크로스), 평균회귀(z-score 밴드)
 - [3.7] signal_daily DELETE+INSERT 방식 (UPSERT 대신) — PK 구조에 최적
+- [3.8] 백테스트: next-day open 체결, long-only MVP, 수수료 편도 0.1%, 다중 자산 1/N 균등분배
+- [3.8] pandas 최신 버전: fillna(method=) 대신 .ffill().bfill() 사용
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
@@ -86,13 +96,14 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - **dev-docs**: `dev/active/phase3-research/` (진행 중)
 - **수집 스크립트**: `backend/scripts/collect.py` — `--start`, `--end`, `--assets` 인자
 - **스케줄러**: `backend/scripts/daily_collect.bat` (수집 + healthcheck 자동 실행)
-- **테스트**: `backend/tests/unit/` (165개) + `backend/tests/integration/` (4개)
+- **테스트**: `backend/tests/unit/` (180개) + `backend/tests/integration/` (4개)
 - **마스터플랜**: `docs/masterplan-v0.md` — §7(분석 모듈 상세)
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 - Railway PostgreSQL 연결됨
+- **백테스트 참조**: `research_engine/backtest.py` — BacktestResult.equity_curve (date, equity, drawdown), trades (TradeRecord list)
 
 ## Next Action
-1. **Task 3.8**: 백테스트 엔진 — 단일/다중 자산, equity curve, trade log
-2. **Task 3.9**: 성과 평가 지표 — CAGR, MDD, Sharpe, Sortino, Calmar
+1. **Task 3.8 커밋**: 백테스트 엔진 파일 커밋
+2. **Task 3.9**: 성과 평가 지표 — `research_engine/metrics.py` 구현 (CAGR, MDD, Sharpe, Sortino, Calmar, win_rate 등)
 3. **Task 3.10**: 백테스트 결과 DB 저장
 4. **Task 3.11~3.12**: 배치 스크립트 + 통합 테스트 + 문서 갱신

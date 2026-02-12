@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routers import assets, factors, health, prices, signals
+from api.routers import assets, backtests, factors, health, prices, signals
 
 logger = logging.getLogger(__name__)
 
@@ -72,3 +72,4 @@ app.include_router(assets.router)
 app.include_router(prices.router)
 app.include_router(factors.router)
 app.include_router(signals.router)
+app.include_router(backtests.router)

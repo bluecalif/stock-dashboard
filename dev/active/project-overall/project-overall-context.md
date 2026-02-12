@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-02-12
-> Status: In Progress (Phase 3 완료, Phase 4 Planning)
+> Status: In Progress (Phase 4 진행 중, Step 4.1 완료)
 
 ## 핵심 파일
 
@@ -100,8 +100,8 @@
 ### API 관련
 - [ ] Router → Service → Repository 레이어 분리
 - [ ] Pydantic 스키마 정의
-- [ ] 의존성 주입 패턴
-- [ ] CORS 설정
+- [x] 의존성 주입 패턴 — `api/dependencies.py` get_db()
+- [x] CORS 설정 — `api/main.py` localhost:5173
 - [ ] Pagination (limit/offset)
 
 ### 인코딩 관련

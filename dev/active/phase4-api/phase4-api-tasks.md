@@ -1,14 +1,16 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-12
-> Status: Planning
+> Status: In Progress (1/14, 7%)
 
 ## Stage A: 기반 구조
 
-- [ ] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
+- [x] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
   - `api/main.py` — FastAPI app, lifespan, CORS middleware
   - `api/dependencies.py` — `get_db()` 세션 DI
   - 에러 핸들러 (HTTPException, ValidationError, 500)
-  - `uvicorn api.main:app --reload` 동작 확인
+  - `api/routers/health.py` — GET /v1/health (앱 동작 확인용)
+  - 디렉토리 구조: routers/, services/, repositories/, schemas/
+  - 7 tests (health ok/disconnected, CORS allow/deny, 404, 500, OpenAPI)
 
 - [ ] 4.2 Pydantic 스키마 정의 `[M]`
   - `api/schemas/common.py` — PaginationParams, ErrorResponse
@@ -97,5 +99,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
+- **Progress**: 1/14 (7%) — Stage A 진행 중
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: Phase 4 완료 후 목표 — 기존 223 + API 테스트 추가
+- **Tests**: 기존 223 + API 7 = **230 passed**, ruff clean

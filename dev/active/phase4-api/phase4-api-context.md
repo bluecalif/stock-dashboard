@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-12
-> Status: Planning
+> Status: In Progress (Step 4.1 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -108,27 +108,40 @@ backend/api/
     └── correlation.py         # CorrelationResponse
 ```
 
-## 5. 컨벤션 체크리스트
+## 5. Changed Files
+
+### Step 4.1: FastAPI 앱 골격
+- `api/main.py` — 신규: FastAPI app, lifespan, CORS, error handlers (422/500)
+- `api/dependencies.py` — 신규: `get_db()` 세션 DI
+- `api/routers/__init__.py` — 신규 (빈 파일)
+- `api/routers/health.py` — 신규: GET /v1/health (DB 연결 확인)
+- `api/services/__init__.py` — 신규 (빈 파일)
+- `api/repositories/__init__.py` — 신규 (빈 파일)
+- `api/schemas/__init__.py` — 신규 (빈 파일)
+- `tests/unit/test_api/__init__.py` — 신규 (빈 파일)
+- `tests/unit/test_api/test_main.py` — 신규: 7 tests (health, CORS, errors, OpenAPI)
+
+## 6. 컨벤션 체크리스트
 
 ### API 관련 (Phase 4 적용)
 - [ ] Router → Service → Repository 레이어 분리
 - [ ] Pydantic v2 스키마 (from_attributes=True)
-- [ ] FastAPI DI (Depends)
-- [ ] CORS 설정 (allow_origins, allow_methods, allow_headers)
+- [x] FastAPI DI (Depends) — `get_db()` in `dependencies.py`
+- [x] CORS 설정 (allow_origins, allow_methods, allow_headers) — `main.py`
 - [ ] Pagination (limit/offset, 기본 500, 최대 5000)
-- [ ] 에러 응답 표준화 (4xx/5xx + JSON)
+- [x] 에러 응답 표준화 (4xx/5xx + JSON) — ValidationError(422), generic(500)
 - [ ] UUID 문자열 직렬화
 - [ ] 날짜 파라미터: Query(alias="from"), Query(alias="to")
-- [ ] 라우터 prefix: `/v1/...`
+- [x] 라우터 prefix: `/v1/...` — health.py에 적용
 - [ ] 응답 모델 명시: `response_model=...`
 
 ### 인코딩 관련
-- [ ] JSON 응답: FastAPI 기본 UTF-8 (자동)
+- [x] JSON 응답: FastAPI 기본 UTF-8 (자동)
 - [ ] 한글 자산명: Pydantic 모델에서 안전 직렬화
 
 ### 테스트 관련
-- [ ] httpx AsyncClient + TestClient
-- [ ] SQLite in-memory 또는 mock session
+- [x] httpx AsyncClient + TestClient — `test_main.py` (TestClient 사용)
+- [x] SQLite in-memory 또는 mock session — MagicMock(spec=Session)
 - [ ] 각 엔드포인트 정상/에러 케이스
 
 ## 6. Pydantic 스키마 설계 (주요)

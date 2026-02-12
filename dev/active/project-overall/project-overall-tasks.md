@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (Phase 3 완료, Phase 4 Planning)
+> Status: In Progress (Phase 4 진행 중, 1/14)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -46,11 +46,11 @@
 - [x] 3.11 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
 - [x] 3.12 dev-docs 갱신 `[S]`
 
-## Phase 4: API ← 다음 단계
+## Phase 4: API ← 진행 중 (1/14)
 > dev-docs: `dev/active/phase4-api/`
 
 ### 4A. 기반 구조
-- [ ] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
+- [x] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
 - [ ] 4.2 Pydantic 스키마 정의 `[M]`
 - [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
 
@@ -129,9 +129,9 @@
 
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
-- **Phase 4**: 14 tasks (S: 3, M: 9, L: 1, XL: 0)
+- **Phase 4**: 14 tasks — 1 완료, 13 남음 (7%)
 - **Phase 5**: 10 tasks (S: 0, M: 8, L: 2, XL: 0)
 - **Phase 6**: 16 tasks (S: 4, M: 9, L: 2, XL: 0)
-- **Grand Total**: 76 tasks (36 완료 + 40 남음)
+- **Grand Total**: 76 tasks (37 완료 + 39 남음)
 - **Critical Path**: Phase 4 (API) → Phase 5 (Frontend) → Phase 6 (Deploy)
-- **Tests**: 223 unit + 7 integration (Phase 3 기준)
+- **Tests**: 230 unit + 7 integration

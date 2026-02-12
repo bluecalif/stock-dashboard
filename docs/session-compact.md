@@ -4,22 +4,13 @@
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 4 API dev-docs 생성 + project-overall 동기화 — **완료**
+Phase 4 API 구현 진행 중 — Step 4.1 완료
 
 ## Completed
 - [x] **Phase 4 dev-docs 생성** (`dev/active/phase4-api/`)
-  - `phase4-api-plan.md` — 4 Stages (A:기반 B:조회 C:백테스트 D:집계+테스트), 14 tasks, 리스크/의존성
-  - `phase4-api-context.md` — 핵심 파일, 데이터 인터페이스, 디렉토리 구조, Pydantic 스키마 설계, 컨벤션 체크리스트
-  - `phase4-api-tasks.md` — 14개 태스크 체크리스트 (S:3, M:9, L:1)
 - [x] **project-overall 동기화** (3개 파일)
-  - `project-overall-plan.md` — Phase 4 섹션: Stage A~D 상세화
-  - `project-overall-context.md` — 상태 업데이트 (Phase 4 Planning)
-  - `project-overall-tasks.md` — Phase 4 태스크: 4A~4D 서브그룹 재구성
 - [x] **정합성 검증 ALL PASS** (4/4)
-  - phase4-tasks ↔ project-overall-tasks: PASS
-  - phase4-plan Stages ↔ project-overall-plan: PASS
-  - masterplan §8 (12 엔드포인트) ↔ phase4-tasks: PASS
-  - Size 분포 (S:3, M:9, L:1): PASS
+- [x] **Step 4.1 FastAPI 앱 골격** — main.py, CORS, error handlers, DI, health 라우터, 7 tests
 
 ## Current State
 
@@ -29,35 +20,20 @@ Phase 4 API dev-docs 생성 + project-overall 동기화 — **완료**
 | 1 | Skeleton | ✅ 완료 | 9/9 |
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
-| 4 | API | Planning | 0/14 |
+| 4 | API | 진행 중 | 1/14 |
 | 5 | Frontend | 미착수 | 0/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
-- Branch: `master`, 미커밋 변경 다수
-- Unit: **223 passed**, ruff clean
+- Branch: `master`, remote 동기화 완료
+- Unit: **230 passed**, ruff clean
 - DB: price_daily 5,559 rows, 7개 자산
-
-### 미커밋 변경 파일
-**이전 세션 docs 리비전 (아직 미커밋):**
-- `.claude/commands/dev-docs.md` — project-overall 동기화 추가
-- `.claude/commands/step-update.md` — project-overall 동기화 추가
-- `.claude/settings.local.json`
-- `dev/active/phase3-research/` — 3개 파일 (완료 반영)
-- `dev/active/project-overall/` — 3개 파일 (Phase 4 Planning 반영)
-- `docs/masterplan-v0.md` — §8, §8.5, §12, §15 리비전
-- `docs/session-compact.md` — 리비전 반영
-
-**이번 세션 신규 생성:**
-- `dev/active/phase4-api/phase4-api-plan.md` — Phase 4 종합 계획
-- `dev/active/phase4-api/phase4-api-context.md` — Phase 4 컨텍스트
-- `dev/active/phase4-api/phase4-api-tasks.md` — Phase 4 태스크
 
 ## Remaining / TODO
 
-### Phase 4: API (14 tasks, 4 Stages)
+### Phase 4: API (13 tasks 남음)
 **Stage A: 기반 구조**
-- [ ] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
+- [x] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
 - [ ] 4.2 Pydantic 스키마 정의 `[M]`
 - [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
 
@@ -95,15 +71,14 @@ Phase 4 API dev-docs 생성 + project-overall 동기화 — **완료**
 - **작업 디렉토리**: `backend/` 내에서 Python 작업 수행
 - **venv**: `backend/.venv/Scripts/activate` (Windows), Python 3.12.3
 - **Bash 경로**: `/c/Projects-2026/stock-dashboard/backend` (Windows 백슬래시 불가)
-- **dev-docs**: `dev/active/phase4-api/` (신규), `dev/active/project-overall/` (동기화 완료)
-- **테스트**: `backend/tests/unit/` (223개) + `backend/tests/integration/` (7개)
+- **dev-docs**: `dev/active/phase4-api/`, `dev/active/project-overall/`
+- **테스트**: `backend/tests/unit/` (230개) + `backend/tests/integration/` (7개)
 - **마스터플랜**: `docs/masterplan-v0.md` — §8(API 12개), §8.5(프론트엔드 6페이지)
 - **커맨드**: `/dev-docs`와 `/step-update` 모두 project-overall 동기화 포함
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 - **데이터 흐름**: `collector(FDR) → price_daily → research_engine → factor/signal/backtest DB → API(Phase4) → Frontend(Phase5)`
-- **미커밋 변경**: docs 리비전 + Phase 4 dev-docs — 커밋 필요
 - **Phase 4 핵심 참조**: `dev/active/phase4-api/phase4-api-context.md` (디렉토리 구조, 스키마 설계, 데이터 인터페이스)
 
 ## Next Action
-1. **미커밋 변경사항 커밋** (docs 리비전 + Phase 4 dev-docs)
-2. **Phase 4 구현 시작**: Step 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI)
+1. **Step 4.2**: Pydantic 스키마 정의 (8개 스키마 모듈)
+2. **Step 4.3**: Repository 계층 (DB 접근 추상화)

@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (2/14, 14%)
+> Status: In Progress (3/14, 21%)
 
 ## Stage A: 기반 구조
 
@@ -22,12 +22,14 @@
   - `api/schemas/dashboard.py` — DashboardSummaryResponse, AssetSummary
   - `api/schemas/correlation.py` — CorrelationResponse, CorrelationPeriod
 
-- [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
-  - `api/repositories/asset_repo.py` — get_all_assets()
-  - `api/repositories/price_repo.py` — get_prices(asset_id, from, to, limit, offset)
-  - `api/repositories/factor_repo.py` — get_factors(asset_id, factor_name, from, to, limit, offset)
-  - `api/repositories/signal_repo.py` — get_signals(asset_id, strategy_id, from, to, limit, offset)
-  - `api/repositories/backtest_repo.py` — get_runs(), get_run(run_id), get_equity(run_id), get_trades(run_id)
+- [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]` — `3e62e56`
+  - `api/repositories/asset_repo.py` — get_all(db, is_active=None)
+  - `api/repositories/price_repo.py` — get_prices(...), get_latest_price(...)
+  - `api/repositories/factor_repo.py` — get_factors(...)
+  - `api/repositories/signal_repo.py` — get_signals(...), get_latest_signal(...)
+  - `api/repositories/backtest_repo.py` — get_runs, get_run_by_id, get_equity_curve, get_trades, create_run, bulk_insert_equity, bulk_insert_trades
+  - 설계: 함수 기반 stateless, `db: Session` 첫 인자, SQLAlchemy 모델 반환, limit/offset pagination, date DESC 정렬
+  - 38 tests (5 asset + 8 price + 6 factor + 8 signal + 11 backtest)
 
 ## Stage B: 조회 API
 
@@ -99,6 +101,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 2/14 (14%) — Stage A 진행 중
+- **Progress**: 3/14 (21%) — Stage A 완료
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 223 + API 27 = **250 passed**, ruff clean
+- **Tests**: 기존 250 + repo 38 = **288 passed**, ruff clean

@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.2 완료)
+> Status: In Progress (Step 4.3 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -109,6 +109,21 @@ backend/api/
 ```
 
 ## 5. Changed Files
+
+### Step 4.3: Repository 계층
+- `api/repositories/__init__.py` — 수정: 5개 repo 모듈 re-export
+- `api/repositories/asset_repo.py` — 신규: get_all(db, is_active)
+- `api/repositories/price_repo.py` — 신규: get_prices(), get_latest_price()
+- `api/repositories/factor_repo.py` — 신규: get_factors()
+- `api/repositories/signal_repo.py` — 신규: get_signals(), get_latest_signal()
+- `api/repositories/backtest_repo.py` — 신규: get_runs, get_run_by_id, get_equity_curve, get_trades, create_run, bulk_insert_equity, bulk_insert_trades
+- `tests/unit/test_api/test_repositories/__init__.py` — 신규
+- `tests/unit/test_api/test_repositories/conftest.py` — 신규: SQLite in-memory fixture + seed helpers
+- `tests/unit/test_api/test_repositories/test_asset_repo.py` — 신규: 5 tests
+- `tests/unit/test_api/test_repositories/test_price_repo.py` — 신규: 8 tests
+- `tests/unit/test_api/test_repositories/test_factor_repo.py` — 신규: 6 tests
+- `tests/unit/test_api/test_repositories/test_signal_repo.py` — 신규: 8 tests
+- `tests/unit/test_api/test_repositories/test_backtest_repo.py` — 신규: 11 tests
 
 ### Step 4.1: FastAPI 앱 골격
 - `api/main.py` — 신규: FastAPI app, lifespan, CORS, error handlers (422/500)

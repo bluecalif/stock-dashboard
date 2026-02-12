@@ -123,6 +123,33 @@ Phase 마지막 step 완료 시:
 - project-overall-tasks.md 해당 Phase 헤더에 `✅ 완료` 추가
 - session-compact.md 해당 Phase `[x]` 체크
 
+### 8. Git Push & Remote 정합성 확인 (CRITICAL — 반드시 수행)
+
+#### 8.1 Push
+```bash
+git push origin [branch-name]
+```
+- Push 실패 시: 에러 메시지 출력 후 원인 분석 (remote 변경, 인증 등)
+- `rejected` 에러 시: `git pull --rebase` 후 재시도 (force push 절대 금지)
+
+#### 8.2 Local ↔ Remote 정합성 확인
+Push 완료 후 반드시 확인:
+```bash
+git fetch origin
+git log --oneline HEAD..origin/[branch-name]   # remote에만 있는 커밋 (0이어야 함)
+git log --oneline origin/[branch-name]..HEAD   # local에만 있는 커밋 (0이어야 함)
+```
+
+검증 기준:
+- [ ] 두 명령 모두 **빈 결과**여야 정합 (local == remote)
+- [ ] 차이가 있으면 경고 출력 + 수동 확인 요청
+
+#### 8.3 Push 결과 요약
+```
+Push: origin/[branch-name] ← [commit-hash]
+Remote 정합: ✅ local == remote (동일)
+```
+
 ---
 
 ## Output Format
@@ -145,7 +172,8 @@ project-overall 동기화:
 
 Git:
 - Commit: [hash] [message]
-- Branch: [branch-name]
+- Push: origin/[branch] ← [hash]
+- Remote 정합: ✅ local == remote
 
 전체 진행률: Phase X/Y steps (N%)
 프로젝트 진행률: N/76 tasks (N%)

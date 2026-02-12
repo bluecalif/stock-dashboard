@@ -1,6 +1,6 @@
 # Phase 4: API
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.2 완료, 2/14)
+> Status: In Progress (Step 4.3 완료, 3/14)
 
 ## 1. Summary (개요)
 
@@ -23,9 +23,10 @@
 - **DB**: 8 테이블 생성 완료, price_daily 5,559 rows, 7자산
 - **Step 4.1 완료**: FastAPI 앱 골격 (main.py, CORS, error handlers, DI, health 라우터)
 - **Step 4.2 완료**: Pydantic 스키마 8개 모듈 (14개 클래스, 20 tests)
-- **api/**: main.py, dependencies.py, routers/health.py, schemas/ (8 모듈)
-- **테스트**: 250 unit (223 + API 27) + 7 integration, ruff clean
-- **다음 Step**: 4.3 Repository 계층 (DB 접근 추상화)
+- **Step 4.3 완료**: Repository 계층 5개 모듈 (13개 함수, 38 tests)
+- **api/**: main.py, dependencies.py, routers/health.py, schemas/ (8 모듈), repositories/ (5 모듈)
+- **테스트**: 288 unit (250 + repo 38) + 7 integration, ruff clean
+- **Stage A 완료** — 다음: Stage B 조회 API (Step 4.4~4.8)
 
 ## 3. Target State (목표 상태)
 

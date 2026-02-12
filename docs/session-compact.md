@@ -18,6 +18,11 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
   - 수익률(4), 추세(6), 모멘텀(2), 변동성(2), 거래량(1)
   - RSI Wilder smoothing + edge case 처리
   - 테스트 25개 신규
+- [x] **Task 3.4**: 팩터 DB 저장
+  - `factor_store.py`: _factors_to_records, upsert_factors, store_factors_for_asset, store_factors_all
+  - collector _upsert 패턴 재활용 (ON CONFLICT DO UPDATE, chunk 처리)
+  - NaN 스킵, version 관리 ("v1"), 오케스트레이션 (전 자산 × 전 팩터)
+  - 테스트 21개 신규
 
 ## Current State
 
@@ -26,14 +31,14 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - Last commit: `b1ce303` — [phase3-research] Step 3.2-3.3: 15개 팩터 생성
 - origin/master: 2 commits ahead (unpushed)
 
-### Phase 3 진행률 — 25% (3/12)
+### Phase 3 진행률 — 33% (4/12)
 | Task | Size | Status | Commit |
 |------|------|--------|--------|
 | 3.1 전처리 파이프라인 | M | ✅ Done | `d476c52` |
 | 3.2 수익률+추세 팩터 | M | ✅ Done | `b1ce303` |
 | 3.3 모멘텀+변동성+거래량 | M | ✅ Done | `b1ce303` |
-| 3.4 팩터 DB 저장 | M | ⬜ Next | — |
-| 3.5 전략 프레임워크 | M | ⬜ | — |
+| 3.4 팩터 DB 저장 | M | ✅ Done | — |
+| 3.5 전략 프레임워크 | M | ⬜ Next | — |
 | 3.6 3종 전략 구현 | M | ⬜ | — |
 | 3.7 시그널+DB 저장 | S | ⬜ | — |
 | 3.8 백테스트 엔진 | L | ⬜ | — |
@@ -47,9 +52,9 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - 자산별: KS200(732), 005930(732), 000660(732), SOXL(752), BTC(1097), GC=F(757), SI=F(757)
 
 ### 테스트 현황
-- Unit: **106 passed** (기존 59 + 전처리 22 + 팩터 25)
+- Unit: **127 passed** (기존 59 + 전처리 22 + 팩터 25 + 팩터저장 21)
 - Integration: **4 passed** (INTEGRATION_TEST=1)
-- 일반 pytest: 106 passed, 4 skipped
+- 일반 pytest: 127 passed, 4 skipped
 - ruff: All checks passed
 
 ## Remaining / TODO
@@ -76,6 +81,6 @@ Phase 3 research_engine 구현 (팩터/전략/백테스트)
 - Railway PostgreSQL 연결됨
 
 ## Next Action
-1. **Task 3.4**: 팩터 DB 저장 — factor_store.py (factor_daily UPSERT, 오케스트레이션)
-2. **Task 3.5~3.7**: 전략 엔진 (Strategy ABC + 3종 전략 + 시그널 저장)
-3. **Task 3.8~3.10**: 백테스트 + 성과 지표 + 결과 DB 저장
+1. **Task 3.5**: 전략 프레임워크 — Strategy ABC, 공통 체결 규칙 (next-day open, 수수료/슬리피지)
+2. **Task 3.6**: 3종 전략 구현 — 모멘텀, 추세(골든크로스), 평균회귀
+3. **Task 3.7**: 시그널 생성 + DB 저장 — signal_daily UPSERT

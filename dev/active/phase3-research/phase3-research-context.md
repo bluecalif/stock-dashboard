@@ -102,6 +102,10 @@
 - `backend/research_engine/factors.py` — 신규: 15개 팩터 계산
 - `backend/tests/unit/test_factors.py` — 신규: 25개 테스트
 
+### Step 3.4
+- `backend/research_engine/factor_store.py` — 신규: 팩터 DB UPSERT + 오케스트레이션
+- `backend/tests/unit/test_factor_store.py` — 신규: 21개 테스트
+
 ## Decisions
 - [3.1] 크립토는 일별 캘린더, 기타 자산은 영업일 캘린더로 정렬
 - [3.1] 결측 ffill + threshold 검증 (기본 5%)

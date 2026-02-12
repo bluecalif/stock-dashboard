@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-02-12
-> Status: In Progress (Phase 4 진행 중, Step 4.5 완료)
+> Status: In Progress (Phase 4 진행 중, Step 4.8 완료)
 
 ## 핵심 파일
 
@@ -98,11 +98,11 @@
 - [x] 정합성 검증 (고가/저가 역전, 음수 가격, 중복)
 
 ### API 관련
-- [ ] Router → Service → Repository 레이어 분리
+- [x] Router → Repository 레이어 분리 (Service 계층은 Stage C/D에서 추가)
 - [x] Pydantic 스키마 정의 — 8개 모듈, 14개 클래스
 - [x] 의존성 주입 패턴 — `api/dependencies.py` get_db()
 - [x] CORS 설정 — `api/main.py` localhost:5173
-- [ ] Pagination (limit/offset)
+- [x] Pagination (limit/offset) — PaginationParams Depends
 
 ### 인코딩 관련
 - [x] CSV/File read: `encoding='utf-8-sig'`

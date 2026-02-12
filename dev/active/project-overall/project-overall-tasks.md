@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (Phase 4 진행 중, 2/14)
+> Status: In Progress (Phase 4 진행 중, 8/14)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -46,7 +46,7 @@
 - [x] 3.11 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
 - [x] 3.12 dev-docs 갱신 `[S]`
 
-## Phase 4: API ← 진행 중 (5/14)
+## Phase 4: API ← 진행 중 (8/14)
 > dev-docs: `dev/active/phase4-api/`
 
 ### 4A. 기반 구조 ✅ 완료
@@ -54,12 +54,12 @@
 - [x] 4.2 Pydantic 스키마 정의 `[M]` — `77e4b1d`
 - [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]` — `b990914`
 
-### 4B. 조회 API
+### 4B. 조회 API ✅ 완료
 - [x] 4.4 `GET /v1/health` — 헬스체크 `[S]` (Step 4.1에서 구현 완료)
 - [x] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
-- [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
-- [ ] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
-- [ ] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
+- [x] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
+- [x] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
+- [x] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
 
 ### 4C. 백테스트 API
 - [ ] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]`
@@ -129,9 +129,9 @@
 
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
-- **Phase 4**: 14 tasks — 5 완료, 9 남음 (36%)
+- **Phase 4**: 14 tasks — 8 완료, 6 남음 (57%)
 - **Phase 5**: 10 tasks (S: 0, M: 8, L: 2, XL: 0)
 - **Phase 6**: 16 tasks (S: 4, M: 9, L: 2, XL: 0)
-- **Grand Total**: 76 tasks (41 완료 + 35 남음)
+- **Grand Total**: 76 tasks (44 완료 + 32 남음)
 - **Critical Path**: Phase 4 (API) → Phase 5 (Frontend) → Phase 6 (Deploy)
-- **Tests**: 294 unit + 7 integration
+- **Tests**: 318 unit + 7 integration

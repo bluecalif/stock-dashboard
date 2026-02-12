@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (5/14, 36%)
+> Status: In Progress (8/14, 57%)
 
 ## Stage A: 기반 구조
 
@@ -42,20 +42,18 @@
   - `asset_repo.get_all()` → `AssetResponse` 변환
   - 6 tests (all, filter active/inactive, empty, schema, Korean encoding)
 
-- [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
-  - 쿼리 파라미터: asset_id (필수), from, to, limit, offset
-  - price_daily 테이블 조회 (asset_id + date DESC)
-  - 응답: `list[PriceDailyResponse]`
+- [x] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
+  - `api/routers/prices.py` — asset_id(필수), start_date, end_date, PaginationParams
+  - date range 검증 (start > end → 400)
+  - 8 tests (required param, prices, date filter, invalid range, pagination, empty, schema, limit validation)
 
-- [ ] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
-  - 쿼리 파라미터: asset_id (필수), factor_name (선택), from, to, limit, offset
-  - factor_daily 테이블 조회
-  - 응답: `list[FactorDailyResponse]`
+- [x] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
+  - `api/routers/factors.py` — asset_id, factor_name, start_date, end_date, PaginationParams
+  - 8 tests (all, filter asset, filter factor_name, date, invalid range, pagination, empty, schema)
 
-- [ ] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
-  - 쿼리 파라미터: asset_id (필수), strategy_id (선택), from, to, limit, offset
-  - signal_daily 테이블 조회
-  - 응답: `list[SignalDailyResponse]`
+- [x] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
+  - `api/routers/signals.py` — asset_id, strategy_id, start_date, end_date, PaginationParams
+  - 8 tests (all, filter asset, filter strategy, date, invalid range, pagination, empty, schema)
 
 ## Stage C: 백테스트 API
 
@@ -102,6 +100,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 5/14 (36%) — Stage B 진행 중
+- **Progress**: 8/14 (57%) — Stage B 완료, Stage C 진행 예정
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 288 + assets 6 = **294 passed**, ruff clean
+- **Tests**: 기존 294 + prices 8 + factors 8 + signals 8 = **318 passed**, ruff clean

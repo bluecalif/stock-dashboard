@@ -1,6 +1,6 @@
 # Phase 4: API
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.5 완료, 5/14)
+> Status: In Progress (Step 4.8 완료, 8/14)
 
 ## 1. Summary (개요)
 
@@ -27,7 +27,8 @@
 - **api/**: main.py, dependencies.py, routers/health.py, schemas/ (8 모듈), repositories/ (5 모듈)
 - **테스트**: 288 unit (250 + repo 38) + 7 integration, ruff clean
 - **Step 4.4~4.5 완료**: Health (기존) + Assets 엔드포인트 (6 tests)
-- **Stage B 진행 중** — 다음: Step 4.6~4.8 (prices, factors, signals)
+- **Step 4.6~4.8 완료**: Prices, Factors, Signals 라우터 (24 tests)
+- **Stage B 완료** — 다음: Stage C (백테스트 API, Step 4.9~4.11)
 
 ## 3. Target State (목표 상태)
 

@@ -110,6 +110,16 @@ backend/api/
 
 ## 5. Changed Files
 
+### Step 4.6~4.8: Prices, Factors, Signals 라우터
+- `api/routers/prices.py` — 신규: GET /v1/prices/daily (asset_id 필수, date range, pagination)
+- `api/routers/factors.py` — 신규: GET /v1/factors (asset_id, factor_name, date range, pagination)
+- `api/routers/signals.py` — 신규: GET /v1/signals (asset_id, strategy_id, date range, pagination)
+- `api/main.py` — 수정: prices, factors, signals router 등록
+- `tests/unit/test_api/test_prices.py` — 신규: 8 tests
+- `tests/unit/test_api/test_factors.py` — 신규: 8 tests
+- `tests/unit/test_api/test_signals.py` — 신규: 8 tests
+- 공통: PaginationParams Depends 주입, start_date > end_date → 400 검증
+
 ### Step 4.4~4.5: Health + Assets 엔드포인트
 - `api/routers/assets.py` — 신규: GET /v1/assets (is_active 필터)
 - `api/main.py` — 수정: assets router 등록
@@ -157,11 +167,11 @@ backend/api/
 ## 6. 컨벤션 체크리스트
 
 ### API 관련 (Phase 4 적용)
-- [ ] Router → Service → Repository 레이어 분리
+- [x] Router → Repository 레이어 분리 (Service 계층은 Stage C/D에서 추가)
 - [x] Pydantic v2 스키마 (from_attributes=True) — 8개 모듈, 14개 클래스
 - [x] FastAPI DI (Depends) — `get_db()` in `dependencies.py`
 - [x] CORS 설정 (allow_origins, allow_methods, allow_headers) — `main.py`
-- [ ] Pagination (limit/offset, 기본 500, 최대 5000)
+- [x] Pagination (limit/offset, 기본 500, 최대 5000) — PaginationParams Depends
 - [x] 에러 응답 표준화 (4xx/5xx + JSON) — ValidationError(422), generic(500)
 - [x] UUID 문자열 직렬화 — BacktestRunResponse, EquityCurveResponse, TradeLogResponse
 - [ ] 날짜 파라미터: Query(alias="from"), Query(alias="to")

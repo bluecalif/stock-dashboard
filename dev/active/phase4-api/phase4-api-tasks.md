@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
-> Last Updated: 2026-02-12
-> Status: In Progress (8/14, 57%)
+> Last Updated: 2026-02-13
+> Status: In Progress (10/14, 71%)
 
 ## Stage A: 기반 구조
 
@@ -57,15 +57,17 @@
 
 ## Stage C: 백테스트 API
 
-- [ ] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]`
-  - backtest_run 전체 조회 (최신순, pagination)
-  - 응답: `list[BacktestRunResponse]`
+- [x] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]` — `fac9e08`
+  - `api/routers/backtests.py` — Router: `GET /v1/backtests?strategy_id=&asset_id=`
+  - `backtest_repo.get_runs()` → `BacktestRunResponse` 변환, PaginationParams
+  - 7 tests (all, filter strategy/asset, combined, pagination, empty, schema)
 
-- [ ] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]`
-  - `GET /v1/backtests/{run_id}` — 단건 조회 (metrics_json 포함)
+- [x] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]` — `fac9e08`
+  - `GET /v1/backtests/{run_id}` — 단건 조회 (404 if not found, 422 invalid UUID)
   - `GET /v1/backtests/{run_id}/equity` — 에쿼티 커브 (date, equity, drawdown)
-  - `GET /v1/backtests/{run_id}/trades` — 거래 이력 (pagination)
-  - 404 처리: run_id 미존재 시
+  - `GET /v1/backtests/{run_id}/trades` — 거래 이력 (11 fields)
+  - `api/main.py` — backtests router 등록
+  - 11 tests (found/not_found/invalid_uuid, equity 4, trades 4)
 
 - [ ] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]`
   - 요청 바디: BacktestRunRequest (strategy_id, asset_id, start/end_date, initial_cash, commission_pct)
@@ -100,6 +102,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 8/14 (57%) — Stage B 완료, Stage C 진행 예정
+- **Progress**: 10/14 (71%) — Stage C 진행 중 (4.9~4.10 완료, 4.11 남음)
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 294 + prices 8 + factors 8 + signals 8 = **318 passed**, ruff clean
+- **Tests**: 기존 318 + backtests 18 = **336 passed**, ruff clean

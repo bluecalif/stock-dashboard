@@ -1,6 +1,6 @@
 # Phase 4: API — Context
-> Last Updated: 2026-02-12
-> Status: In Progress (Step 4.5 완료)
+> Last Updated: 2026-02-13
+> Status: In Progress (Step 4.10 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -109,6 +109,15 @@ backend/api/
 ```
 
 ## 5. Changed Files
+
+### Step 4.9~4.10: Backtests 라우터 (목록/단건/equity/trades)
+- `api/routers/backtests.py` — 신규: 4개 엔드포인트
+  - `GET /v1/backtests` — 목록 (strategy_id, asset_id 필터, PaginationParams)
+  - `GET /v1/backtests/{run_id}` — 단건 조회 (404 if not found)
+  - `GET /v1/backtests/{run_id}/equity` — 에쿼티 커브
+  - `GET /v1/backtests/{run_id}/trades` — 거래 이력
+- `api/main.py` — 수정: backtests router import + 등록
+- `tests/unit/test_api/test_backtests.py` — 신규: 18 tests (4 classes)
 
 ### Step 4.6~4.8: Prices, Factors, Signals 라우터
 - `api/routers/prices.py` — 신규: GET /v1/prices/daily (asset_id 필수, date range, pagination)

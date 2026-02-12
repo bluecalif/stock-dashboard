@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-02-12
-> Status: In Progress (Phase 4 진행 중, 8/14)
+> Last Updated: 2026-02-13
+> Status: In Progress (Phase 4 진행 중, 10/14)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -46,7 +46,7 @@
 - [x] 3.11 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
 - [x] 3.12 dev-docs 갱신 `[S]`
 
-## Phase 4: API ← 진행 중 (8/14)
+## Phase 4: API ← 진행 중 (10/14)
 > dev-docs: `dev/active/phase4-api/`
 
 ### 4A. 기반 구조 ✅ 완료
@@ -62,8 +62,8 @@
 - [x] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
 
 ### 4C. 백테스트 API
-- [ ] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]`
-- [ ] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]`
+- [x] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]` — `fac9e08`
+- [x] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]` — `fac9e08`
 - [ ] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 실행 `[L]`
 
 ### 4D. 집계 API + 테스트
@@ -129,9 +129,9 @@
 
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
-- **Phase 4**: 14 tasks — 8 완료, 6 남음 (57%)
+- **Phase 4**: 14 tasks — 10 완료, 4 남음 (71%)
 - **Phase 5**: 10 tasks (S: 0, M: 8, L: 2, XL: 0)
 - **Phase 6**: 16 tasks (S: 4, M: 9, L: 2, XL: 0)
-- **Grand Total**: 76 tasks (44 완료 + 32 남음)
+- **Grand Total**: 76 tasks (46 완료 + 30 남음)
 - **Critical Path**: Phase 4 (API) → Phase 5 (Frontend) → Phase 6 (Deploy)
-- **Tests**: 318 unit + 7 integration
+- **Tests**: 336 unit + 7 integration

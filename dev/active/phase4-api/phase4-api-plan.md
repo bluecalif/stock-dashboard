@@ -1,6 +1,6 @@
 # Phase 4: API
-> Last Updated: 2026-02-12
-> Status: In Progress (Step 4.8 완료, 8/14)
+> Last Updated: 2026-02-13
+> Status: In Progress (Step 4.10 완료, 10/14)
 
 ## 1. Summary (개요)
 
@@ -28,7 +28,9 @@
 - **테스트**: 288 unit (250 + repo 38) + 7 integration, ruff clean
 - **Step 4.4~4.5 완료**: Health (기존) + Assets 엔드포인트 (6 tests)
 - **Step 4.6~4.8 완료**: Prices, Factors, Signals 라우터 (24 tests)
-- **Stage B 완료** — 다음: Stage C (백테스트 API, Step 4.9~4.11)
+- **Stage B 완료**
+- **Step 4.9~4.10 완료**: Backtests 목록/단건/equity/trades 라우터 (18 tests)
+- **Stage C 진행 중** — 다음: Step 4.11 (POST /v1/backtests/run 온디맨드 백테스트)
 
 ## 3. Target State (목표 상태)
 

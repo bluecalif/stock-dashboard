@@ -106,12 +106,25 @@
 - `backend/research_engine/factor_store.py` — 신규: factor_daily UPSERT + 오케스트레이션
 - `backend/tests/unit/test_factor_store.py` — 신규: 16개 테스트
 
+### Step 3.5-3.7 (`6956015`)
+- `backend/research_engine/strategies/base.py` — 신규: Strategy ABC, SignalResult dataclass
+- `backend/research_engine/strategies/__init__.py` — 신규: STRATEGY_REGISTRY + get_strategy()
+- `backend/research_engine/strategies/momentum.py` — 신규: 모멘텀 전략 (ret_63d + vol_20)
+- `backend/research_engine/strategies/trend.py` — 신규: 추세 전략 (SMA20/60 골든/데드크로스)
+- `backend/research_engine/strategies/mean_reversion.py` — 신규: 평균회귀 전략 (z-score 밴드)
+- `backend/research_engine/signal_store.py` — 신규: DELETE+INSERT 시그널 저장
+- `backend/tests/unit/test_strategies.py` — 신규: 30개 테스트
+- `backend/tests/unit/test_signal_store.py` — 신규: 13개 테스트
+
 ## Decisions
 - [3.1] 크립토는 일별 캘린더, 기타 자산은 영업일 캘린더로 정렬
 - [3.1] 결측 ffill + threshold 검증 (기본 5%)
 - [3.2-3.3] RSI Wilder smoothing + edge case 처리 (avg_loss=0 → RSI=100, avg_gain=0 → RSI=0)
 - [3.2-3.3] 15개 팩터 한 파일(factors.py)에 통합, compute_all_factors()로 일괄 계산
 - [3.4] wide→long 변환 시 NaN 스킵 (초기 lookback 구간), chunk_size=2000 UPSERT
+- [3.5] Strategy ABC + SignalResult dataclass / next-day open 체결 규칙
+- [3.6] 3종 전략: 모멘텀(ret_63d+vol_20), 추세(SMA 골든크로스), 평균회귀(z-score 밴드)
+- [3.7] signal_daily DELETE+INSERT 방식 (UPSERT 대신) — auto-increment PK 구조에 최적
 
 ## 참조 문서
 - `docs/masterplan-v0.md` §7 (분석 모듈 상세)

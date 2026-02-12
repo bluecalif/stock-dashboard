@@ -94,7 +94,9 @@ class BacktestRun(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     strategy_id: Mapped[str] = mapped_column(String(50), nullable=False)
+    asset_id: Mapped[str] = mapped_column(String(20), nullable=False)
     config_json: Mapped[dict] = mapped_column(JSON, nullable=False)
+    metrics_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     started_at: Mapped["DateTime"] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -124,8 +126,11 @@ class BacktestTradeLog(Base):
     )
     asset_id: Mapped[str] = mapped_column(String(20), nullable=False)
     entry_date: Mapped["Date"] = mapped_column(Date, nullable=False)
+    entry_price: Mapped[float] = mapped_column(Float, nullable=False)
     exit_date: Mapped["Date | None"] = mapped_column(Date, nullable=True)
+    exit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
     side: Mapped[str] = mapped_column(String(10), nullable=False)
+    shares: Mapped[float] = mapped_column(Float, nullable=False)
     pnl: Mapped[float | None] = mapped_column(Float, nullable=True)
     cost: Mapped[float | None] = mapped_column(Float, nullable=True)
 

@@ -18,8 +18,9 @@ Docs: `docs/masterplan-v0.md` (설계), `docs/session-compact.md` (현재 상태
 ## Common Commands
 
 ```bash
-# Backend (run from backend/)
-cd backend
+# Backend (run from /c/Projects-2026/stock-dashboard/backend)
+# IMPORTANT: Windows backslash paths (C:\...) fail in Git Bash. Always use /c/... format.
+cd /c/Projects-2026/stock-dashboard/backend
 pip install -e ".[dev]"             # Install deps (first time)
 python -m pytest                    # Run all tests
 ruff check .                        # Lint

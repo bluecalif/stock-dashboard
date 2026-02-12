@@ -1,213 +1,263 @@
 """Tests for research_engine.factor_store module."""
 
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
+import pytest
 
 from research_engine.factor_store import (
-    FactorStoreResult,
     _factors_to_records,
     _upsert_factors,
+    store_factors_all,
+    store_factors_for_asset,
 )
 from research_engine.factors import ALL_FACTOR_NAMES, FACTOR_VERSION
 
 
-def _make_ohlcv(n=150):
-    """Helper: create OHLCV DataFrame with enough rows for all factors."""
-    dates = pd.bdate_range("2024-01-02", periods=n)
-    np.random.seed(42)
-    close = 100 + np.cumsum(np.random.randn(n) * 0.5)
+def _make_ohlcv(n=150, base_price=100.0, seed=42):
+    """Generate deterministic OHLCV DataFrame for testing."""
+    rng = np.random.RandomState(seed)
+    dates = pd.bdate_range("2025-06-01", periods=n)
+    returns = rng.normal(0.001, 0.02, n)
+    close = base_price * np.cumprod(1 + returns)
+    high = close * (1 + rng.uniform(0, 0.02, n))
+    low = close * (1 - rng.uniform(0, 0.02, n))
+    open_ = close * (1 + rng.uniform(-0.01, 0.01, n))
+    volume = rng.randint(10000, 100000, n)
+
     return pd.DataFrame(
         {
-            "open": close * 0.999,
-            "high": close * 1.02,
-            "low": close * 0.98,
+            "open": open_,
+            "high": high,
+            "low": low,
             "close": close,
-            "volume": np.random.randint(1000, 100000, n),
+            "volume": volume,
         },
         index=pd.DatetimeIndex(dates, name="date"),
     )
 
 
-def _make_factor_df():
-    """Helper: create a small factor DataFrame with known values."""
-    dates = pd.date_range("2024-06-01", periods=3, freq="B")
-    data = {}
-    for i, name in enumerate(ALL_FACTOR_NAMES):
-        data[name] = [float(i + j) for j in range(3)]
-    return pd.DataFrame(data, index=pd.DatetimeIndex(dates, name="date"))
+@pytest.fixture
+def ohlcv():
+    return _make_ohlcv(n=150)
 
 
-# --- FactorStoreResult ---
-
-
-class TestFactorStoreResult:
-    def test_default_values(self):
-        r = FactorStoreResult(asset_id="005930", status="success")
-        assert r.row_count == 0
-        assert r.errors == []
-        assert r.elapsed_ms == 0.0
-
-    def test_with_values(self):
-        r = FactorStoreResult(
-            asset_id="KS200",
-            status="preprocess_failed",
-            errors=["No data"],
-            elapsed_ms=123.4,
-        )
-        assert r.asset_id == "KS200"
-        assert r.status == "preprocess_failed"
-        assert len(r.errors) == 1
+@pytest.fixture
+def factors_df(ohlcv):
+    from research_engine.factors import compute_all_factors
+    return compute_all_factors(ohlcv)
 
 
 # --- _factors_to_records ---
 
 
 class TestFactorsToRecords:
-    def test_basic_conversion(self):
-        df = _make_factor_df()
-        records = _factors_to_records("005930", df)
-        # 3 dates × 15 factors = 45 records
-        assert len(records) == 45
+    def test_basic_conversion(self, factors_df):
+        """Records should have correct keys and skip NaNs."""
+        records = _factors_to_records("KS200", factors_df)
+        assert len(records) > 0
+        first = records[0]
+        assert set(first.keys()) == {"asset_id", "date", "factor_name", "version", "value"}
+        assert first["asset_id"] == "KS200"
+        assert first["version"] == FACTOR_VERSION
 
-    def test_record_structure(self):
-        df = _make_factor_df()
-        records = _factors_to_records("KS200", df)
-        r = records[0]
-        assert set(r.keys()) == {"asset_id", "date", "factor_name", "version", "value"}
-        assert r["asset_id"] == "KS200"
-        assert r["version"] == FACTOR_VERSION
+    def test_skips_nan_values(self):
+        """NaN values must not appear in records."""
+        df = pd.DataFrame(
+            {"factor_a": [1.0, np.nan, 3.0], "factor_b": [np.nan, 2.0, np.nan]},
+            index=pd.date_range("2025-01-01", periods=3),
+        )
+        records = _factors_to_records("TEST", df)
+        # factor_a: 2 non-NaN, factor_b: 1 non-NaN → total 3
+        assert len(records) == 3
+        for r in records:
+            assert not pd.isna(r["value"])
 
-    def test_nan_values_skipped(self):
-        df = _make_factor_df()
-        # Set some NaN values
-        df.iloc[0, 0] = np.nan  # ret_1d at row 0
-        df.iloc[1, 1] = np.nan  # ret_5d at row 1
-        records = _factors_to_records("005930", df)
-        assert len(records) == 43  # 45 - 2 NaN
+    def test_all_nan_produces_empty(self):
+        """All-NaN DataFrame must produce no records."""
+        df = pd.DataFrame(
+            {"f1": [np.nan, np.nan]},
+            index=pd.date_range("2025-01-01", periods=2),
+        )
+        records = _factors_to_records("TEST", df)
+        assert records == []
 
-    def test_all_nan_row(self):
-        df = _make_factor_df()
-        df.iloc[0] = np.nan
-        records = _factors_to_records("005930", df)
-        # row 0 all NaN → skip 15, remaining 2 rows × 15 = 30
-        assert len(records) == 30
-
-    def test_empty_dataframe(self):
-        df = pd.DataFrame(columns=ALL_FACTOR_NAMES)
-        df.index.name = "date"
-        records = _factors_to_records("005930", df)
-        assert len(records) == 0
-
-    def test_custom_version(self):
-        df = _make_factor_df().head(1)
-        records = _factors_to_records("005930", df, version="v2")
+    def test_custom_version(self, factors_df):
+        """Custom version string should propagate to records."""
+        records = _factors_to_records("KS200", factors_df, version="v2")
         assert all(r["version"] == "v2" for r in records)
 
-    def test_date_converted_to_date_object(self):
-        df = _make_factor_df()
-        records = _factors_to_records("005930", df)
-        import datetime
-
-        assert isinstance(records[0]["date"], datetime.date)
-
-    def test_value_is_float(self):
-        df = _make_factor_df()
-        records = _factors_to_records("005930", df)
-        for r in records:
-            assert isinstance(r["value"], float)
-
-    def test_all_factor_names_present(self):
-        df = _make_factor_df()
-        records = _factors_to_records("005930", df)
+    def test_factor_names_match(self, factors_df):
+        """All factor names in records should be from ALL_FACTOR_NAMES."""
+        records = _factors_to_records("KS200", factors_df)
         factor_names = {r["factor_name"] for r in records}
         assert factor_names == set(ALL_FACTOR_NAMES)
 
+    def test_date_is_date_not_datetime(self, factors_df):
+        """Date values should be date objects, not datetime."""
+        import datetime
 
-# --- _upsert_factors (with mock session) ---
+        records = _factors_to_records("KS200", factors_df)
+        for r in records:
+            assert isinstance(r["date"], datetime.date)
 
 
-class MockSession:
-    """Minimal mock for SQLAlchemy session to test upsert logic."""
-
-    def __init__(self):
-        self.executed = []
-        self.flushed = False
-
-    def execute(self, stmt):
-        self.executed.append(stmt)
-
-    def flush(self):
-        self.flushed = True
+# --- _upsert_factors ---
 
 
 class TestUpsertFactors:
-    def test_single_chunk(self):
-        df = _make_factor_df().head(1)
-        records = _factors_to_records("005930", df)
-        session = MockSession()
-        count = _upsert_factors(session, records, chunk_size=1000)
-        assert count == 15
-        assert len(session.executed) == 1
-        assert session.flushed
+    def test_upsert_uses_on_conflict(self):
+        """Must use INSERT ... ON CONFLICT DO UPDATE."""
+        records = [{
+            "asset_id": "KS200", "date": "2025-01-02",
+            "factor_name": "ret_1d", "version": "v1", "value": 0.01,
+        }]
+        mock_session = MagicMock()
+        row_count = _upsert_factors(mock_session, records)
 
-    def test_multiple_chunks(self):
-        df = _make_factor_df()
-        records = _factors_to_records("005930", df)
-        session = MockSession()
-        count = _upsert_factors(session, records, chunk_size=10)
-        assert count == 45
-        # 45 / 10 = 5 chunks (10, 10, 10, 10, 5)
-        assert len(session.executed) == 5
-        assert session.flushed
+        assert row_count == 1
+        mock_session.execute.assert_called_once()
+        mock_session.flush.assert_called_once()
+
+        stmt = mock_session.execute.call_args[0][0]
+        compiled = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+        assert "ON CONFLICT" in compiled
+        assert "DO UPDATE SET" in compiled
+
+    def test_upsert_chunking(self):
+        """Chunk size should control number of execute calls."""
+        records = [
+            {
+                "asset_id": "T", "date": f"2025-01-0{i}",
+                "factor_name": "ret_1d", "version": "v1", "value": 0.01,
+            }
+            for i in range(1, 6)
+        ]
+        mock_session = MagicMock()
+        row_count = _upsert_factors(mock_session, records, chunk_size=2)
+
+        assert row_count == 5
+        assert mock_session.execute.call_count == 3  # 2+2+1
 
     def test_empty_records(self):
-        session = MockSession()
-        count = _upsert_factors(session, [], chunk_size=1000)
-        assert count == 0
-        assert session.flushed
+        """Empty records should produce zero rows and no execute calls."""
+        mock_session = MagicMock()
+        row_count = _upsert_factors(mock_session, [])
+        assert row_count == 0
+        mock_session.execute.assert_not_called()
 
 
-# --- Integration: compute_all_factors → _factors_to_records ---
+# --- store_factors_for_asset ---
 
 
-class TestComputeAndConvert:
-    def test_roundtrip(self):
-        """Verify that compute_all_factors output converts correctly to records."""
-        from research_engine.factors import compute_all_factors
+class TestStoreFactorsForAsset:
+    def test_success(self, ohlcv):
+        """Successful pipeline: preprocess → compute → store."""
+        mock_session = MagicMock()
 
-        df = _make_ohlcv(150)
-        factor_df = compute_all_factors(df)
-        records = _factors_to_records("005930", factor_df)
+        with (
+            patch("research_engine.factor_store.preprocess", return_value=ohlcv),
+            patch("research_engine.factor_store._upsert_factors", return_value=1000),
+        ):
+            result = store_factors_for_asset(mock_session, "KS200")
 
-        # Should have records (some early rows will be NaN but most should be valid)
-        assert len(records) > 0
+        assert result.status == "success"
+        assert result.row_count == 1000
+        assert result.factor_count == 15
+        assert result.errors == []
+        assert result.elapsed_ms > 0
+        mock_session.commit.assert_called_once()
 
-        # All records should have valid structure
-        for r in records:
-            assert r["asset_id"] == "005930"
-            assert r["version"] == FACTOR_VERSION
-            assert r["factor_name"] in ALL_FACTOR_NAMES
-            assert isinstance(r["value"], float)
-            assert not np.isnan(r["value"])
+    def test_preprocess_failure(self):
+        """Preprocess error → status='preprocess_failed'."""
+        mock_session = MagicMock()
 
-    def test_no_nan_in_records(self):
-        """Ensure no NaN values leak into records."""
-        from research_engine.factors import compute_all_factors
+        with patch("research_engine.factor_store.preprocess", side_effect=ValueError("No data")):
+            result = store_factors_for_asset(mock_session, "KS200")
 
-        df = _make_ohlcv(150)
-        factor_df = compute_all_factors(df)
-        records = _factors_to_records("005930", factor_df)
+        assert result.status == "preprocess_failed"
+        assert any("No data" in e for e in result.errors)
+        mock_session.commit.assert_not_called()
 
-        for r in records:
-            assert not np.isnan(r["value"]), f"NaN in {r['factor_name']} at {r['date']}"
+    def test_compute_failure(self, ohlcv):
+        """Factor computation error → status='compute_failed'."""
+        mock_session = MagicMock()
+        bad_df = ohlcv.drop(columns=["close"])  # missing column
 
-    def test_factor_count_matches(self):
-        """All 15 factor names should appear in output records."""
-        from research_engine.factors import compute_all_factors
+        with patch("research_engine.factor_store.preprocess", return_value=bad_df):
+            result = store_factors_for_asset(mock_session, "KS200")
 
-        df = _make_ohlcv(150)
-        factor_df = compute_all_factors(df)
-        records = _factors_to_records("005930", factor_df)
+        assert result.status == "compute_failed"
+        assert len(result.errors) > 0
 
-        factor_names = {r["factor_name"] for r in records}
-        assert factor_names == set(ALL_FACTOR_NAMES)
+    def test_store_failure(self, ohlcv):
+        """DB upsert error → status='store_failed', rollback called."""
+        mock_session = MagicMock()
+
+        with (
+            patch("research_engine.factor_store.preprocess", return_value=ohlcv),
+            patch(
+                "research_engine.factor_store._upsert_factors",
+                side_effect=RuntimeError("DB error"),
+            ),
+        ):
+            result = store_factors_for_asset(mock_session, "KS200")
+
+        assert result.status == "store_failed"
+        assert any("DB error" in e for e in result.errors)
+        mock_session.rollback.assert_called_once()
+
+
+# --- store_factors_all ---
+
+
+class TestStoreFactorsAll:
+    def test_explicit_asset_ids(self, ohlcv):
+        """Given asset_ids should be used directly."""
+        mock_session = MagicMock()
+
+        with (
+            patch("research_engine.factor_store.preprocess", return_value=ohlcv),
+            patch("research_engine.factor_store._upsert_factors", return_value=100),
+        ):
+            results = store_factors_all(mock_session, asset_ids=["KS200", "005930"])
+
+        assert len(results) == 2
+        assert all(r.status == "success" for r in results)
+
+    def test_partial_failure(self, ohlcv):
+        """One asset failure must not stop others."""
+        mock_session = MagicMock()
+        call_count = {"n": 0}
+
+        def mock_preprocess(session, asset_id, start=None, end=None):
+            call_count["n"] += 1
+            if asset_id == "005930":
+                raise ValueError("No data for 005930")
+            return ohlcv
+
+        with (
+            patch("research_engine.factor_store.preprocess", side_effect=mock_preprocess),
+            patch("research_engine.factor_store._upsert_factors", return_value=100),
+        ):
+            results = store_factors_all(mock_session, asset_ids=["KS200", "005930", "SOXL"])
+
+        statuses = {r.asset_id: r.status for r in results}
+        assert statuses["KS200"] == "success"
+        assert statuses["005930"] == "preprocess_failed"
+        assert statuses["SOXL"] == "success"
+
+    def test_fallback_to_symbol_map(self, ohlcv):
+        """When asset_ids is None and asset_master query fails, fall back to SYMBOL_MAP."""
+        mock_session = MagicMock()
+        mock_session.query.side_effect = Exception("DB unavailable")
+
+        with (
+            patch("research_engine.factor_store.preprocess", return_value=ohlcv),
+            patch("research_engine.factor_store._upsert_factors", return_value=100),
+            patch("collector.fdr_client.SYMBOL_MAP", {"T1": {}, "T2": {}}),
+        ):
+            results = store_factors_all(mock_session)
+
+        assert len(results) == 2

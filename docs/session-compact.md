@@ -27,18 +27,18 @@ Phase 4 API 구현 진행 중 — Step 4.8 완료 (Stage B 완료), Stage C로 �
 | 1 | Skeleton | ✅ 완료 | 9/9 |
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
-| 4 | API | 진행 중 | 10/14 |
+| 4 | API | 진행 중 | 11/14 |
 | 5 | Frontend | 미착수 | 0/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
 - Branch: `master`
-- Unit: **336 passed**, ruff clean
+- Unit: **347 passed**, ruff clean
 - DB: price_daily 5,559 rows, 7개 자산
 
 ## Remaining / TODO
 
-### Phase 4: API (4 tasks 남음)
+### Phase 4: API (3 tasks 남음)
 **Stage A: 기반 구조** ✅ 완료
 - [x] 4.1~4.3: 앱 골격, 스키마, Repository
 
@@ -48,7 +48,7 @@ Phase 4 API 구현 진행 중 — Step 4.8 완료 (Stage B 완료), Stage C로 �
 **Stage C: 백테스트 API**
 - [x] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]` — `fac9e08`
 - [x] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]` — `fac9e08`
-- [ ] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]`
+- [x] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]` — `bb05a35`
 
 **Stage D: 집계 + 테스트**
 - [ ] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]`
@@ -82,9 +82,10 @@ Phase 4 API 구현 진행 중 — Step 4.8 완료 (Stage B 완료), Stage C로 �
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 - **Phase 4 핵심 참조**: `dev/active/phase4-api/phase4-api-context.md`
 - **라우터**: health, assets, prices, factors, signals, backtests 완성
-- **다음**: Step 4.11 (POST /v1/backtests/run 온디맨드 백테스트)
+- **라우터**: health, assets, prices, factors, signals, backtests (GET+POST) 완성
+- **다음**: Step 4.12 (GET /v1/dashboard/summary 대시보드 요약)
 
 ## Next Action
-1. **Step 4.11**: `POST /v1/backtests/run` — 온디맨드 백테스트 실행
-2. **Step 4.12**: `GET /v1/dashboard/summary` — 대시보드 요약
-3. **Step 4.13**: `GET /v1/correlation` — 상관행렬 (on-the-fly)
+1. **Step 4.12**: `GET /v1/dashboard/summary` — 대시보드 요약
+2. **Step 4.13**: `GET /v1/correlation` — 상관행렬 (on-the-fly)
+3. **Step 4.14**: API 단위 + 통합 테스트

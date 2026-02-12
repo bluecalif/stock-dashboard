@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (10/14, 71%)
+> Status: In Progress (11/14, 79%)
 
 ## Stage A: 기반 구조
 
@@ -69,16 +69,13 @@
   - `api/main.py` — backtests router 등록
   - 11 tests (found/not_found/invalid_uuid, equity 4, trades 4)
 
-- [ ] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]`
-  - 요청 바디: BacktestRunRequest (strategy_id, asset_id, start/end_date, initial_cash, commission_pct)
-  - 실행 흐름:
-    1. price_daily 조회
-    2. preprocessing → compute_all_factors
-    3. STRATEGY_REGISTRY에서 전략 인스턴스 생성
-    4. generate_signals → run_backtest
-    5. compute_metrics → store_backtest_result
-  - 응답: BacktestRunResponse (run_id + metrics)
-  - 에러: 잘못된 strategy_id, asset_id, 데이터 부족
+- [x] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 `[L]` — `bb05a35`
+  - Service 계층: `api/services/backtest_service.py` (run_backtest_on_demand)
+  - 파이프라인: load_prices → preprocess → factors → signals → backtest → metrics → store
+  - 단일 자산 + 다중 자산(ALL) 지원
+  - 에러 처리: 잘못된 strategy/asset → 400, DB 실패 → 500
+  - 라우터: POST /v1/backtests/run (201 Created)
+  - 11 tests (success, all params, invalid strategy/asset, no data, store fail, schema, 422, ALL)
 
 ## Stage D: 집계 API + 테스트
 
@@ -102,6 +99,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 10/14 (71%) — Stage C 진행 중 (4.9~4.10 완료, 4.11 남음)
+- **Progress**: 11/14 (79%) — Stage C 완료, Stage D 남음 (4.12~4.14)
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 318 + backtests 18 = **336 passed**, ruff clean
+- **Tests**: 기존 336 + backtests/run 11 = **347 passed**, ruff clean

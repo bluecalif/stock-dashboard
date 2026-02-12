@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-13
-> Status: In Progress (Step 4.10 완료)
+> Status: In Progress (Step 4.11 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -110,6 +110,11 @@ backend/api/
 
 ## 5. Changed Files
 
+### Step 4.11: POST /v1/backtests/run 온디맨드 백테스트
+- `api/services/backtest_service.py` — 신규: run_backtest_on_demand(), _run_single(), _run_multi()
+- `api/routers/backtests.py` — 수정: POST /v1/backtests/run 엔드포인트 추가 (201 Created)
+- `tests/unit/test_api/test_backtests.py` — 수정: TestRunBacktest 클래스 11 tests 추가
+
 ### Step 4.9~4.10: Backtests 라우터 (목록/단건/equity/trades)
 - `api/routers/backtests.py` — 신규: 4개 엔드포인트
   - `GET /v1/backtests` — 목록 (strategy_id, asset_id 필터, PaginationParams)
@@ -176,7 +181,7 @@ backend/api/
 ## 6. 컨벤션 체크리스트
 
 ### API 관련 (Phase 4 적용)
-- [x] Router → Repository 레이어 분리 (Service 계층은 Stage C/D에서 추가)
+- [x] Router → Service → Repository 3계층 아키텍처 (Service 계층 Step 4.11에서 도입)
 - [x] Pydantic v2 스키마 (from_attributes=True) — 8개 모듈, 14개 클래스
 - [x] FastAPI DI (Depends) — `get_db()` in `dependencies.py`
 - [x] CORS 설정 (allow_origins, allow_methods, allow_headers) — `main.py`

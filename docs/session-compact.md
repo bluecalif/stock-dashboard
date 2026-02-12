@@ -20,21 +20,21 @@ Phase 4 API 구현 진행 중 — Step 4.1 완료
 | 1 | Skeleton | ✅ 완료 | 9/9 |
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
-| 4 | API | 진행 중 | 1/14 |
+| 4 | API | 진행 중 | 2/14 |
 | 5 | Frontend | 미착수 | 0/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
 - Branch: `master`, remote 동기화 완료
-- Unit: **230 passed**, ruff clean
+- Unit: **250 passed**, ruff clean
 - DB: price_daily 5,559 rows, 7개 자산
 
 ## Remaining / TODO
 
-### Phase 4: API (13 tasks 남음)
+### Phase 4: API (12 tasks 남음)
 **Stage A: 기반 구조**
 - [x] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
-- [ ] 4.2 Pydantic 스키마 정의 `[M]`
+- [x] 4.2 Pydantic 스키마 정의 `[M]`
 - [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
 
 **Stage B: 조회 API**
@@ -80,5 +80,5 @@ Phase 4 API 구현 진행 중 — Step 4.1 완료
 - **Phase 4 핵심 참조**: `dev/active/phase4-api/phase4-api-context.md` (디렉토리 구조, 스키마 설계, 데이터 인터페이스)
 
 ## Next Action
-1. **Step 4.2**: Pydantic 스키마 정의 (8개 스키마 모듈)
-2. **Step 4.3**: Repository 계층 (DB 접근 추상화)
+1. **Step 4.3**: Repository 계층 (DB 접근 추상화)
+2. **Step 4.4**: GET /v1/health — 헬스체크

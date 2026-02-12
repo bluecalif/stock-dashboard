@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (1/14, 7%)
+> Status: In Progress (2/14, 14%)
 
 ## Stage A: 기반 구조
 
@@ -12,15 +12,15 @@
   - 디렉토리 구조: routers/, services/, repositories/, schemas/
   - 7 tests (health ok/disconnected, CORS allow/deny, 404, 500, OpenAPI)
 
-- [ ] 4.2 Pydantic 스키마 정의 `[M]`
+- [x] 4.2 Pydantic 스키마 정의 `[M]` — `77e4b1d`
   - `api/schemas/common.py` — PaginationParams, ErrorResponse
   - `api/schemas/asset.py` — AssetResponse
   - `api/schemas/price.py` — PriceDailyResponse
   - `api/schemas/factor.py` — FactorDailyResponse
   - `api/schemas/signal.py` — SignalDailyResponse
-  - `api/schemas/backtest.py` — BacktestRunRequest, BacktestRunResponse, EquityResponse, TradeResponse
+  - `api/schemas/backtest.py` — BacktestRunRequest, BacktestRunResponse, EquityCurveResponse, TradeLogResponse
   - `api/schemas/dashboard.py` — DashboardSummaryResponse, AssetSummary
-  - `api/schemas/correlation.py` — CorrelationResponse
+  - `api/schemas/correlation.py` — CorrelationResponse, CorrelationPeriod
 
 - [ ] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
   - `api/repositories/asset_repo.py` — get_all_assets()
@@ -99,6 +99,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 1/14 (7%) — Stage A 진행 중
+- **Progress**: 2/14 (14%) — Stage A 진행 중
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 223 + API 7 = **230 passed**, ruff clean
+- **Tests**: 기존 223 + API 27 = **250 passed**, ruff clean

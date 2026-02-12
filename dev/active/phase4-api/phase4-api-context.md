@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.1 완료)
+> Status: In Progress (Step 4.2 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -121,23 +121,37 @@ backend/api/
 - `tests/unit/test_api/__init__.py` — 신규 (빈 파일)
 - `tests/unit/test_api/test_main.py` — 신규: 7 tests (health, CORS, errors, OpenAPI)
 
+### Step 4.2: Pydantic 스키마 정의
+- `api/schemas/common.py` — 신규: PaginationParams, ErrorResponse
+- `api/schemas/asset.py` — 신규: AssetResponse (from_attributes)
+- `api/schemas/price.py` — 신규: PriceDailyResponse (OHLCV + source)
+- `api/schemas/factor.py` — 신규: FactorDailyResponse
+- `api/schemas/signal.py` — 신규: SignalDailyResponse (optional fields)
+- `api/schemas/backtest.py` — 신규: BacktestRunRequest/Response, EquityCurveResponse, TradeLogResponse
+- `api/schemas/dashboard.py` — 신규: AssetSummary, DashboardSummaryResponse
+- `api/schemas/correlation.py` — 신규: CorrelationResponse, CorrelationPeriod
+- `api/schemas/__init__.py` — 수정: 14개 클래스 re-export
+- `tests/unit/test_api/test_schemas.py` — 신규: 20 tests
+
 ## 6. 컨벤션 체크리스트
 
 ### API 관련 (Phase 4 적용)
 - [ ] Router → Service → Repository 레이어 분리
-- [ ] Pydantic v2 스키마 (from_attributes=True)
+- [x] Pydantic v2 스키마 (from_attributes=True) — 8개 모듈, 14개 클래스
 - [x] FastAPI DI (Depends) — `get_db()` in `dependencies.py`
 - [x] CORS 설정 (allow_origins, allow_methods, allow_headers) — `main.py`
 - [ ] Pagination (limit/offset, 기본 500, 최대 5000)
 - [x] 에러 응답 표준화 (4xx/5xx + JSON) — ValidationError(422), generic(500)
-- [ ] UUID 문자열 직렬화
+- [x] UUID 문자열 직렬화 — BacktestRunResponse, EquityCurveResponse, TradeLogResponse
 - [ ] 날짜 파라미터: Query(alias="from"), Query(alias="to")
 - [x] 라우터 prefix: `/v1/...` — health.py에 적용
+- [x] Pydantic v2 스키마 (from_attributes=True)
 - [ ] 응답 모델 명시: `response_model=...`
 
 ### 인코딩 관련
 - [x] JSON 응답: FastAPI 기본 UTF-8 (자동)
-- [ ] 한글 자산명: Pydantic 모델에서 안전 직렬화
+- [x] 한글 자산명: Pydantic 모델에서 안전 직렬화
+- [x] UUID 문자열 직렬화 — BacktestRunResponse, EquityCurveResponse, TradeLogResponse
 
 ### 테스트 관련
 - [x] httpx AsyncClient + TestClient — `test_main.py` (TestClient 사용)

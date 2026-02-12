@@ -28,13 +28,13 @@ Phase 4 API 구현 진행 중 — Step 4.3 완료, Step 4.4로 이동
 | 1 | Skeleton | ✅ 완료 | 9/9 |
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
-| 4 | API | 진행 중 | 3/14 (커밋 완료) |
+| 4 | API | 진행 중 | 5/14 |
 | 5 | Frontend | 미착수 | 0/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
 - Branch: `master`
-- Unit: **~288 passed** (기존 250 + 38 새 repo 테스트), ruff clean
+- Unit: **~294 passed** (기존 288 + 6 assets 테스트), ruff clean
 - DB: price_daily 5,559 rows, 7개 자산
 
 ### Changed Files (uncommitted)
@@ -60,9 +60,9 @@ Phase 4 API 구현 진행 중 — Step 4.3 완료, Step 4.4로 이동
 - [x] 4.2 Pydantic 스키마 정의 `[M]`
 - [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]`
 
-**Stage B: 조회 API**
-- [ ] 4.4 `GET /v1/health` — 헬스체크 `[S]`
-- [ ] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
+**Stage B: 조회 API** (진행 중)
+- [x] 4.4 `GET /v1/health` — 헬스체크 `[S]` (Step 4.1에서 구현 완료)
+- [x] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
 - [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
 - [ ] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
 - [ ] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
@@ -107,7 +107,7 @@ Phase 4 API 구현 진행 중 — Step 4.3 완료, Step 4.4로 이동
 - **Stage B 시작 준비 완료**: Router + Service 계층 → Repository 호출하여 엔드포인트 구현
 
 ## Next Action
-1. **Step 4.4~4.5**: 조회 API 시작 — health + assets 엔드포인트 (둘 다 `[S]` 사이즈, 빠르게 완료 가능)
-   - Router: `api/routers/assets.py` → Service → `asset_repo.get_all()`
-   - Pydantic 스키마 변환 (AssetResponse)
-   - 테스트: TestClient 기반 integration-style
+1. **Step 4.6~4.8**: 조회 API 계속 — prices, factors, signals 엔드포인트
+   - Router: `api/routers/prices.py`, `factors.py`, `signals.py`
+   - PaginationParams 적용 (limit/offset)
+   - 테스트: TestClient + mock repo

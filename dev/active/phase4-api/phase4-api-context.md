@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.3 완료)
+> Status: In Progress (Step 4.5 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -109,6 +109,12 @@ backend/api/
 ```
 
 ## 5. Changed Files
+
+### Step 4.4~4.5: Health + Assets 엔드포인트
+- `api/routers/assets.py` — 신규: GET /v1/assets (is_active 필터)
+- `api/main.py` — 수정: assets router 등록
+- `tests/unit/test_api/test_assets.py` — 신규: 6 tests
+- Step 4.4 (health)는 Step 4.1에서 이미 구현 완료
 
 ### Step 4.3: Repository 계층
 - `api/repositories/__init__.py` — 수정: 5개 repo 모듈 re-export

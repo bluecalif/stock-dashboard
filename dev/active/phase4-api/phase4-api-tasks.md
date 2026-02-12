@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-12
-> Status: In Progress (3/14, 21%)
+> Status: In Progress (5/14, 36%)
 
 ## Stage A: 기반 구조
 
@@ -33,13 +33,14 @@
 
 ## Stage B: 조회 API
 
-- [ ] 4.4 `GET /v1/health` — 헬스체크 `[S]`
-  - DB 연결 상태 확인 (`SELECT 1`)
-  - 응답: `{"status": "ok", "db": "connected"}`
+- [x] 4.4 `GET /v1/health` — 헬스체크 `[S]`
+  - Step 4.1에서 이미 구현 완료 (DB `SELECT 1` + `{"status": "ok", "db": "connected"}`)
+  - 테스트: test_main.py (health_ok, health_db_disconnected)
 
-- [ ] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
-  - asset_master 전체 조회
-  - 응답: `list[AssetResponse]`
+- [x] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
+  - `api/routers/assets.py` — Router: `GET /v1/assets?is_active=`
+  - `asset_repo.get_all()` → `AssetResponse` 변환
+  - 6 tests (all, filter active/inactive, empty, schema, Korean encoding)
 
 - [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
   - 쿼리 파라미터: asset_id (필수), from, to, limit, offset
@@ -101,6 +102,6 @@
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 3/14 (21%) — Stage A 완료
+- **Progress**: 5/14 (36%) — Stage B 진행 중
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 250 + repo 38 = **288 passed**, ruff clean
+- **Tests**: 기존 288 + assets 6 = **294 passed**, ruff clean

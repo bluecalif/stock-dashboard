@@ -1,6 +1,6 @@
 # Phase 4: API
 > Last Updated: 2026-02-12
-> Status: In Progress (Step 4.3 완료, 3/14)
+> Status: In Progress (Step 4.5 완료, 5/14)
 
 ## 1. Summary (개요)
 
@@ -26,7 +26,8 @@
 - **Step 4.3 완료**: Repository 계층 5개 모듈 (13개 함수, 38 tests)
 - **api/**: main.py, dependencies.py, routers/health.py, schemas/ (8 모듈), repositories/ (5 모듈)
 - **테스트**: 288 unit (250 + repo 38) + 7 integration, ruff clean
-- **Stage A 완료** — 다음: Stage B 조회 API (Step 4.4~4.8)
+- **Step 4.4~4.5 완료**: Health (기존) + Assets 엔드포인트 (6 tests)
+- **Stage B 진행 중** — 다음: Step 4.6~4.8 (prices, factors, signals)
 
 ## 3. Target State (목표 상태)
 

@@ -46,17 +46,17 @@
 - [x] 3.11 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
 - [x] 3.12 dev-docs 갱신 `[S]`
 
-## Phase 4: API ← 진행 중 (3/14)
+## Phase 4: API ← 진행 중 (5/14)
 > dev-docs: `dev/active/phase4-api/`
 
 ### 4A. 기반 구조 ✅ 완료
 - [x] 4.1 FastAPI 앱 골격 (main.py, CORS, error handler, DI) `[M]`
 - [x] 4.2 Pydantic 스키마 정의 `[M]` — `77e4b1d`
-- [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]` — `3e62e56`
+- [x] 4.3 Repository 계층 (DB 접근 추상화) `[M]` — `b990914`
 
 ### 4B. 조회 API
-- [ ] 4.4 `GET /v1/health` — 헬스체크 `[S]`
-- [ ] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
+- [x] 4.4 `GET /v1/health` — 헬스체크 `[S]` (Step 4.1에서 구현 완료)
+- [x] 4.5 `GET /v1/assets` — 자산 목록 `[S]`
 - [ ] 4.6 `GET /v1/prices/daily` — 가격 조회 (pagination) `[M]`
 - [ ] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
 - [ ] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
@@ -129,9 +129,9 @@
 
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
-- **Phase 4**: 14 tasks — 3 완료, 11 남음 (21%)
+- **Phase 4**: 14 tasks — 5 완료, 9 남음 (36%)
 - **Phase 5**: 10 tasks (S: 0, M: 8, L: 2, XL: 0)
 - **Phase 6**: 16 tasks (S: 4, M: 9, L: 2, XL: 0)
-- **Grand Total**: 76 tasks (39 완료 + 37 남음)
+- **Grand Total**: 76 tasks (41 완료 + 35 남음)
 - **Critical Path**: Phase 4 (API) → Phase 5 (Frontend) → Phase 6 (Deploy)
-- **Tests**: 288 unit + 7 integration
+- **Tests**: 294 unit + 7 integration

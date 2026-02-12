@@ -102,11 +102,16 @@
 - `backend/research_engine/factors.py` — 신규: 15개 팩터 계산
 - `backend/tests/unit/test_factors.py` — 신규: 25개 테스트
 
+### Step 3.4 (`1e35fd9`)
+- `backend/research_engine/factor_store.py` — 신규: factor_daily UPSERT + 오케스트레이션
+- `backend/tests/unit/test_factor_store.py` — 신규: 16개 테스트
+
 ## Decisions
 - [3.1] 크립토는 일별 캘린더, 기타 자산은 영업일 캘린더로 정렬
 - [3.1] 결측 ffill + threshold 검증 (기본 5%)
 - [3.2-3.3] RSI Wilder smoothing + edge case 처리 (avg_loss=0 → RSI=100, avg_gain=0 → RSI=0)
 - [3.2-3.3] 15개 팩터 한 파일(factors.py)에 통합, compute_all_factors()로 일괄 계산
+- [3.4] wide→long 변환 시 NaN 스킵 (초기 lookback 구간), chunk_size=2000 UPSERT
 
 ## 참조 문서
 - `docs/masterplan-v0.md` §7 (분석 모듈 상세)

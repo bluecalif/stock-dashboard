@@ -2,7 +2,7 @@
 > Last Updated: 2026-02-12
 > Status: In Progress
 
-## Progress: 4/12 (33%)
+## Progress: 7/12 (58%)
 
 ---
 
@@ -38,23 +38,22 @@
 
 ### Stage B: 전략 엔진
 
-- [ ] **3.5** 전략 프레임워크 `[M]`
-  - strategies/base.py: Strategy ABC
-    - generate_signals(df_factors) → DataFrame[date, signal, score, meta]
-    - 공통 체결 규칙: next-day open, 수수료/슬리피지
-  - strategies/__init__.py: 전략 레지스트리
-  - test_strategies.py (base 테스트)
+- [x] **3.5** 전략 프레임워크 `[M]` — `6956015`
+  - strategies/base.py: Strategy ABC, SignalResult dataclass
+  - generate_signals(): next-day execution, action labeling
+  - strategies/__init__.py: STRATEGY_REGISTRY + get_strategy()
+  - test_strategies.py (24개 테스트)
 
-- [ ] **3.6** 3종 전략 구현 `[M]`
+- [x] **3.6** 3종 전략 구현 `[M]` — `6956015`
   - strategies/momentum.py: ret_63d > threshold & vol_20 < cap
-  - strategies/trend.py: sma_20 > sma_60 골든크로스
-  - strategies/mean_reversion.py: z-score 밴드 이탈/복귀
-  - 각 전략 최소 3개 테스트 (진입/청산/에지케이스)
+  - strategies/trend.py: sma_20 > sma_60 골든/데드크로스
+  - strategies/mean_reversion.py: z-score 밴드 이탈/복귀 + stop-loss
+  - 전략별 상태머신, long-only (+1/0)
 
-- [ ] **3.7** 시그널 생성 + DB 저장 `[S]`
-  - signal_store.py: signal_daily UPSERT
-  - 시그널 오케스트레이션 (전 자산 × 전 전략)
-  - 테스트
+- [x] **3.7** 시그널 생성 + DB 저장 `[S]` — `6956015`
+  - signal_store.py: DELETE+INSERT 패턴 (idempotent)
+  - store_signals_for_asset, store_signals_all 오케스트레이션
+  - test_signal_store.py (19개 테스트)
 
 ---
 

@@ -2,7 +2,7 @@
 > Last Updated: 2026-02-12
 > Status: In Progress
 
-## Progress: 3/12 (25%)
+## Progress: 4/12 (33%)
 
 ---
 
@@ -28,11 +28,11 @@
   - RSI Wilder 방식 정확성 검증
   - test_factors.py (모멘텀+변동성+거래량, 최소 8개)
 
-- [ ] **3.4** 팩터 DB 저장 `[M]`
+- [x] **3.4** 팩터 DB 저장 `[M]` — `1e35fd9`
   - factor_store.py: factor_daily UPSERT (collector 패턴 재활용)
   - 팩터 계산 오케스트레이션 (전 자산 × 전 팩터)
   - version 관리 ("v1")
-  - 테스트 (UPSERT 동작 검증)
+  - 테스트 16개 (UPSERT, 오케스트레이션, 에러 핸들링)
 
 ---
 

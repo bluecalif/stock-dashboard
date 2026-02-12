@@ -1,7 +1,7 @@
 # Phase 3: Research Engine
 > Last Updated: 2026-02-12
 > Status: In Progress
-> Current Step: 3.4 (Stage A 완료)
+> Current Step: 3.7 (Stage A + B 완료)
 
 ## 1. Summary (개요)
 
@@ -18,21 +18,24 @@
 
 ## 2. Current State (현재 상태)
 
-### 존재하는 것
-- `research_engine/__init__.py` — 빈 패키지 (코드 없음)
+### 존재하는 것 (Stage A + B 완료)
+- `research_engine/__init__.py`
+- `research_engine/preprocessing.py` — 전처리 파이프라인 (3.1)
+- `research_engine/factors.py` — 15개 팩터 계산 (3.2-3.3)
+- `research_engine/factor_store.py` — factor_daily UPSERT (3.4)
+- `research_engine/strategies/` — Strategy ABC + 3종 전략 (3.5-3.6)
+- `research_engine/signal_store.py` — signal_daily 저장 (3.7)
 - DB 테이블 정의 완료: `factor_daily`, `signal_daily`, `backtest_run`, `backtest_equity_curve`, `backtest_trade_log` (models.py)
 - Alembic 마이그레이션 완료: 8개 테이블 생성 (`a5bd6e50f51e`)
 - `price_daily` 데이터: 5,559 rows (2023-02 ~ 2026-02), 7개 자산
-- pandas, numpy 의존성 설치됨
+- 테스트: 165 unit tests + 4 integration tests
 
-### 없는 것
-- 전처리 로직
-- 팩터 계산 코드
-- 전략 클래스
+### 없는 것 (Stage C + D)
 - 백테스트 엔진
 - 성과 지표 계산
+- 백테스트 결과 DB 저장
 - 분석 배치 스크립트
-- 테스트 (research_engine 관련)
+- 통합 테스트 (research_engine E2E)
 
 ## 3. Target State (목표 상태)
 
@@ -76,15 +79,15 @@ backend/tests/unit/
 - 목표: price_daily → DataFrame 로드 → 팩터 계산 → factor_daily 저장
 - 산출물: preprocessing.py, factors.py, factor_store.py + 테스트
 
-### Stage B: 전략 엔진 (Task 3.5 ~ 3.8)
+### Stage B: 전략 엔진 (Task 3.5 ~ 3.7) ✅ 완료
 - 목표: 팩터 기반으로 3종 전략 신호 생성 → signal_daily 저장
-- 산출물: strategies/ 패키지 + signal_store.py + 테스트
+- 산출물: strategies/ 패키지 + signal_store.py + 테스트 43개
 
-### Stage C: 백테스트 + 성과 (Task 3.9 ~ 3.11)
+### Stage C: 백테스트 + 성과 (Task 3.8 ~ 3.10)
 - 목표: 시그널 기반 백테스트 실행 → 성과 지표 산출 → DB 저장
 - 산출물: backtest.py, metrics.py, backtest_store.py + 테스트
 
-### Stage D: 통합 + 배치 (Task 3.12)
+### Stage D: 통합 + 배치 (Task 3.11 ~ 3.12)
 - 목표: 전체 파이프라인 통합 배치 스크립트 + 통합 테스트
 - 산출물: scripts/run_research.py + 통합 테스트
 

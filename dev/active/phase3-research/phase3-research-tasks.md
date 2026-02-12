@@ -2,7 +2,7 @@
 > Last Updated: 2026-02-12
 > Status: In Progress
 
-## Progress: 4/12 (33%)
+## Progress: 7/12 (58%)
 
 ---
 
@@ -38,23 +38,23 @@
 
 ### Stage B: 전략 엔진
 
-- [ ] **3.5** 전략 프레임워크 `[M]`
-  - strategies/base.py: Strategy ABC
+- [x] **3.5** 전략 프레임워크 `[M]` — `6956015`
+  - strategies/base.py: Strategy ABC, SignalResult dataclass
     - generate_signals(df_factors) → DataFrame[date, signal, score, meta]
     - 공통 체결 규칙: next-day open, 수수료/슬리피지
-  - strategies/__init__.py: 전략 레지스트리
-  - test_strategies.py (base 테스트)
+  - strategies/__init__.py: STRATEGY_REGISTRY + get_strategy()
+  - test_strategies.py (base + 레지스트리 테스트)
 
-- [ ] **3.6** 3종 전략 구현 `[M]`
+- [x] **3.6** 3종 전략 구현 `[M]` — `6956015`
   - strategies/momentum.py: ret_63d > threshold & vol_20 < cap
-  - strategies/trend.py: sma_20 > sma_60 골든크로스
+  - strategies/trend.py: sma_20 > sma_60 골든/데드크로스
   - strategies/mean_reversion.py: z-score 밴드 이탈/복귀
-  - 각 전략 최소 3개 테스트 (진입/청산/에지케이스)
+  - 각 전략 테스트 포함 (전략 테스트 30개)
 
-- [ ] **3.7** 시그널 생성 + DB 저장 `[S]`
-  - signal_store.py: signal_daily UPSERT
+- [x] **3.7** 시그널 생성 + DB 저장 `[S]` — `6956015`
+  - signal_store.py: DELETE+INSERT 방식 idempotent 시그널 저장
   - 시그널 오케스트레이션 (전 자산 × 전 전략)
-  - 테스트
+  - 테스트 13개
 
 ---
 

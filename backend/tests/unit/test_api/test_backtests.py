@@ -90,6 +90,144 @@ SAMPLE_TRADES = [
 ]
 
 
+# ── POST /v1/backtests/run ──
+
+
+class TestRunBacktest:
+    """Tests for POST /v1/backtests/run endpoint."""
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_success(self, mock_service, client):
+        """Returns 201 with backtest result on success."""
+        mock_service.return_value = _make_run("momentum", "005930", status="success", run_id=RUN_ID)
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "005930"},
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["strategy_id"] == "momentum"
+        assert data["asset_id"] == "005930"
+        assert data["status"] == "success"
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_success_with_all_params(self, mock_service, client):
+        """Passes all optional params to service."""
+        mock_service.return_value = _make_run("trend", "KS200", status="success", run_id=RUN_ID)
+        response = client.post(
+            "/v1/backtests/run",
+            json={
+                "strategy_id": "trend",
+                "asset_id": "KS200",
+                "start_date": "2025-01-01",
+                "end_date": "2025-12-31",
+                "initial_cash": 5_000_000,
+                "commission_pct": 0.002,
+            },
+        )
+        assert response.status_code == 201
+        call_args = mock_service.call_args
+        req = call_args[0][0] if call_args[0] else call_args[1]["request"]
+        assert req.strategy_id == "trend"
+        assert req.initial_cash == 5_000_000
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_invalid_strategy(self, mock_service, client):
+        """Returns 400 for unknown strategy_id."""
+        mock_service.side_effect = ValueError("Unknown strategy: invalid")
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "invalid", "asset_id": "005930"},
+        )
+        assert response.status_code == 400
+        assert "Unknown strategy" in response.json()["detail"]
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_invalid_asset(self, mock_service, client):
+        """Returns 400 for unknown asset_id."""
+        mock_service.side_effect = ValueError("Unknown asset_id: FAKE")
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "FAKE"},
+        )
+        assert response.status_code == 400
+        assert "Unknown asset_id" in response.json()["detail"]
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_no_price_data(self, mock_service, client):
+        """Returns 400 when no price data available."""
+        mock_service.side_effect = ValueError("No price data for 005930")
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "005930"},
+        )
+        assert response.status_code == 400
+        assert "No price data" in response.json()["detail"]
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_store_failure(self, mock_service, client):
+        """Returns 500 when DB store fails."""
+        mock_service.side_effect = RuntimeError("Backtest store failed: db_error")
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "005930"},
+        )
+        assert response.status_code == 500
+        assert "store failed" in response.json()["detail"]
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_response_schema(self, mock_service, client):
+        """Response matches BacktestRunResponse schema."""
+        mock_service.return_value = _make_run("momentum", "005930", status="success", run_id=RUN_ID)
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "005930"},
+        )
+        expected_keys = {
+            "run_id", "strategy_id", "asset_id", "status",
+            "config_json", "metrics_json", "started_at", "ended_at",
+        }
+        assert set(response.json().keys()) == expected_keys
+
+    def test_missing_required_fields(self, client):
+        """Returns 422 when required fields are missing."""
+        response = client.post("/v1/backtests/run", json={})
+        assert response.status_code == 422
+
+    def test_missing_strategy_id(self, client):
+        """Returns 422 when strategy_id is missing."""
+        response = client.post(
+            "/v1/backtests/run",
+            json={"asset_id": "005930"},
+        )
+        assert response.status_code == 422
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_asset_all(self, mock_service, client):
+        """Accepts asset_id='ALL' for multi-asset backtest."""
+        mock_service.return_value = _make_run("momentum", "MULTI", status="success", run_id=RUN_ID)
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "ALL"},
+        )
+        assert response.status_code == 201
+        assert response.json()["asset_id"] == "MULTI"
+
+    @patch("api.routers.backtests.run_backtest_on_demand")
+    def test_default_config_values(self, mock_service, client):
+        """Default initial_cash and commission_pct are applied."""
+        mock_service.return_value = _make_run("momentum", "005930", status="success", run_id=RUN_ID)
+        response = client.post(
+            "/v1/backtests/run",
+            json={"strategy_id": "momentum", "asset_id": "005930"},
+        )
+        assert response.status_code == 201
+        call_args = mock_service.call_args
+        req = call_args[0][0] if call_args[0] else call_args[1]["request"]
+        assert req.initial_cash == 10_000_000
+        assert req.commission_pct == 0.001
+
+
 # ── GET /v1/backtests ──
 
 

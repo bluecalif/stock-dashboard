@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -10,13 +11,32 @@ from sqlalchemy.orm import Session
 from api.dependencies import get_db
 from api.repositories import backtest_repo
 from api.schemas.backtest import (
+    BacktestRunRequest,
     BacktestRunResponse,
     EquityCurveResponse,
     TradeLogResponse,
 )
 from api.schemas.common import PaginationParams
+from api.services.backtest_service import run_backtest_on_demand
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1", tags=["backtests"])
+
+
+@router.post("/backtests/run", response_model=BacktestRunResponse, status_code=201)
+def run_backtest_endpoint(
+    request: BacktestRunRequest,
+    db: Session = Depends(get_db),
+) -> BacktestRunResponse:
+    """Execute an on-demand backtest."""
+    try:
+        return run_backtest_on_demand(request, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        logger.error("Backtest execution failed: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/backtests", response_model=list[BacktestRunResponse])

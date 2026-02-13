@@ -1,6 +1,6 @@
 # Phase 4: API
 > Last Updated: 2026-02-13
-> Status: In Progress (Step 4.11 완료, 11/14)
+> Status: ✅ Complete (14/14, 100%)
 
 ## 1. Summary (개요)
 
@@ -31,7 +31,11 @@
 - **Stage B 완료**
 - **Step 4.9~4.10 완료**: Backtests 목록/단건/equity/trades 라우터 (18 tests)
 - **Step 4.11 완료**: POST /v1/backtests/run 온디맨드 백테스트 (Service 계층 도입, 11 tests)
-- **Stage C 완료** — 다음: Stage D (Step 4.12~4.14, 집계 API + 테스트)
+- **Stage C 완료**
+- **Step 4.12 완료**: GET /v1/dashboard/summary (dashboard_service, 8 tests)
+- **Step 4.13 완료**: GET /v1/correlation (correlation_service, pandas corr, 8 tests)
+- **Step 4.14 완료**: 엣지 케이스 31 tests + 통합 테스트 11 tests — 전체 405 passed
+- **Stage D 완료** — **Phase 4 완료 ✅** (다음: Phase 5 Frontend)
 
 ## 3. Target State (목표 상태)
 

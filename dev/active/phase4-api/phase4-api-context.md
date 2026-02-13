@@ -1,6 +1,6 @@
 # Phase 4: API — Context
 > Last Updated: 2026-02-13
-> Status: In Progress (Step 4.11 완료)
+> Status: ✅ Complete (14/14, Phase 4 완료)
 
 ## 1. 핵심 파일 (읽어야 할 기존 코드)
 
@@ -110,6 +110,21 @@ backend/api/
 
 ## 5. Changed Files
 
+### Step 4.14: API 엣지 케이스 + 통합 테스트 (Phase 4 마무리)
+- `tests/unit/test_api/test_edge_cases.py` — 신규: 31 tests
+  - DB error 500 (9), pagination boundary (9), date validation (3), correlation edge (6), UUID edge (4)
+- `tests/integration/test_api_integration.py` — 신규: 11 tests
+  - SQLite in-memory (StaticPool) 전체 파이프라인 (health→assets→prices→factors→signals→dashboard→correlation)
+- **전체: 405 passed, 7 skipped, ruff clean**
+
+### Step 4.12~4.13: Dashboard + Correlation
+- `api/services/dashboard_service.py` — 신규: get_dashboard_summary(), _get_latest_signals()
+- `api/routers/dashboard.py` — 신규: GET /v1/dashboard/summary
+- `api/services/correlation_service.py` — 신규: compute_correlation() (pandas pct_change → corr)
+- `api/routers/correlation.py` — 신규: GET /v1/correlation
+- `tests/unit/test_api/test_dashboard.py` — 신규: 8 tests
+- `tests/unit/test_api/test_correlation.py` — 신규: 8 tests
+
 ### Step 4.11: POST /v1/backtests/run 온디맨드 백테스트
 - `api/services/backtest_service.py` — 신규: run_backtest_on_demand(), _run_single(), _run_multi()
 - `api/routers/backtests.py` — 수정: POST /v1/backtests/run 엔드포인트 추가 (201 Created)
@@ -201,7 +216,7 @@ backend/api/
 ### 테스트 관련
 - [x] httpx AsyncClient + TestClient — `test_main.py` (TestClient 사용)
 - [x] SQLite in-memory 또는 mock session — MagicMock(spec=Session)
-- [ ] 각 엔드포인트 정상/에러 케이스
+- [x] 각 엔드포인트 정상/에러 케이스 — test_edge_cases.py (31 tests) + test_api_integration.py (11 tests)
 
 ## 6. Pydantic 스키마 설계 (주요)
 

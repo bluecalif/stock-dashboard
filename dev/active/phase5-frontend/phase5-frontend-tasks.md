@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (5/10)
+> Status: In Progress (6/10)
 
 ## 5A. 기반 구조
 
@@ -47,11 +47,11 @@
 
 ## 5C. 분석 시각화
 
-- [ ] 5.6 상관 히트맵 (자산 간 correlation matrix) `[M]`
-  - `src/pages/CorrelationPage.tsx` — 기간/윈도우 필터, API 호출
-  - `src/components/charts/CorrelationHeatmap.tsx` — N×N 히트맵 (커스텀 셀)
-  - 색상 스케일: -1(파랑) ~ 0(흰) ~ +1(빨강)
-  - 셀 클릭 시 값 표시
+- [x] 5.6 상관 히트맵 (자산 간 correlation matrix) `[M]`
+  - `src/pages/CorrelationPage.tsx` — 기간/윈도우 필터(DateRangePicker + 5단계 윈도우 버튼), fetchCorrelation API 호출
+  - `src/components/charts/CorrelationHeatmap.tsx` — N×N 히트맵 (커스텀 CSS Grid 셀)
+  - 색상 스케일: -1(파랑) ~ 0(흰) ~ +1(빨강), 호버 툴팁(4자리 상관계수)
+  - 범례 그라디언트 바, 반응형 셀 크기 (자산 수에 따라 조절)
 
 - [ ] 5.7 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블) `[M]`
   - `src/pages/FactorPage.tsx` — 자산/팩터 선택, API 호출
@@ -83,7 +83,7 @@
 ---
 
 ## Summary
-- **Total**: 10 tasks (5 completed, 50%)
+- **Total**: 10 tasks (6 completed, 60%)
 - **Size 분포**: M: 8, L: 2
 - **Stages**: A(3) → B(2) → C(3) → D(2)
 - **Critical Path**: 5.1 → 5.2/5.3 → 5.4 → 나머지 페이지

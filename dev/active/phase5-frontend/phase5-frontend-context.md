@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
 > Last Updated: 2026-02-13
-> Status: In Progress (5/10)
+> Status: In Progress (6/10)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -71,7 +71,7 @@
 | 스타일링 | TailwindCSS 3.x | 유틸리티 기반, 빠른 프로토타이핑 |
 | 상태 관리 | React useState + useEffect | MVP 수준에서 충분, 별도 상태 라이브러리 불필요 |
 | API Base URL | `VITE_API_BASE_URL` 환경변수 | 하드코딩 금지, 환경별 배포 지원 |
-| 히트맵 구현 | Recharts 커스텀 셀 렌더 | 별도 라이브러리 추가 최소화 |
+| 히트맵 구현 | 순수 CSS Grid + RGB 보간 | Recharts 히트맵 미지원, 커스텀 구현이 더 유연 |
 | 컴포넌트 구조 | Page(fetch) → Chart(pure render) | 관심사 분리, 재사용성 |
 
 ## 4. TypeScript 타입 정의 (백엔드 Pydantic ↔ 프론트엔드 1:1)
@@ -270,6 +270,10 @@ frontend/
 ### Step 5.5 — 수익률 비교 차트
 - `frontend/src/components/charts/ReturnsChart.tsx` — **신규**, 정규화 누적수익률 차트 (기준일=100, ReferenceLine)
 - `frontend/src/pages/PricePage.tsx` — 가격/수익률 탭 전환 UI, toNormalizedReturns(), priceMap 상태 공유
+
+### Step 5.6 — 상관 히트맵
+- `frontend/src/components/charts/CorrelationHeatmap.tsx` — **신규**, N×N 히트맵 (CSS Grid, -1~+1 색상 보간, 호버 툴팁, 범례)
+- `frontend/src/pages/CorrelationPage.tsx` — placeholder → 완전한 상관 히트맵 페이지 (DateRangePicker, 윈도우 선택, fetchCorrelation)
 
 ## 7. 컨벤션 체크리스트
 

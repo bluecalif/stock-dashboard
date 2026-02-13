@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (6/10)
+> Status: In Progress (7/10)
 
 ## 5A. 기반 구조
 
@@ -53,11 +53,10 @@
   - 색상 스케일: -1(파랑) ~ 0(흰) ~ +1(빨강), 호버 툴팁(4자리 상관계수)
   - 범례 그라디언트 바, 반응형 셀 크기 (자산 수에 따라 조절)
 
-- [ ] 5.7 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블) `[M]`
-  - `src/pages/FactorPage.tsx` — 자산/팩터 선택, API 호출
-  - `src/components/charts/FactorChart.tsx` — 팩터별 서브차트
-  - RSI: 70/30 기준선, MACD: 시그널 라인
-  - 팩터 비교 테이블 (자산별 최신 팩터 값)
+- [x] 5.7 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블) `[M]` — `3b8ceed`
+  - `src/pages/FactorPage.tsx` — 자산/팩터 멀티 선택, 10개 팩터 토글, API 병렬 fetch, 비교 테이블
+  - `src/components/charts/FactorChart.tsx` — RSI(70/30 기준선), MACD(ComposedChart: MACD+Signal+히스토그램), 일반 팩터 라인
+  - 팩터 비교 테이블 (자산별 최신 팩터 값, 12개 팩터, 유형별 포맷팅)
 
 - [ ] 5.8 시그널 타임라인 (가격 + 매매 마커 오버레이) `[M]`
   - `src/pages/SignalPage.tsx` — 자산/전략 선택, prices + signals API 호출
@@ -83,7 +82,7 @@
 ---
 
 ## Summary
-- **Total**: 10 tasks (6 completed, 60%)
+- **Total**: 10 tasks (7 completed, 70%)
 - **Size 분포**: M: 8, L: 2
 - **Stages**: A(3) → B(2) → C(3) → D(2)
 - **Critical Path**: 5.1 → 5.2/5.3 → 5.4 → 나머지 페이지

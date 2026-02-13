@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
 > Last Updated: 2026-02-13
-> Status: In Progress (6/10)
+> Status: In Progress (7/10)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -274,6 +274,10 @@ frontend/
 ### Step 5.6 — 상관 히트맵
 - `frontend/src/components/charts/CorrelationHeatmap.tsx` — **신규**, N×N 히트맵 (CSS Grid, -1~+1 색상 보간, 호버 툴팁, 범례)
 - `frontend/src/pages/CorrelationPage.tsx` — placeholder → 완전한 상관 히트맵 페이지 (DateRangePicker, 윈도우 선택, fetchCorrelation)
+
+### Step 5.7 — 팩터 현황
+- `frontend/src/components/charts/FactorChart.tsx` — **신규**, RSI/MACD/일반 팩터 서브차트 (RSI: 70/30 기준선, MACD: ComposedChart MACD+Signal+히스토그램, 일반: LineChart)
+- `frontend/src/pages/FactorPage.tsx` — placeholder → 완전한 팩터 현황 페이지 (10개 팩터 토글, 자산 멀티 선택, 병렬 fetch, 비교 테이블 12개 팩터 × N자산)
 
 ## 7. 컨벤션 체크리스트
 

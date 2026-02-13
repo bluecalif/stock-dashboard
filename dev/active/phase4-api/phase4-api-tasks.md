@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (11/14, 79%)
+> Status: ✅ Complete (14/14, 100%)
 
 ## Stage A: 기반 구조
 
@@ -79,26 +79,27 @@
 
 ## Stage D: 집계 API + 테스트
 
-- [ ] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]`
-  - 7자산 각각: 최신 가격, 전일 대비 등락률, 최신 시그널
-  - 최근 백테스트 실행 목록 (최대 5건)
-  - 응답: DashboardSummaryResponse
+- [x] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]` — `3171061`
+  - `api/services/dashboard_service.py` — 자산별 최신 가격/등락률/시그널 + 최근 백테스트
+  - `api/routers/dashboard.py` — GET /v1/dashboard/summary
+  - 8 tests (basic, no prices, single price, signals, backtests, empty, multi, schema)
 
-- [ ] 4.13 `GET /v1/correlation` — 상관행렬 (on-the-fly) `[M]`
-  - 쿼리 파라미터: asset_ids (콤마 구분, 선택), from, to, window (기본 60)
-  - 로직: price_daily close 조회 → pivot → pct_change → rolling corr 또는 full corr
-  - 응답: CorrelationResponse (asset_ids + N×N matrix)
+- [x] 4.13 `GET /v1/correlation` — 상관행렬 (on-the-fly) `[M]` — `7ddb5f0`
+  - `api/services/correlation_service.py` — pandas pct_change → corr 계산
+  - `api/routers/correlation.py` — GET /v1/correlation?asset_ids=&window=&start_date=&end_date=
+  - 8 tests (basic, specific assets, insufficient, no data, window, date, invalid window, schema)
 
-- [ ] 4.14 API 단위 + 통합 테스트 `[M]`
-  - `tests/unit/test_api/` — 각 라우터별 테스트
-  - httpx TestClient + SQLite in-memory (또는 mock)
-  - 정상 케이스 + 에러 케이스 (400, 404, 500)
-  - ruff lint 통과
+- [x] 4.14 API 단위 + 통합 테스트 보완 `[M]`
+  - Part 1: `tests/unit/test_api/test_edge_cases.py` — 31 tests
+    - DB error 500 (9), pagination boundary (9), date validation (3), correlation edge (6), UUID edge (4)
+  - Part 2: `tests/integration/test_api_integration.py` — 11 tests
+    - SQLite in-memory 전체 파이프라인 (health→assets→prices→factors→signals→dashboard→correlation)
+  - ruff clean, 전체 405 passed
 
 ---
 
 ## Summary
 - **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 11/14 (79%) — Stage C 완료, Stage D 남음 (4.12~4.14)
+- **Progress**: 14/14 (100%) — Phase 4 완료 ✅
 - **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
-- **Tests**: 기존 336 + backtests/run 11 = **347 passed**, ruff clean
+- **Tests**: **405 passed**, 7 skipped, ruff clean

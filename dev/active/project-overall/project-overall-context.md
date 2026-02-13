@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 진행 중, Step 4.11 완료)
+> Status: In Progress (Phase 4 완료, Phase 5 미착수)
 
 ## 핵심 파일
 
@@ -26,6 +26,9 @@
 | 2026-02-12 | Phase 구조 리비전 | 기존 Phase 4(백테스트+API+대시보드) → Phase 4(API), Phase 5(Frontend) 분리 |
 | 2026-02-12 | API 12개 엔드포인트 | 기존 9개 + dashboard/summary, correlation, backtests list 추가 |
 | 2026-02-12 | 프론트엔드 6개 페이지 | 기존 4개(가격/수익률/상관/전략) → 6개(홈/가격/상관/팩터/시그널/전략) 확대 |
+| 2026-02-13 | Alembic migration: backtest 테이블 보강 | backtest_run에 asset_id, metrics_json 추가; backtest_trade_log에 entry_price, exit_price, shares 추가 |
+| 2026-02-13 | E2E 파이프라인 검증 완료 | 7자산 × 3전략 = 21 백테스트, 실데이터로 전체 파이프라인 정상 동작 확인 |
+| 2026-02-13 | mean_reversion에 close 컬럼 필요 | compute_all_factors() 결과에 close 미포함 → 신호 생성 시 별도 merge 필요 |
 
 ## 자산 목록
 
@@ -42,7 +45,7 @@
 ## DB 테이블 목록 (8개, 모두 생성 완료)
 
 1. `asset_master` — 자산 마스터 (7개 자산 시드 완료)
-2. `price_daily` — 일봉 PK: (asset_id, date, source) — 5,559 rows
+2. `price_daily` — 일봉 PK: (asset_id, date, source) — 5,573+ rows
 3. `factor_daily` — 팩터 PK: (asset_id, date, factor_name, version)
 4. `signal_daily` — 전략 신호 (id PK, ix: asset_id+date+strategy_id)
 5. `backtest_run` — 백테스트 실행 (run_id UUID PK)

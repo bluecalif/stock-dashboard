@@ -1,6 +1,6 @@
 ---
-description: Step 완료 → Phase docs + project-overall 동시 업데이트 → Git commit
-argument-hint: phase-name step-number (예: "phase4-api 4.3")
+description: Step 완료 → Phase docs 업데이트 → Git commit (project-overall은 명시 요청 시만)
+argument-hint: phase-name step-number [--sync-overall] (예: "phase4-api 4.3" 또는 "phase4-api 4.3 --sync-overall")
 ---
 
 # 단계 업데이트 (Step Update)
@@ -9,10 +9,12 @@ argument-hint: phase-name step-number (예: "phase4-api 4.3")
 
 ## Overview
 
-개발 단계(step) 완료 시 실행. Phase 문서와 project-overall 문서를 **동시에** 업데이트한 뒤 커밋.
+개발 단계(step) 완료 시 실행. Phase 문서를 업데이트한 뒤 커밋.
+
+> **Note:** `project-overall` 동기화는 `--sync-overall` 플래그가 있거나 사용자가 명시적으로 요청할 때만 수행.
 
 ```
-Phase docs 업데이트 + project-overall 동기화 → Git Commit
+Phase docs 업데이트 → Git Commit (+ project-overall 동기화는 선택적)
 ```
 
 ---
@@ -29,15 +31,19 @@ Phase docs 업데이트 + project-overall 동기화 → Git Commit
 
 ### 2. 현재 상태 확인 (Check Current State)
 
-읽어야 할 파일 (전부 읽기):
+읽어야 할 파일:
 ```
 dev/active/[phase-name]/[phase-name]-tasks.md
 dev/active/[phase-name]/[phase-name]-context.md
 dev/active/[phase-name]/[phase-name]-plan.md
+docs/session-compact.md
+```
+
+`--sync-overall` 플래그 있을 때 추가로 읽기:
+```
 dev/active/project-overall/project-overall-tasks.md
 dev/active/project-overall/project-overall-plan.md
 dev/active/project-overall/project-overall-context.md
-docs/session-compact.md
 ```
 
 확인 사항:
@@ -68,7 +74,9 @@ docs/session-compact.md
 - Status / Current Step 갱신
 - Current State 섹션에 완료 항목 추가
 
-### 4. project-overall 동기화 (CRITICAL — 반드시 수행)
+### 4. project-overall 동기화 (--sync-overall 플래그 또는 명시 요청 시에만)
+
+> **SKIP** 이 섹션은 `--sync-overall` 플래그가 없고 사용자가 요청하지 않았으면 건너뛴다.
 
 #### 4.1 `project-overall-tasks.md`
 - 해당 Phase의 동일 step을 체크: `- [ ]` → `- [x]` + commit hash
@@ -91,19 +99,22 @@ docs/session-compact.md
 ### 6. 정합성 검증 (Consistency Check)
 
 업데이트 후 아래를 검증:
+- [ ] session-compact.md의 TODO가 실제 진행률과 일치
+
+`--sync-overall` 시 추가 검증:
 - [ ] Phase tasks.md 체크 상태 == project-overall-tasks.md 해당 섹션
 - [ ] Phase tasks.md 진행률 == project-overall-plan.md 해당 Phase 설명
-- [ ] session-compact.md의 TODO가 실제 진행률과 일치
 
 ### 7. Git Commit
 
 #### 7.1 Staging
 ```bash
-# 코드 변경 + 문서 변경 모두 포함
+# 코드 변경 + 문서 변경 포함
 git add backend/api/ frontend/       # 해당 Phase 코드
 git add dev/active/[phase-name]/     # Phase dev-docs
-git add dev/active/project-overall/  # project-overall (항상 포함!)
 git add docs/session-compact.md      # session-compact (변경 시)
+# --sync-overall 시에만:
+# git add dev/active/project-overall/
 ```
 
 #### 7.2 Commit Message 형식
@@ -165,7 +176,7 @@ Phase docs 업데이트:
 - context.md: N개 파일/결정사항 추가
 - plan.md: 상태 업데이트
 
-project-overall 동기화:
+project-overall 동기화: (--sync-overall 시에만)
 - tasks.md: 동일 step 체크 완료
 - plan.md: Current State 갱신
 - context.md: 결정사항 반영

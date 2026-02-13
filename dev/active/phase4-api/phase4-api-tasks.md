@@ -1,6 +1,6 @@
 # Phase 4: API — Tasks
 > Last Updated: 2026-02-13
-> Status: ✅ Complete (14/14, 100%)
+> Status: ✅ Complete (15/15, 100%)
 
 ## Stage A: 기반 구조
 
@@ -96,10 +96,19 @@
     - SQLite in-memory 전체 파이프라인 (health→assets→prices→factors→signals→dashboard→correlation)
   - ruff clean, 전체 405 passed
 
+## Stage E: E2E 검증
+
+- [x] 4.15 E2E 파이프라인 실행 + 시각화 (백엔드 최종 검증) `[M]`
+  - Alembic migration: backtest_run에 asset_id, metrics_json 추가, backtest_trade_log에 entry_price, exit_price, shares 추가
+  - `scripts/e2e_pipeline_viz.py` — 전체 파이프라인 (DB→수집→팩터→신호→백테스트→시각화)
+  - 7자산 × 3전략 = 21 백테스트 실행 완료
+  - 5개 시각화 차트 생성 (`docs/e2e_report/`)
+  - mean_reversion 전략 close 컬럼 전달 이슈 발견 및 해결
+
 ---
 
 ## Summary
-- **Stages**: 4개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트)
-- **Progress**: 14/14 (100%) — Phase 4 완료 ✅
-- **Tasks**: 14개 (S: 3, M: 9, L: 1, XL: 0)
+- **Stages**: 5개 (A: 기반, B: 조회, C: 백테스트, D: 집계+테스트, E: E2E 검증)
+- **Progress**: 15/15 (100%) — Phase 4 완료 ✅
+- **Tasks**: 15개 (S: 3, M: 10, L: 1, XL: 0)
 - **Tests**: **405 passed**, 7 skipped, ruff clean

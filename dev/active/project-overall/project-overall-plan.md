@@ -1,6 +1,6 @@
 # Project Overall Plan
 > Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 진행 중, Step 4.11 완료)
+> Status: In Progress (Phase 4 완료, Phase 5 미착수)
 
 ## 1. Summary (개요)
 
@@ -20,8 +20,10 @@
 - **Phase 1 완료**: 프로젝트 골격, DB 8 테이블, Alembic 마이그레이션, asset_master 시드
 - **Phase 2 완료**: FDR 수집기, 재시도, UPSERT, 정합성 검증, 3년 백필 (5,559 rows)
 - **Phase 3 완료**: 전처리, 팩터 15개, 전략 3종, 백테스트, 성과지표, 배치 스크립트
-- **Git**: `master` 브랜치, 347 unit + 7 integration tests, ruff clean
-- **DB**: price_daily 5,559 rows, 7개 자산 (2023-02 ~ 2026-02)
+- **Phase 4 완료**: FastAPI 12 endpoints, Router-Service-Repository 3계층, 405 tests
+- **Step 4.15**: E2E 파이프라인 검증 (7자산 × 3전략 = 21 백테스트, 5개 시각화 차트)
+- **Git**: `master` 브랜치, 405 passed + 7 skipped, ruff clean
+- **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, 7개 자산
 
 ## 3. Target State (목표 상태)
 
@@ -30,7 +32,7 @@
 | 수집 | 7개 자산 일봉 자동 수집, UPSERT, 정합성 검증 | ✅ 완료 |
 | DB | 8개 테이블 운영, Alembic 마이그레이션 관리 | ✅ 완료 |
 | 분석 | 팩터 15종, 전략 3종, 백테스트 실행 가능 | ✅ 완료 |
-| API | 12개 엔드포인트 운영 (조회/백테스트/집계) | Step 4.11 완료 (Stage A+B+C 완료, 10개 엔드포인트) |
+| API | 12개 엔드포인트 운영 (조회/백테스트/집계) | ✅ 완료 (15 steps, 12 endpoints, 405 tests) |
 | 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | 미착수 |
 | 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | 부분 (배치만 완료) |
 
@@ -63,7 +65,7 @@
 - `scripts/run_research.py` — 분석 배치 CLI (factor→signal→backtest→DB)
 - 12 tasks, 8 commits, 223 unit + 7 integration tests
 
-### Phase 4: API ← 다음 단계
+### Phase 4: API ✅ 완료
 > dev-docs: `dev/active/phase4-api/`
 
 **Stage A: 기반 구조** (Step 4.1~4.3)

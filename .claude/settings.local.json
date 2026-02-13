@@ -79,7 +79,11 @@
       "Bash(.venv/Scripts/ruff check:*)",
       "Bash(.venvScriptspython -m pytest tests/unit/test_backtest_store.py -v)",
       "Bash(xargs:*)",
-      "Bash(python -m ruff check:*)"
+      "Bash(python -m ruff check:*)",
+      "Bash(git status:*)",
+      "Bash(git fetch:*)",
+      "Bash(wc:*)",
+      "Bash(.venv/Scripts/alembic revision:*)"
     ]
   }
 }

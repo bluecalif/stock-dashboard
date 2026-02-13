@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 진행 중, 11/14)
+> Status: In Progress (Phase 4 완료, Phase 5 미착수)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -46,7 +46,7 @@
 - [x] 3.11 배치 스크립트 + 통합 테스트 `[M]` — `fc8fc4f`
 - [x] 3.12 dev-docs 갱신 `[S]`
 
-## Phase 4: API ← 진행 중 (11/14)
+## Phase 4: API ✅ 완료 (15/15)
 > dev-docs: `dev/active/phase4-api/`
 
 ### 4A. 기반 구조 ✅ 완료
@@ -61,15 +61,18 @@
 - [x] 4.7 `GET /v1/factors` — 팩터 조회 `[M]`
 - [x] 4.8 `GET /v1/signals` — 시그널 조회 `[M]`
 
-### 4C. 백테스트 API
+### 4C. 백테스트 API ✅ 완료
 - [x] 4.9 `GET /v1/backtests` — 백테스트 목록 `[S]` — `fac9e08`
 - [x] 4.10 `GET /v1/backtests/{run_id}` + `/equity` + `/trades` `[M]` — `fac9e08`
 - [x] 4.11 `POST /v1/backtests/run` — 온디맨드 백테스트 실행 `[L]` — `bb05a35`
 
-### 4D. 집계 API + 테스트
-- [ ] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]`
-- [ ] 4.13 `GET /v1/correlation` — 자산 간 상관행렬 (on-the-fly) `[M]`
-- [ ] 4.14 API 단위 + 통합 테스트 `[M]`
+### 4D. 집계 API + 테스트 ✅ 완료
+- [x] 4.12 `GET /v1/dashboard/summary` — 대시보드 요약 `[M]` — `3171061`
+- [x] 4.13 `GET /v1/correlation` — 자산 간 상관행렬 (on-the-fly) `[M]` — `7ddb5f0`
+- [x] 4.14 API 단위 + 통합 테스트 `[M]` — `1d10c2e`
+
+### 4E. E2E 검증 ✅ 완료
+- [x] 4.15 E2E 파이프라인 실행 + 시각화 (백엔드 최종 검증) `[M]`
 
 ## Phase 5: 프론트엔드 (Frontend)
 > dev-docs: `dev/active/phase5-frontend/` (생성 예정)
@@ -129,9 +132,9 @@
 
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
-- **Phase 4**: 14 tasks — 11 완료, 3 남음 (79%)
-- **Phase 5**: 10 tasks (S: 0, M: 8, L: 2, XL: 0)
-- **Phase 6**: 16 tasks (S: 4, M: 9, L: 2, XL: 0)
-- **Grand Total**: 76 tasks (47 완료 + 29 남음)
-- **Critical Path**: Phase 4 (API) → Phase 5 (Frontend) → Phase 6 (Deploy)
-- **Tests**: 347 unit + 7 integration
+- **Phase 4**: 15 tasks — **ALL COMPLETE** (✅)
+- **Phase 5**: 10 tasks — 미착수 (0%)
+- **Phase 6**: 16 tasks — 미착수 (0%)
+- **Grand Total**: 77 tasks (51 완료 + 26 남음)
+- **Critical Path**: Phase 5 (Frontend) → Phase 6 (Deploy)
+- **Tests**: 405 passed, 7 skipped, ruff clean

@@ -110,6 +110,12 @@ backend/api/
 
 ## 5. Changed Files
 
+### Step 4.15: E2E 파이프라인 실행 + 시각화 (백엔드 최종 검증)
+- `db/alembic/versions/7205bc02b030_add_missing_columns_to_backtest_tables.py` — 신규: backtest_run.asset_id, backtest_run.metrics_json, backtest_trade_log.entry_price/exit_price/shares
+- `scripts/e2e_pipeline_viz.py` — 신규: 전체 파이프라인 E2E 실행 + matplotlib 5종 시각화
+- `docs/e2e_report/` — 신규: 5개 PNG 차트 (가격/상관/에쿼티/전략비교/종합대시보드)
+- **결과**: 7자산 × 3전략 = 21 백테스트, 55K+ factor rows, 15K+ signal rows
+
 ### Step 4.14: API 엣지 케이스 + 통합 테스트 (Phase 4 마무리)
 - `tests/unit/test_api/test_edge_cases.py` — 신규: 31 tests
   - DB error 500 (9), pagination boundary (9), date validation (3), correlation edge (6), UUID edge (4)

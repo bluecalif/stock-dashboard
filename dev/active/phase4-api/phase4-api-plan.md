@@ -1,6 +1,6 @@
 # Phase 4: API
 > Last Updated: 2026-02-13
-> Status: ✅ Complete (14/14, 100%)
+> Status: ✅ Complete (15/15, 100%)
 
 ## 1. Summary (개요)
 
@@ -35,7 +35,9 @@
 - **Step 4.12 완료**: GET /v1/dashboard/summary (dashboard_service, 8 tests)
 - **Step 4.13 완료**: GET /v1/correlation (correlation_service, pandas corr, 8 tests)
 - **Step 4.14 완료**: 엣지 케이스 31 tests + 통합 테스트 11 tests — 전체 405 passed
-- **Stage D 완료** — **Phase 4 완료 ✅** (다음: Phase 5 Frontend)
+- **Stage D 완료**
+- **Step 4.15 완료**: E2E 파이프라인 최종 검증 (Alembic migration + 7×3 backtest + 5 viz charts)
+- **Stage E 완료** — **Phase 4 완료 ✅** (다음: Phase 5 Frontend)
 
 ## 3. Target State (목표 상태)
 
@@ -98,8 +100,9 @@ FastAPI 앱 초기화, Pydantic 스키마, Repository 계층을 구축한다.
 | 4.12 | `GET /v1/dashboard/summary` — 대시보드 요약 | M | D | 4.5, 4.6, 4.8 |
 | 4.13 | `GET /v1/correlation` — 상관행렬 (on-the-fly) | M | D | 4.6 |
 | 4.14 | API 단위 + 통합 테스트 | M | D | 4.4~4.13 |
+| 4.15 | E2E 파이프라인 실행 + 시각화 (최종 검증) | M | E | ALL |
 
-**Size 분포**: S: 3, M: 9, L: 1, XL: 0 — 총 14 tasks
+**Size 분포**: S: 3, M: 10, L: 1, XL: 0 — 총 15 tasks
 
 ## 6. Risks & Mitigation
 

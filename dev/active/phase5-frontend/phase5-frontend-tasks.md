@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-13
-> Status: In Progress (3/10)
+> Status: In Progress (5/10)
 
 ## 5A. 기반 구조
 
@@ -34,18 +34,16 @@
 
 ## 5B. 핵심 차트
 
-- [ ] 5.4 가격 차트 페이지 (라인차트, 자산/기간 선택) `[L]`
-  - `src/pages/PricePage.tsx` — 자산 선택, 기간 필터, API 호출
-  - `src/components/charts/PriceLineChart.tsx` — Recharts LineChart (OHLCV)
-  - 자산별 가격 라인 차트 (close 기준)
-  - 멀티 자산 비교 모드 (여러 자산 동시 표시)
-  - 기간 선택 (1M, 3M, 6M, 1Y, 3Y, 전체)
+- [x] 5.4 가격 차트 페이지 (라인차트, 자산/기간 선택) `[L]`
+  - `src/pages/PricePage.tsx` — AssetSelect 멀티 모드, DateRangePicker, Promise.all 병렬 fetch
+  - `src/components/charts/PriceLineChart.tsx` — Recharts LineChart, 7색 팔레트, dot=false
+  - mergeByDate()로 멀티 자산 종가 병합, connectNulls, Y축 가격 포맷팅
 
-- [ ] 5.5 수익률 비교 차트 (정규화 누적수익률) `[M]`
-  - `src/components/charts/ReturnsChart.tsx` — 정규화 수익률 차트
-  - 기준일 = 100 정규화 누적수익률
-  - 여러 자산 동시 비교
-  - PricePage에 탭 또는 토글로 통합
+- [x] 5.5 수익률 비교 차트 (정규화 누적수익률) `[M]`
+  - `src/components/charts/ReturnsChart.tsx` — 정규화 수익률 차트 (기준일=100)
+  - toNormalizedReturns()로 종가 → 기준일 100 정규화 변환
+  - PricePage에 가격/수익률 탭 전환 UI, ReferenceLine y=100 기준선
+  - 여러 자산 동시 비교, priceMap 공유로 API 재호출 없음
 
 ## 5C. 분석 시각화
 
@@ -85,7 +83,7 @@
 ---
 
 ## Summary
-- **Total**: 10 tasks (3 completed, 30%)
+- **Total**: 10 tasks (5 completed, 50%)
 - **Size 분포**: M: 8, L: 2
 - **Stages**: A(3) → B(2) → C(3) → D(2)
 - **Critical Path**: 5.1 → 5.2/5.3 → 5.4 → 나머지 페이지

@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
 > Last Updated: 2026-02-13
-> Status: In Progress (3/10)
+> Status: In Progress (5/10)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -263,6 +263,14 @@ frontend/
 - `frontend/src/pages/SignalPage.tsx` — placeholder
 - `frontend/src/pages/StrategyPage.tsx` — placeholder
 
+### Step 5.4 — 가격 차트 페이지
+- `frontend/src/components/charts/PriceLineChart.tsx` — **신규**, Recharts LineChart 래퍼 (멀티 자산, 7색 팔레트)
+- `frontend/src/pages/PricePage.tsx` — placeholder → 완전한 가격 차트 페이지 (AssetSelect, DateRangePicker, mergeByDate)
+
+### Step 5.5 — 수익률 비교 차트
+- `frontend/src/components/charts/ReturnsChart.tsx` — **신규**, 정규화 누적수익률 차트 (기준일=100, ReferenceLine)
+- `frontend/src/pages/PricePage.tsx` — 가격/수익률 탭 전환 UI, toNormalizedReturns(), priceMap 상태 공유
+
 ## 7. 컨벤션 체크리스트
 
 ### 프론트엔드 관련
@@ -270,9 +278,9 @@ frontend/
 - [x] API 타입 백엔드 Pydantic 스키마와 1:1 매칭
 - [x] API URL 환경변수 관리 (`VITE_API_BASE_URL`)
 - [x] Axios 인스턴스 중앙화 (`api/client.ts`)
-- [ ] Recharts ResponsiveContainer 항상 사용
-- [ ] 일봉 데이터 `dot={false}` (데이터 포인트 다수)
-- [ ] Page(fetch+state) → Chart(props) 분리
+- [x] Recharts ResponsiveContainer 항상 사용
+- [x] 일봉 데이터 `dot={false}` (데이터 포인트 다수)
+- [x] Page(fetch+state) → Chart(props) 분리
 - [x] React Router v6 경로 정의
 - [x] TailwindCSS 유틸리티 사용
 - [x] CORS: localhost:5173 (Vite dev server)

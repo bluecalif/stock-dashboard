@@ -4,16 +4,17 @@
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 5 Frontend 착수 — dev-docs 생성 → Step 5.1 프로젝트 초기화부터 시작
+Phase 5 Frontend — Stage B 완료 (Step 5.5 완료, Step 5.6으로 이동)
 
 ## Completed
-- [x] **Phase 4 완료 확인**: 405 tests, 12 endpoints, E2E 검증 완료
-- [x] **Phase 5 dev-docs 생성**: `/dev-docs` 스킬 실행
-  - `dev/active/phase5-frontend/phase5-frontend-plan.md` (종합 계획)
-  - `dev/active/phase5-frontend/phase5-frontend-context.md` (컨텍스트 + 14개 TypeScript 타입 정의)
-  - `dev/active/phase5-frontend/phase5-frontend-tasks.md` (10 tasks 체크리스트)
-- [x] **project-overall 동기화**: plan/context/tasks 3개 파일 모두 업데이트
-- [x] **정합성 검증**: 4/4 PASS (task list, stage structure, masterplan alignment, tech stack)
+- [x] **Step 5.1~5.3**: Stage A 기반 구조 (이전 세션)
+- [x] **Step 5.4 완료**: 가격 차트 페이지 구현
+  - `src/components/charts/PriceLineChart.tsx` — Recharts LineChart 래퍼
+  - `src/pages/PricePage.tsx` — AssetSelect 멀티 + DateRangePicker + mergeByDate()
+- [x] **Step 5.5 완료**: 수익률 비교 차트 (정규화 누적수익률)
+  - `src/components/charts/ReturnsChart.tsx` — 기준일=100 정규화 차트, ReferenceLine y=100
+  - `src/pages/PricePage.tsx` — 가격/수익률 탭 전환, toNormalizedReturns(), priceMap 공유
+  - TSC ✅ / Vite build ✅
 
 ## Current State
 
@@ -24,57 +25,55 @@ Phase 5 Frontend 착수 — dev-docs 생성 → Step 5.1 프로젝트 초기화�
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
 | 4 | API | ✅ 완료 | 15/15 |
-| 5 | Frontend | **진행중** | 3/10 |
+| 5 | Frontend | **진행중** | 5/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
-- Branch: `master`
-- Backend: **405 passed**, 7 skipped, ruff clean
-- DB: price_daily 5,573+, factor_daily 55K+, signal_daily 15K+, 7개 자산
-- Frontend: Stage A 완료 (5.1~5.3), TSC/ESLint/Build 통과
+- Branch: `master`, commit `f227b2b` (Step 5.4+5.5 미커밋)
+- Backend: 405 passed, 7 skipped
+- Frontend: TSC ✅ / ESLint ✅ / Build ✅ (717 modules)
 
-### 환경
-- Node.js v20.16.0, npm 10.8.1
-- Python 3.12.3, venv `backend/.venv/`
+### 프론트엔드 구조 (현재)
+```
+frontend/src/
+├── api/          # client.ts + 7개 API 모듈 ✅
+├── types/        # api.ts (14개 인터페이스) ✅
+├── components/
+│   ├── layout/   # Sidebar, Layout ✅
+│   ├── common/   # Loading, ErrorMessage, AssetSelect, DateRangePicker ✅
+│   └── charts/   # PriceLineChart.tsx ✅ + ReturnsChart.tsx ✅ (Step 5.4-5.5)
+├── pages/        # PricePage ✅ + 5개 placeholder
+├── App.tsx       # BrowserRouter + Routes ✅
+├── main.tsx      # 엔트리포인트 ✅
+└── index.css     # Tailwind directives ✅
+```
 
-### Phase 5 계획 요약
-- **Stage A** (5.1~5.3): 기반 구조 — Vite+React+TS, API 클라이언트, 레이아웃
-- **Stage B** (5.4~5.5): 핵심 차트 — 가격 라인차트, 수익률 비교
-- **Stage C** (5.6~5.8): 분석 시각화 — 상관 히트맵, 팩터, 시그널 타임라인
-- **Stage D** (5.9~5.10): 전략 성과 + 대시보드 홈
-- **Size**: M×8, L×2 = 10 tasks
-
-### Changed Files (이번 세션)
-- `dev/active/phase5-frontend/phase5-frontend-plan.md` — 신규
-- `dev/active/phase5-frontend/phase5-frontend-context.md` — 신규
-- `dev/active/phase5-frontend/phase5-frontend-tasks.md` — 신규
-- `dev/active/project-overall/project-overall-plan.md` — Phase 5 상세 업데이트
-- `dev/active/project-overall/project-overall-context.md` — 결정사항 3건 추가
-- `dev/active/project-overall/project-overall-tasks.md` — Stage A~D 구조 동기화
-- `docs/session-compact.md` — 업데이트
+### Changed Files (이번 세션, 미커밋)
+- `frontend/src/components/charts/PriceLineChart.tsx` — **새 파일**, Recharts 라인 차트
+- `frontend/src/components/charts/ReturnsChart.tsx` — **새 파일**, 정규화 수익률 차트
+- `frontend/src/pages/PricePage.tsx` — 가격/수익률 탭 전환, toNormalizedReturns()
 
 ## Key Decisions
-- TailwindCSS 3.x 채택 (유틸리티 CSS, 빠른 프로토타이핑)
-- React useState + useEffect (MVP, 별도 상태 라이브러리 불필요)
-- Recharts 커스텀 셀로 히트맵 구현 (별도 라이브러리 추가 최소화)
-- 14개 TypeScript 인터페이스: 백엔드 Pydantic 스키마와 1:1 매칭
+- PriceLineChart: PricePoint 타입 (date + 동적 asset_id 키)으로 멀티 자산 데이터 병합
+- mergeByDate(): Map 기반으로 여러 자산의 가격을 date 기준 단일 배열로 병합
+- toNormalizedReturns(): 첫 종가 기준 100 정규화, priceMap 공유로 API 재호출 없음
+- 기본 선택: KS200, 기본 기간: 최근 1년
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
-- **작업 디렉토리**: `frontend/` (React) — 아직 빈 상태
+- **작업 디렉토리**: `frontend/` (React SPA)
 - **venv**: `backend/.venv/Scripts/activate` (Windows), Python 3.12.3
 - **Bash 경로**: `/c/Projects-2026/stock-dashboard` (Windows 백슬래시 불가)
-- **dev-docs**: `dev/active/phase5-frontend/` (Phase 5 계획), `dev/active/project-overall/`
-- **스킬**: `frontend-dev` 스킬에 아키텍처/차트 패턴/안티패턴 가이드 있음
+- **dev-docs**: `dev/active/phase5-frontend/` (Phase 5 계획)
 - **API 스키마 참조**: `backend/api/schemas/` (14개 Pydantic 클래스)
-- **CORS**: 이미 localhost:5173 허용 설정 완료 (backend/api/main.py)
+- **CORS**: localhost:5173 허용 완료
+- **API endpoints**: 12개 (`/v1/assets`, `/v1/prices/daily`, `/v1/factors`, `/v1/signals`, `/v1/backtests/*`, `/v1/dashboard/summary`, `/v1/correlation`)
+- **Step 5.4+5.5 미커밋**: 이번 커밋에서 함께 처리
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 
 ## Next Action
-1. **Step 5.1 실행**: Vite + React 18 + TypeScript + TailwindCSS 프로젝트 초기화
-   - `npm create vite@latest frontend -- --template react-ts`
-   - TailwindCSS + PostCSS 설정
-   - ESLint 기본 설정
-   - `.env` (VITE_API_BASE_URL=http://localhost:8000)
-   - `npm run dev` 동작 확인
-2. 이후 Step 5.2 (API 클라이언트 + 타입), Step 5.3 (레이아웃 + 라우팅) 순서로 진행
+1. **Step 5.6 실행**: 상관 히트맵 (자산 간 correlation matrix) `[M]`
+   - `src/pages/CorrelationPage.tsx` — 기간/윈도우 필터, /v1/correlation API 호출
+   - `src/components/charts/CorrelationHeatmap.tsx` — N×N 히트맵 (커스텀 셀)
+   - 색상 스케일: -1(파랑) ~ 0(흰) ~ +1(빨강)
+2. 이후 Step 5.7 (팩터 현황) 순서로 진행

@@ -141,10 +141,7 @@ Missing 'close' column for mean_reversion
 
 ## Remaining UX Bugs
 
-| # | Page | Issue | Status |
-|---|------|-------|--------|
-| 4 | Factor | KS200/005930/000660 미표시 | ✅ 파이프라인 수정 완료 |
-| 9 | Signal | 평균회귀 마커만 표시 | ✅ close 컬럼 포함으로 수정 완료 |
+없음 — 전체 11개 버그 수정 완료, 사용자 UX 2차 확인 통과 ✅
 
 ## Lessons Learned
 

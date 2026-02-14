@@ -29,7 +29,7 @@ Phase 5 Frontend UX 디버깅 완료 (Step 5.13) → UX 재확인 → 커밋 →
 | Phase | 상태 | Tasks |
 |-------|------|-------|
 | 1-4 (Skeleton~API) | ✅ 완료 | 46/46 |
-| 5 Frontend | 🔧 UX 재확인 중 | 12.5/13 |
+| 5 Frontend | ✅ 완료 | 13/13 |
 | 6 Deploy & Ops | 미착수 | 0/16 |
 
 ### UX 버그 현황
@@ -43,7 +43,7 @@ Phase 5 Frontend UX 디버깅 완료 (Step 5.13) → UX 재확인 → 커밋 →
 | 6 | Signal | 마커 설명 없음 | ✅ 수정 |
 | 7 | Signal | 관망/무신호 구분 불가 | ✅ 수정 |
 | 8 | Signal | 추세추종 미표시 | ✅ 수정 |
-| 9 | Signal | 평균회귀 마커만 표시 | ⚠️ mean_reversion에서 `close` 컬럼 누락 워닝 → 시그널 0개 생성 (별도 조사 필요) |
+| 9 | Signal | 평균회귀 마커만 표시 | ✅ close 컬럼 포함 수정 완료 (`d227ee9`) |
 | 10 | Strategy | 전체 미표시 | ✅ 백테스트 데이터 생성 완료 |
 | 11 | Dashboard | 백테스트 상태 배지 | ✅ 수정 |
 
@@ -81,9 +81,9 @@ dev/active/phase5-frontend/
 - TSC: 미확인 (이번 세션에서 프론트엔드 파일은 변경 안 함)
 
 ## Remaining / TODO
-- [ ] **UX 재확인**: 사용자가 `docs/front-UX-check.md` 2차 결과 작성 중 — 시그널 페이지 모멘텀 Network Error는 수정 완료, 다른 페이지 결과 대기
-- [ ] **Bug #9 조사**: mean_reversion 전략에서 `close` 컬럼 누락 워닝 → 시그널 0개 생성 원인 파악
-- [ ] **커밋**: Step 5.11~5.13 프론트+백엔드 전체 수정사항
+- [x] **UX 재확인**: 사용자 2차 확인 완료 — 전체 페이지 정상 동작 확인
+- [x] **Bug #9 수정**: mean_reversion close 컬럼 누락 → `d227ee9`에서 수정 완료
+- [x] **커밋**: Step 5.11~5.13 + Bug #9 전부 커밋 완료 (`398f7da`, `d227ee9`)
 - [ ] **Phase 6 (Deploy & Ops) 착수**
 
 ## Key Decisions

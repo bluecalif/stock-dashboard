@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-14
-> Status: In Progress (10/10 구현 완료, UX 디버깅 진행중)
+> Status: Complete (13/13, 100%)
 
 ## 5A. 기반 구조
 
@@ -81,30 +81,28 @@
 
 ## 5E. UX 디버깅 (사용자 테스트 기반)
 
-- [ ] 5.11 UX 버그 수정 — 전략 ID 불일치 + X축 정렬 + 시그널 범례 `[M]`
-  - **전략 ID 불일치** (Critical): `SignalPage.tsx`, `StrategyPage.tsx`에서 `trend_follow` → `trend`로 수정 (백엔드 `STRATEGY_REGISTRY` 키와 일치)
-  - **X축 정렬** (Home+Signal): 백엔드 `ORDER BY date DESC` 데이터를 프론트에서 ASC 정렬 누락
-    - `DashboardPage.tsx:140` — MiniChart 데이터 정렬 추가
-    - `SignalOverlay.tsx:78-89` — 병합 데이터 정렬 추가
-  - **시그널 범례**: `SignalOverlay.tsx`에 매수(▲)/청산(▼)/관망 범례 추가
-  - **관망 구분**: signal=0을 회색 원(●)으로 시각화 (현재 완전 미표시)
-  - **대시보드 상태 배지**: `DashboardPage.tsx:218` `"completed"` → `"success"` (백엔드 일치)
+- [x] 5.11 UX 버그 수정 — 전략 ID 불일치 + X축 정렬 + 시그널 범례 `[M]` — `398f7da`
+  - **전략 ID 불일치** (Critical): `SignalPage.tsx`, `StrategyPage.tsx`에서 `trend_follow` → `trend`로 수정
+  - **X축 정렬** (Home+Signal): ASC 정렬 추가 (`DashboardPage.tsx`, `SignalOverlay.tsx`)
+  - **시그널 범례**: SignalLegend 컴포넌트 추가, 관망 회색 원(●) 마커
+  - **대시보드 상태 배지**: `"completed"` → `"success"`
 
-- [ ] 5.12 UX 버그 수정 — Gold/Silver 에러 + 거래량 차트 `[M]`
-  - **Gold/Silver 에러 조사**: `GC=F`/`SI=F` API 응답 확인 (DB 데이터 유무 + URL 인코딩)
-  - **방어적 fetch**: `PricePage.tsx` `Promise.all` → `Promise.allSettled`로 개별 자산 실패 격리
-  - **거래량 차트**: `PriceLineChart.tsx`를 `ComposedChart`로 변경, Volume `Bar` + 보조 Y축 추가
-  - `mergeByDate()` 수정: volume 데이터 병합 (`${assetId}_vol` 키)
+- [x] 5.12 UX 버그 수정 — Gold/Silver 에러 + 거래량 차트 `[M]` — `398f7da`
+  - **Gold/Silver 에러**: `Promise.allSettled` 방어 처리
+  - **거래량 차트**: `ComposedChart` + `Bar`(거래량) + 이중 YAxis
+  - `mergeByDate()` volume 병합
 
-- [ ] 5.13 UX 버그 수정 — 팩터/전략 데이터 확인 `[S]`
-  - **팩터 데이터 확인**: KS200/005930/000660 팩터 API 응답 확인 (데이터 파이프라인 이슈 여부)
-  - **백테스트 데이터 확인**: 전략별 백테스트 API 응답 확인 (status 값, strategy_id 값)
-  - 데이터 파이프라인 이슈 시 → Phase 6 또는 별도 태스크로 분리
+- [x] 5.13 UX 버그 수정 — 팩터/전략 데이터 + Bug #9 `[S]` — `398f7da`, `d227ee9`
+  - **파이프라인 수정**: missing_threshold 10%로 상향 → KS200/005930/000660 팩터 생성 성공
+  - **백테스트 저장**: numpy/Timestamp → Python native 타입 변환 헬퍼
+  - **CORS**: 5174 포트 추가
+  - **NaN 방어**: API 스키마 field_validator로 NaN→None 변환
+  - **Bug #9**: mean_reversion close 컬럼 누락 수정 → 전 자산 시그널+백테스트 성공
 
 ---
 
 ## Summary
-- **Total**: 13 tasks (10 completed, 77%)
+- **Total**: 13 tasks (13 completed, 100%) ✅ Phase 5 완료
 - **Size 분포**: S: 1, M: 10, L: 2
 - **Stages**: A(3) → B(2) → C(3) → D(2) → E(3, UX 디버깅)
-- **Critical Path**: 5.11 (전략 ID 수정) → 5.12 (가격 페이지) → 5.13 (데이터 확인)
+- **UX 버그**: 11개 발견 → 11개 수정 완료

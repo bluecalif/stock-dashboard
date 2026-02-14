@@ -1,6 +1,6 @@
 # Project Overall Plan
 > Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 완료, Phase 5 미착수)
+> Status: In Progress (Phase 4 완료, Phase 5 착수)
 
 ## 1. Summary (개요)
 
@@ -33,7 +33,7 @@
 | DB | 8개 테이블 운영, Alembic 마이그레이션 관리 | ✅ 완료 |
 | 분석 | 팩터 15종, 전략 3종, 백테스트 실행 가능 | ✅ 완료 |
 | API | 12개 엔드포인트 운영 (조회/백테스트/집계) | ✅ 완료 (15 steps, 12 endpoints, 405 tests) |
-| 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | 미착수 |
+| 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | Phase 5 착수 |
 | 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | 부분 (배치만 완료) |
 
 ## 4. Implementation Phases (구현 단계)
@@ -85,16 +85,26 @@
 - dashboard/summary, correlation (on-the-fly)
 - httpx TestClient 단위/통합 테스트
 
-### Phase 5: 프론트엔드 (Frontend)
-- Vite + React 18 + TypeScript 프로젝트 초기화
-- API 클라이언트 + 타입 정의
-- 6개 페이지:
-  1. 대시보드 홈 (요약 카드 + 미니 차트)
-  2. 가격/수익률 (라인 차트 + 정규화 누적수익률 비교)
-  3. 상관 히트맵 (자산 간 rolling correlation)
-  4. 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블)
-  5. 시그널 타임라인 (가격 + 매매 마커 오버레이)
-  6. 전략 성과 (에쿼티 커브 + 메트릭스 카드 + 거래 이력)
+### Phase 5: 프론트엔드 (Frontend) ← 현재
+> dev-docs: `dev/active/phase5-frontend/`
+
+**Stage A: 기반 구조** (Step 5.1~5.3)
+- Vite 5.x + React 18 + TypeScript + TailwindCSS 프로젝트 초기화
+- Axios API 클라이언트 + 14개 TypeScript 타입 (백엔드 Pydantic 1:1)
+- 사이드바 레이아웃 + React Router v6 (6개 경로)
+
+**Stage B: 핵심 차트** (Step 5.4~5.5)
+- 가격 차트 페이지 (라인차트, 자산/기간 선택, 멀티 자산 비교)
+- 정규화 누적수익률 비교 차트
+
+**Stage C: 분석 시각화** (Step 5.6~5.8)
+- 상관 히트맵 (N×N 커스텀 셀, 기간/윈도우 조절)
+- 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블)
+- 시그널 타임라인 (가격 + 매수/청산 마커 오버레이)
+
+**Stage D: 전략 성과 + 홈** (Step 5.9~5.10)
+- 전략 성과 비교 (에쿼티 커브 + 메트릭스 카드 + 거래 이력)
+- 대시보드 홈 (7자산 요약 카드 + 미니 차트)
 
 ### Phase 6: 배포 & 운영 (Deploy & Ops)
 

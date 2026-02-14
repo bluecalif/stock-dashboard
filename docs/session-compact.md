@@ -4,82 +4,48 @@
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 5 Frontend — Stage D 진행중 (Step 5.9 완료, Step 5.10으로 이동)
+Phase 5 Frontend ✅ 완료 → Phase 6 (Deploy & Ops) 착수 예정
 
 ## Completed
-- [x] **Step 5.1~5.3**: Stage A 기반 구조 (이전 세션)
-- [x] **Step 5.4 완료**: 가격 차트 페이지 구현
-  - `src/components/charts/PriceLineChart.tsx` — Recharts LineChart 래퍼
-  - `src/pages/PricePage.tsx` — AssetSelect 멀티 + DateRangePicker + mergeByDate()
-- [x] **Step 5.5 완료**: 수익률 비교 차트 (정규화 누적수익률)
-  - `src/components/charts/ReturnsChart.tsx` — 기준일=100 정규화 차트, ReferenceLine y=100
-  - `src/pages/PricePage.tsx` — 가격/수익률 탭 전환, toNormalizedReturns(), priceMap 공유
-- [x] **Step 5.6 완료**: 상관 히트맵 (자산 간 correlation matrix)
-  - `src/components/charts/CorrelationHeatmap.tsx` — N×N 히트맵 (CSS Grid, -1~+1 색상 보간, 호버 툴팁, 범례)
-  - `src/pages/CorrelationPage.tsx` — DateRangePicker + 5단계 윈도우 버튼(20/40/60/120/250일) + fetchCorrelation
-  - TSC ✅ / Vite build ✅
-- [x] **Step 5.7 완료**: 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블)
-  - `src/components/charts/FactorChart.tsx` — RSI(70/30 기준선), MACD(ComposedChart: MACD+Signal+히스토그램), 일반 팩터 LineChart
-  - `src/pages/FactorPage.tsx` — 자산/팩터 멀티 선택(10개 토글), 병렬 fetch, 비교 테이블(12팩터 × N자산)
-  - TSC ✅ / Vite build ✅
-- [x] **Step 5.8 완료**: 시그널 타임라인 (가격 + 매매 마커 오버레이)
-  - `src/components/charts/SignalOverlay.tsx` — ComposedChart(Line+Scatter), 커스텀 삼각형 마커(매수▲초록/청산▼빨강), 시그널 Tooltip
-  - `src/pages/SignalPage.tsx` — 자산/전략 선택(3전략 멀티 토글), prices+signals 병렬 fetch, 전략별 차트 렌더링, 시그널 매트릭스 테이블
-  - TSC ✅ / Vite build ✅
-- [x] **Step 5.9 완료**: 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력)
-  - `src/components/charts/EquityCurveChart.tsx` — Recharts LineChart 멀티 백테스트 에쿼티 커브 비교, mergeEquityCurves()
-  - `src/pages/StrategyPage.tsx` — 자산/전략 선택(3전략 멀티 토글), backtests→equity+trades 병렬 fetch, 12지표 메트릭스 비교 테이블, 전략별 거래 이력 테이블
-  - TSC ✅ / Vite build ✅
+- [x] **Step 5.1~5.3**: Stage A 기반 구조 (Vite+React+TS, API 클라이언트, 레이아웃)
+- [x] **Step 5.4**: 가격 차트 — `PriceLineChart.tsx`, `PricePage.tsx` (멀티 자산, mergeByDate)
+- [x] **Step 5.5**: 수익률 비교 — `ReturnsChart.tsx` (기준일=100 정규화, priceMap 공유)
+- [x] **Step 5.6**: 상관 히트맵 — `CorrelationHeatmap.tsx` (CSS Grid, RGB 보간), `CorrelationPage.tsx`
+- [x] **Step 5.7**: 팩터 현황 — `FactorChart.tsx` (RSI/MACD 서브차트), `FactorPage.tsx` (비교 테이블)
+- [x] **Step 5.8**: 시그널 타임라인 — `SignalOverlay.tsx` (ComposedChart+Scatter 마커), `SignalPage.tsx`
+- [x] **Step 5.9**: 전략 성과 — `EquityCurveChart.tsx`, `StrategyPage.tsx` (메트릭스+거래 이력)
+- [x] **Step 5.10**: 대시보드 홈 — `MiniChart.tsx` (스파크라인), `DashboardPage.tsx` (요약 카드+백테스트 테이블)
 
 ## Current State
 
 ### 프로젝트 진행률
-| Phase | 이름 | 상태 | Tasks |
-|-------|------|------|-------|
-| 1 | Skeleton | ✅ 완료 | 9/9 |
-| 2 | Collector | ✅ 완료 | 10/10 |
-| 3 | Research Engine | ✅ 완료 | 12/12 |
-| 4 | API | ✅ 완료 | 15/15 |
-| 5 | Frontend | **진행중** | 9/10 |
-| 6 | Deploy & Ops | 미착수 | 0/16 |
+| Phase | 상태 | Tasks |
+|-------|------|-------|
+| 1-4 (Skeleton~API) | ✅ 완료 | 46/46 |
+| 5 Frontend | ✅ 완료 | 10/10 |
+| 6 Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
-- Branch: `master`
-- Backend: 405 passed, 7 skipped
-- Frontend: TSC ✅ / Vite build ✅
+- Branch: `master`, Backend: 405 passed, Frontend: TSC ✅ / Vite build ✅
 
-### 프론트엔드 구조 (현재)
+### 프론트엔드 구조
 ```
 frontend/src/
-├── api/          # client.ts + 7개 API 모듈 ✅
-├── types/        # api.ts (14개 인터페이스) ✅
-├── components/
-│   ├── layout/   # Sidebar, Layout ✅
-│   ├── common/   # Loading, ErrorMessage, AssetSelect, DateRangePicker ✅
-│   └── charts/   # PriceLineChart ✅ + ReturnsChart ✅ + CorrelationHeatmap ✅ + FactorChart ✅ + SignalOverlay ✅ + EquityCurveChart ✅
-├── pages/        # PricePage ✅ + CorrelationPage ✅ + FactorPage ✅ + SignalPage ✅ + StrategyPage ✅ + 1개 placeholder
-├── App.tsx       # BrowserRouter + Routes ✅
-├── main.tsx      # 엔트리포인트 ✅
-└── index.css     # Tailwind directives ✅
+├── api/          # client.ts + 7개 API 모듈
+├── types/        # api.ts (14개 인터페이스)
+├── components/   # layout(Sidebar,Layout) + common(Loading,Error,AssetSelect,DateRange) + charts(7개)
+├── pages/        # 6개 완료 (Dashboard,Price,Correlation,Factor,Signal,Strategy)
+├── App.tsx       # BrowserRouter + 6 Routes
+└── index.css     # Tailwind
 ```
 
 ## Key Decisions
-- PriceLineChart: PricePoint 타입 (date + 동적 asset_id 키)으로 멀티 자산 데이터 병합
-- mergeByDate(): Map 기반으로 여러 자산의 가격을 date 기준 단일 배열로 병합
-- toNormalizedReturns(): 첫 종가 기준 100 정규화, priceMap 공유로 API 재호출 없음
+- mergeByDate()/toNormalizedReturns(): Map 기반 멀티 자산 데이터 병합, 첫 종가=100 정규화
+- CorrelationHeatmap: CSS Grid + correlationColor() RGB 보간 (-1파랑/0흰/+1빨강)
+- FactorChart: RSI(70/30 기준선), MACD(ComposedChart: Bar+Line), formatValue() 유형별 포맷
+- SignalOverlay: ComposedChart(Line+Scatter), SVG 삼각형 마커, signalMap 기반 병합
+- EquityCurveChart: mergeEquityCurves(), StrategyPage: limit=1 최신 백테스트, 12지표 메트릭스
 - 기본 선택: KS200, 기본 기간: 최근 1년
-- CorrelationHeatmap: 순수 CSS Grid + RGB 보간 (Recharts 히트맵 미지원)
-- correlationColor(): -1(파랑)~0(흰)~+1(빨강) RGB 선형 보간, 셀 크기 자산 수에 따라 반응형
-- FactorChart: RSI(0~100 고정 Y축, 70/30 ReferenceLine), MACD(ComposedChart: Bar히스토그램+Line MACD+Signal)
-- FactorPage: MACD 선택 시 ema_12 자동 fetch, mergeMacdData()로 signal line 합성
-- 팩터 비교 테이블: formatValue()로 ret→%, rsi→1자리, vol→% 등 유형별 포맷팅
-- SignalOverlay: ComposedChart(Line+Scatter), 커스텀 SVG 삼각형 마커 (SignalMarker 컴포넌트)
-- SignalPage: 자산 단일 + 전략 멀티 토글, signalMap(date→signal) 기반 데이터 병합
-- 시그널 매트릭스: STRATEGIES.map → limit=1 fetch로 최신 시그널 조회, signalLabel()로 매수/청산/관망 표시
-- EquityCurveChart: EquityPoint 타입(date + 동적 run label 키), mergeEquityCurves()로 멀티 백테스트 date 병합
-- StrategyPage: 전략별 최신 백테스트 1개씩 fetch(limit=1), equity+trades 병렬 fetch, parseMetrics()로 metrics_json 파싱
-- 성과 메트릭스 테이블: 12지표(총수익률/CAGR/MDD/변동성/Sharpe/Sortino/Calmar/승률/거래횟수/평균PnL/B&H CAGR/초과수익), 음수값 빨간색
-- 거래 이력 테이블: 전략별 분리, 매수(초록)/매도(빨강) 배지, 손익 색상 코딩
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
@@ -93,9 +59,4 @@ frontend/src/
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 
 ## Next Action
-1. **Step 5.10 실행**: 대시보드 홈 (요약 카드 + 미니 차트) `[M]`
-   - `src/pages/DashboardPage.tsx` — dashboard/summary API 호출
-   - 7자산 요약 카드 (최신가격, 등락률, 최신 시그널)
-   - `src/components/charts/MiniChart.tsx` — 미니 가격 라인 (최근 30일)
-   - 최근 백테스트 결과 요약 테이블
-2. Step 5.10 완료 시 Phase 5 Frontend 완료 → Phase 6 (Deploy & Ops) 착수
+1. Phase 6 (Deploy & Ops) 착수 — `dev/active/phase6-deploy/` 계획 수립

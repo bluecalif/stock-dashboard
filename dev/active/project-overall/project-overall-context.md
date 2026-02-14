@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 완료, Phase 5 미착수)
+> Status: In Progress (Phase 4 완료, Phase 5 착수)
 
 ## 핵심 파일
 
@@ -29,6 +29,9 @@
 | 2026-02-13 | Alembic migration: backtest 테이블 보강 | backtest_run에 asset_id, metrics_json 추가; backtest_trade_log에 entry_price, exit_price, shares 추가 |
 | 2026-02-13 | E2E 파이프라인 검증 완료 | 7자산 × 3전략 = 21 백테스트, 실데이터로 전체 파이프라인 정상 동작 확인 |
 | 2026-02-13 | mean_reversion에 close 컬럼 필요 | compute_all_factors() 결과에 close 미포함 → 신호 생성 시 별도 merge 필요 |
+| 2026-02-13 | Frontend: TailwindCSS 채택 | 유틸리티 CSS, 빠른 프로토타이핑, masterplan §8.5.2 옵션 |
+| 2026-02-13 | Frontend: React useState + useEffect | MVP 수준에서 별도 상태 라이브러리 불필요 |
+| 2026-02-13 | Frontend: Recharts 커스텀 셀로 히트맵 | 별도 히트맵 라이브러리 추가 최소화 |
 
 ## 자산 목록
 
@@ -127,6 +130,7 @@
 
 | 항목 | 후보 | 상태 |
 |------|------|------|
+| 스타일링 | TailwindCSS 3.x | 확정 |
 | 프론트엔드 호스팅 | Vercel / Netlify / Nginx (Windows) | 미결정 |
 | 백엔드 프로세스 매니저 | NSSM / Windows Service | 미결정 |
 | CI/CD | GitHub Actions | 확정 |

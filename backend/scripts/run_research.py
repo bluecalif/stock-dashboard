@@ -118,6 +118,8 @@ def run_pipeline(session, asset_ids, strategy_names, start, end, config, skip_ba
         # Need preprocessed df and factors df for signals + backtest
         df_preprocessed = preprocess(session, asset_id, start, end, missing_threshold=0.10)
         df_factors = compute_all_factors(df_preprocessed)
+        # Include close price for strategies that need it (e.g. mean_reversion)
+        df_factors["close"] = df_preprocessed["close"]
 
         # Step 2: Signals → DB (per strategy)
         for strat_name in strategy_names:

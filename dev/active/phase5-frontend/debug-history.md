@@ -111,12 +111,40 @@ frontend/src/
     └── StrategyPage.tsx           — trend_follow→trend
 ```
 
+## Step 5.14: Bug #9 — mean_reversion close 컬럼 누락
+
+| Bug # | Page/Module | Issue | Fix | File |
+|-------|-------------|-------|-----|------|
+| 9 | Signal | mean_reversion 시그널 0개 생성 | `df_factors`에 `close` 컬럼 포함 | `run_research.py` |
+
+### 5.14-1: mean_reversion Missing 'close' Column
+
+**증상**: 전 자산에서 mean_reversion 전략 시그널 0개 생성
+```
+Missing 'close' column for mean_reversion
+```
+
+**원인**: `compute_all_factors()`는 팩터 컬럼만 반환 (close 미포함). `run_research.py:125`에서 `df_factors`를 그대로 시그널 생성에 전달하므로 `mean_reversion._raw_signals()`에서 `close` 컬럼 부재로 빈 DataFrame 반환.
+
+**수정**: `run_research.py` — `compute_all_factors()` 호출 후 `df_factors["close"] = df_preprocessed["close"]` 추가
+
+**결과**: 전체 7개 자산 mean_reversion 시그널+백테스트 성공
+| 자산 | CAGR | 상태 |
+|------|------|------|
+| KS200 | 7.64% | ✅ |
+| 005930 | 3.94% | ✅ |
+| 000660 | 9.93% | ✅ |
+| SOXL | 8.90% | ✅ |
+| BTC | 2.26% | ✅ |
+| GC=F | 3.21% | ✅ |
+| SI=F | 12.31% | ✅ |
+
 ## Remaining UX Bugs
 
 | # | Page | Issue | Status |
 |---|------|-------|--------|
 | 4 | Factor | KS200/005930/000660 미표시 | ✅ 파이프라인 수정 완료 |
-| 9 | Signal | 평균회귀 마커만 표시 | ⚠️ mean_reversion 전략에서 `close` 컬럼 누락 워닝 — 시그널 0개 생성 |
+| 9 | Signal | 평균회귀 마커만 표시 | ✅ close 컬럼 포함으로 수정 완료 |
 
 ## Lessons Learned
 
@@ -124,3 +152,4 @@ frontend/src/
 2. **Vite 포트 충돌**: 5173 점유 시 자동으로 5174 사용. CORS에 연속 포트 미리 등록 필요.
 3. **NaN in DB**: pandas/numpy 계산 결과에 NaN이 DB에 저장됨. API 스키마 레벨에서 방어적 변환 필수.
 4. **numpy 타입 → SQL**: SQLAlchemy bulk_insert_mappings에 numpy.float64/Timestamp 직접 전달 시 실패. Python native 타입 변환 필요.
+5. **팩터 DF에 원시 컬럼 누락**: `compute_all_factors()`는 파생 팩터만 반환. 전략이 원시 OHLCV 컬럼을 필요로 하면 별도로 합쳐줘야 함.

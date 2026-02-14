@@ -1,6 +1,7 @@
 import {
-  LineChart,
+  ComposedChart,
   Line,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -34,6 +35,12 @@ function formatPrice(value: number): string {
   return value.toFixed(2);
 }
 
+function formatVolume(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K`;
+  return value.toString();
+}
+
 export default function PriceLineChart({ data, assetIds }: Props) {
   if (data.length === 0) {
     return (
@@ -43,38 +50,71 @@ export default function PriceLineChart({ data, assetIds }: Props) {
     );
   }
 
+  // 단일 자산일 때만 거래량 표시
+  const showVolume = assetIds.length === 1;
+  const volKey = showVolume ? `${assetIds[0]}_vol` : "";
+  const hasVolume =
+    showVolume && data.some((d) => typeof d[volKey] === "number" && d[volKey] > 0);
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart data={data}>
-        <XAxis
-          dataKey="date"
-          tick={{ fontSize: 12 }}
-          tickFormatter={(v: string) => v.slice(5)} // MM-DD
-        />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          tickFormatter={formatPrice}
-          width={70}
-        />
-        <Tooltip
-          labelFormatter={(label: string) => label}
-          formatter={(value: number) => [value.toLocaleString(), ""]}
-        />
-        {assetIds.length > 1 && <Legend />}
-        {assetIds.map((id, i) => (
-          <Line
-            key={id}
-            type="monotone"
-            dataKey={id}
-            name={id}
-            stroke={COLORS[i % COLORS.length]}
-            dot={false}
-            strokeWidth={1.5}
-            connectNulls
+    <div>
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart data={data}>
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 12 }}
+            tickFormatter={(v: string) => v.slice(5)}
           />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+          <YAxis
+            yAxisId="price"
+            tick={{ fontSize: 12 }}
+            tickFormatter={formatPrice}
+            width={70}
+          />
+          {hasVolume && (
+            <YAxis
+              yAxisId="volume"
+              orientation="right"
+              tick={{ fontSize: 10 }}
+              tickFormatter={formatVolume}
+              width={50}
+            />
+          )}
+          <Tooltip
+            labelFormatter={(label: string) => label}
+            formatter={(value: number, name: string) => {
+              if (name.endsWith("_vol"))
+                return [value.toLocaleString(), "거래량"];
+              return [value.toLocaleString(), name];
+            }}
+          />
+          {assetIds.length > 1 && <Legend />}
+          {hasVolume && (
+            <Bar
+              yAxisId="volume"
+              dataKey={volKey}
+              name={`${assetIds[0]}_vol`}
+              fill="#e5e7eb"
+              opacity={0.5}
+              legendType="none"
+            />
+          )}
+          {assetIds.map((id, i) => (
+            <Line
+              key={id}
+              yAxisId="price"
+              type="monotone"
+              dataKey={id}
+              name={id}
+              stroke={COLORS[i % COLORS.length]}
+              dot={false}
+              strokeWidth={1.5}
+              connectNulls
+            />
+          ))}
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 

@@ -22,7 +22,7 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** 여러 자산의 PriceDailyResponse[]를 date 기준으로 병합 (종가) */
+/** 여러 자산의 PriceDailyResponse[]를 date 기준으로 병합 (종가 + 거래량) */
 function mergeByDate(
   allPrices: Map<string, PriceDailyResponse[]>,
 ): PricePoint[] {
@@ -33,8 +33,13 @@ function mergeByDate(
       const existing = dateMap.get(p.date);
       if (existing) {
         existing[assetId] = p.close;
+        existing[`${assetId}_vol`] = p.volume;
       } else {
-        dateMap.set(p.date, { date: p.date, [assetId]: p.close });
+        dateMap.set(p.date, {
+          date: p.date,
+          [assetId]: p.close,
+          [`${assetId}_vol`]: p.volume,
+        });
       }
     }
   }
@@ -96,7 +101,7 @@ export default function PricePage() {
     setLoading(true);
     setError(null);
     try {
-      const results = await Promise.all(
+      const results = await Promise.allSettled(
         selectedIds.map((id) =>
           fetchPrices({
             asset_id: id,
@@ -106,8 +111,19 @@ export default function PricePage() {
         ),
       );
       const map = new Map<string, PriceDailyResponse[]>();
-      selectedIds.forEach((id, i) => map.set(id, results[i]));
+      const failedIds: string[] = [];
+      selectedIds.forEach((id, i) => {
+        const r = results[i];
+        if (r.status === "fulfilled") {
+          map.set(id, r.value);
+        } else {
+          failedIds.push(id);
+        }
+      });
       setPriceMap(map);
+      if (failedIds.length > 0) {
+        setError(`일부 자산 로딩 실패: ${failedIds.join(", ")}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "데이터 로딩 실패");
     } finally {

@@ -31,14 +31,19 @@ function formatPrice(value: number): string {
   return value.toFixed(2);
 }
 
-/** 삼각형 마커: 매수(▲ 초록), 청산(▼ 빨강) */
+/** 마커: 매수(▲ 초록), 청산(▼ 빨강), 관망(● 회색) */
 function SignalMarker(props: {
   cx?: number;
   cy?: number;
   payload?: ChartPoint;
 }) {
   const { cx, cy, payload } = props;
-  if (cx == null || cy == null || !payload?.signal) return null;
+  if (cx == null || cy == null || payload?.signal == null) return null;
+
+  // 관망 (signal=0): 작은 회색 원
+  if (payload.signal === 0) {
+    return <circle cx={cx} cy={cy} r={3} fill="#9ca3af" opacity={0.5} />;
+  }
 
   const isBuy = payload.signal === 1;
   const color = isBuy ? "#16a34a" : "#dc2626";
@@ -50,6 +55,26 @@ function SignalMarker(props: {
     : `M${cx},${cy + size} L${cx - size},${cy - size} L${cx + size},${cy - size} Z`;
 
   return <path d={path} fill={color} stroke={color} strokeWidth={1} />;
+}
+
+/** 시그널 범례 */
+function SignalLegend() {
+  return (
+    <div className="flex items-center gap-4 text-xs text-gray-600 mt-2 ml-16">
+      <span className="flex items-center gap-1">
+        <svg width="12" height="12"><path d="M6,1 L1,11 L11,11 Z" fill="#16a34a" /></svg>
+        매수
+      </span>
+      <span className="flex items-center gap-1">
+        <svg width="12" height="12"><path d="M6,11 L1,1 L11,1 Z" fill="#dc2626" /></svg>
+        청산
+      </span>
+      <span className="flex items-center gap-1">
+        <svg width="12" height="12"><circle cx="6" cy="6" r="3" fill="#9ca3af" /></svg>
+        관망
+      </span>
+    </div>
+  );
 }
 
 export default function SignalOverlay({
@@ -74,7 +99,7 @@ export default function SignalOverlay({
     }
   }
 
-  // 가격 + 시그널 병합
+  // 가격 + 시그널 병합 (ASC 정렬)
   const data: ChartPoint[] = prices
     .filter((p) => p.asset_id === assetId)
     .map((p) => {
@@ -82,16 +107,18 @@ export default function SignalOverlay({
       return {
         date: p.date,
         close: p.close,
-        signal: sig && sig.signal !== 0 ? sig.signal : undefined,
+        signal: sig ? sig.signal : undefined,
         action: sig?.action ?? undefined,
         score: sig?.score,
       };
-    });
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   // 시그널 포인트만 필터 (Scatter용)
-  const signalPoints = data.filter((d) => d.signal !== undefined);
+  const signalPoints = data.filter((d) => d.signal != null);
 
   return (
+    <div>
     <ResponsiveContainer width="100%" height={400}>
       <ComposedChart data={data}>
         <XAxis
@@ -120,13 +147,21 @@ export default function SignalOverlay({
                 <p className="text-gray-600">
                   종가: {point ? formatPrice(point.close) : "—"}
                 </p>
-                {point?.signal && (
+                {point?.signal != null && (
                   <p
                     className={
-                      point.signal === 1 ? "text-green-600" : "text-red-600"
+                      point.signal === 1
+                        ? "text-green-600"
+                        : point.signal === -1
+                          ? "text-red-600"
+                          : "text-gray-500"
                     }
                   >
-                    {point.signal === 1 ? "▲ 매수" : "▼ 청산"}
+                    {point.signal === 1
+                      ? "▲ 매수"
+                      : point.signal === -1
+                        ? "▼ 청산"
+                        : "● 관망"}
                     {point.action ? ` (${point.action})` : ""}
                     {point.score != null
                       ? ` score: ${point.score.toFixed(2)}`
@@ -155,11 +190,19 @@ export default function SignalOverlay({
           {signalPoints.map((pt, i) => (
             <Cell
               key={`sig-${i}`}
-              fill={pt.signal === 1 ? "#16a34a" : "#dc2626"}
+              fill={
+                pt.signal === 1
+                  ? "#16a34a"
+                  : pt.signal === -1
+                    ? "#dc2626"
+                    : "#9ca3af"
+              }
             />
           ))}
         </Scatter>
       </ComposedChart>
     </ResponsiveContainer>
+    <SignalLegend />
+    </div>
   );
 }

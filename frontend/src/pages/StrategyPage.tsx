@@ -13,7 +13,7 @@ import ErrorMessage from "../components/common/ErrorMessage";
 
 const STRATEGIES = [
   { id: "momentum", label: "모멘텀" },
-  { id: "trend_follow", label: "추세추종" },
+  { id: "trend", label: "추세추종" },
   { id: "mean_reversion", label: "평균회귀" },
 ] as const;
 

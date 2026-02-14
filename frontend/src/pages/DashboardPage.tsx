@@ -137,7 +137,9 @@ function AssetCard({
   prices: PriceDailyResponse[];
 }) {
   const change = fmtChange(asset.price_change_pct);
-  const chartData = prices.map((p) => ({ date: p.date, close: p.close }));
+  const chartData = prices
+    .map((p) => ({ date: p.date, close: p.close }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
@@ -209,12 +211,12 @@ function BacktestTable({ runs }: { runs: BacktestRunResponse[] }) {
                 <td className="py-2 pr-4">
                   <span
                     className={`px-1.5 py-0.5 rounded text-xs ${
-                      r.status === "completed"
+                      r.status === "success"
                         ? "bg-green-100 text-green-700"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    {r.status === "completed" ? "완료" : r.status}
+                    {r.status === "success" ? "완료" : r.status}
                   </span>
                 </td>
                 <td className={`py-2 pr-4 ${metricColor(m.total_return_pct)}`}>

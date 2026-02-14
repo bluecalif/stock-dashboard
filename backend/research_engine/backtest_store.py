@@ -52,6 +52,22 @@ def _equity_curve_to_records(run_id: uuid.UUID, equity_df) -> list[dict]:
     return records
 
 
+def _to_date(val):
+    """Convert pandas Timestamp / datetime to date, pass None through."""
+    if val is None:
+        return None
+    if hasattr(val, "date"):
+        return val.date() if callable(val.date) else val.date
+    return val
+
+
+def _to_float(val):
+    """Convert numpy float to Python float, pass None through."""
+    if val is None:
+        return None
+    return float(val)
+
+
 def _trades_to_records(run_id: uuid.UUID, trades: list) -> list[dict]:
     """Convert list of TradeRecord to list of dicts for bulk insert."""
     records = []
@@ -59,14 +75,14 @@ def _trades_to_records(run_id: uuid.UUID, trades: list) -> list[dict]:
         records.append({
             "run_id": run_id,
             "asset_id": t.asset_id,
-            "entry_date": t.entry_date,
-            "entry_price": t.entry_price,
-            "exit_date": t.exit_date,
-            "exit_price": t.exit_price,
+            "entry_date": _to_date(t.entry_date),
+            "entry_price": _to_float(t.entry_price),
+            "exit_date": _to_date(t.exit_date),
+            "exit_price": _to_float(t.exit_price),
             "side": t.side,
-            "shares": t.shares,
-            "pnl": t.pnl,
-            "cost": t.cost,
+            "shares": _to_float(t.shares),
+            "pnl": _to_float(t.pnl),
+            "cost": _to_float(t.cost),
         })
     return records
 

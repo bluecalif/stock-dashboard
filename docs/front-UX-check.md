@@ -28,3 +28,22 @@
 ## 6. Strategy
 - all asset and strategy does not display any result. It says `선택한 자산/전략에 대한 백테스트 결과가 없습니다`
 
+---
+2026-02-14 PM8:29
+---
+## 1. Home
+
+
+## 2. Price
+
+
+## 3. Correlation
+
+
+## 4. Factor
+
+
+## 5. Signal
+- '모멘텀' fails to diplay due to network (refer to `CC대화용사진/캡처11`)
+
+## 6. Strategy

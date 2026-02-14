@@ -77,6 +77,7 @@ def store_factors_for_asset(
     start: str | None = None,
     end: str | None = None,
     version: str = FACTOR_VERSION,
+    missing_threshold: float = 0.05,
 ) -> FactorStoreResult:
     """Compute and store factors for a single asset.
 
@@ -87,7 +88,7 @@ def store_factors_for_asset(
 
     # 1. Preprocess
     try:
-        df = preprocess(session, asset_id, start, end)
+        df = preprocess(session, asset_id, start, end, missing_threshold=missing_threshold)
     except Exception as e:
         elapsed = (time.perf_counter() - t0) * 1000
         logger.error("Preprocess failed for %s: %s", asset_id, e)

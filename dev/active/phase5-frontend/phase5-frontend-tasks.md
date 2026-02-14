@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
-> Last Updated: 2026-02-13
-> Status: In Progress (7/10)
+> Last Updated: 2026-02-14
+> Status: In Progress (8/10, Stage C 완료)
 
 ## 5A. 기반 구조
 
@@ -58,11 +58,11 @@
   - `src/components/charts/FactorChart.tsx` — RSI(70/30 기준선), MACD(ComposedChart: MACD+Signal+히스토그램), 일반 팩터 라인
   - 팩터 비교 테이블 (자산별 최신 팩터 값, 12개 팩터, 유형별 포맷팅)
 
-- [ ] 5.8 시그널 타임라인 (가격 + 매매 마커 오버레이) `[M]`
-  - `src/pages/SignalPage.tsx` — 자산/전략 선택, prices + signals API 호출
-  - `src/components/charts/SignalOverlay.tsx` — 가격 차트 + 매수/청산 마커
+- [x] 5.8 시그널 타임라인 (가격 + 매매 마커 오버레이) `[M]`
+  - `src/pages/SignalPage.tsx` — 자산/전략 선택, prices + signals API 병렬 호출, 전략 시그널 매트릭스 테이블
+  - `src/components/charts/SignalOverlay.tsx` — ComposedChart(Line+Scatter), 커스텀 삼각형 마커, 시그널 툴팁
   - 매수: 초록 삼각형 ▲, 청산: 빨강 삼각형 ▼
-  - 3전략 시그널 매트릭스 (자산 × 전략 최신 상태)
+  - 3전략 시그널 매트릭스 (전략별 최신 시그널/날짜/스코어/액션)
 
 ## 5D. 전략 성과 + 홈
 

@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
-> Last Updated: 2026-02-13
-> Status: In Progress (7/10)
+> Last Updated: 2026-02-14
+> Status: In Progress (8/10)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -278,6 +278,10 @@ frontend/
 ### Step 5.7 — 팩터 현황
 - `frontend/src/components/charts/FactorChart.tsx` — **신규**, RSI/MACD/일반 팩터 서브차트 (RSI: 70/30 기준선, MACD: ComposedChart MACD+Signal+히스토그램, 일반: LineChart)
 - `frontend/src/pages/FactorPage.tsx` — placeholder → 완전한 팩터 현황 페이지 (10개 팩터 토글, 자산 멀티 선택, 병렬 fetch, 비교 테이블 12개 팩터 × N자산)
+
+### Step 5.8 — 시그널 타임라인
+- `frontend/src/components/charts/SignalOverlay.tsx` — **신규**, ComposedChart(Line+Scatter) 가격차트 + 매매 마커 오버레이 (매수: 초록▲, 청산: 빨강▼), 커스텀 Tooltip
+- `frontend/src/pages/SignalPage.tsx` — placeholder → 완전한 시그널 타임라인 페이지 (자산/전략 선택, prices+signals 병렬 fetch, 전략별 차트 렌더링, 3전략 시그널 매트릭스 테이블)
 
 ## 7. 컨벤션 체크리스트
 

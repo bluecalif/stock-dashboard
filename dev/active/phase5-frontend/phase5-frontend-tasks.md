@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-14
-> Status: In Progress (9/10, Stage D 진행중)
+> Status: In Progress (10/10 구현 완료, UX 디버깅 진행중)
 
 ## 5A. 기반 구조
 
@@ -73,16 +73,38 @@
   - 거래 이력: 진입일/진입가/청산일/청산가/방향(매수/매도)/수량/손익/수수료
   - 전략 간 비교 (동일 자산, 다른 전략 — 최신 백테스트 1개씩)
 
-- [ ] 5.10 대시보드 홈 (요약 카드 + 미니 차트) `[M]`
+- [x] 5.10 대시보드 홈 (요약 카드 + 미니 차트) `[M]` — `3b583a9`
   - `src/pages/DashboardPage.tsx` — dashboard/summary API 호출
   - 7자산 요약 카드 (최신가격, 등락률, 최신 시그널)
   - `src/components/charts/MiniChart.tsx` — 미니 가격 라인 (최근 30일)
   - 최근 백테스트 결과 요약 테이블
 
+## 5E. UX 디버깅 (사용자 테스트 기반)
+
+- [ ] 5.11 UX 버그 수정 — 전략 ID 불일치 + X축 정렬 + 시그널 범례 `[M]`
+  - **전략 ID 불일치** (Critical): `SignalPage.tsx`, `StrategyPage.tsx`에서 `trend_follow` → `trend`로 수정 (백엔드 `STRATEGY_REGISTRY` 키와 일치)
+  - **X축 정렬** (Home+Signal): 백엔드 `ORDER BY date DESC` 데이터를 프론트에서 ASC 정렬 누락
+    - `DashboardPage.tsx:140` — MiniChart 데이터 정렬 추가
+    - `SignalOverlay.tsx:78-89` — 병합 데이터 정렬 추가
+  - **시그널 범례**: `SignalOverlay.tsx`에 매수(▲)/청산(▼)/관망 범례 추가
+  - **관망 구분**: signal=0을 회색 원(●)으로 시각화 (현재 완전 미표시)
+  - **대시보드 상태 배지**: `DashboardPage.tsx:218` `"completed"` → `"success"` (백엔드 일치)
+
+- [ ] 5.12 UX 버그 수정 — Gold/Silver 에러 + 거래량 차트 `[M]`
+  - **Gold/Silver 에러 조사**: `GC=F`/`SI=F` API 응답 확인 (DB 데이터 유무 + URL 인코딩)
+  - **방어적 fetch**: `PricePage.tsx` `Promise.all` → `Promise.allSettled`로 개별 자산 실패 격리
+  - **거래량 차트**: `PriceLineChart.tsx`를 `ComposedChart`로 변경, Volume `Bar` + 보조 Y축 추가
+  - `mergeByDate()` 수정: volume 데이터 병합 (`${assetId}_vol` 키)
+
+- [ ] 5.13 UX 버그 수정 — 팩터/전략 데이터 확인 `[S]`
+  - **팩터 데이터 확인**: KS200/005930/000660 팩터 API 응답 확인 (데이터 파이프라인 이슈 여부)
+  - **백테스트 데이터 확인**: 전략별 백테스트 API 응답 확인 (status 값, strategy_id 값)
+  - 데이터 파이프라인 이슈 시 → Phase 6 또는 별도 태스크로 분리
+
 ---
 
 ## Summary
-- **Total**: 10 tasks (9 completed, 90%)
-- **Size 분포**: M: 8, L: 2
-- **Stages**: A(3) → B(2) → C(3) → D(2)
-- **Critical Path**: 5.1 → 5.2/5.3 → 5.4 → 나머지 페이지
+- **Total**: 13 tasks (10 completed, 77%)
+- **Size 분포**: S: 1, M: 10, L: 2
+- **Stages**: A(3) → B(2) → C(3) → D(2) → E(3, UX 디버깅)
+- **Critical Path**: 5.11 (전략 ID 수정) → 5.12 (가격 페이지) → 5.13 (데이터 확인)

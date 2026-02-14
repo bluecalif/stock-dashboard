@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
 > Last Updated: 2026-02-14
-> Status: In Progress (9/10)
+> Status: In Progress (10/13, UX 디버깅)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -286,6 +286,35 @@ frontend/
 ### Step 5.9 — 전략 성과 비교
 - `frontend/src/components/charts/EquityCurveChart.tsx` — **신규**, Recharts LineChart 에쿼티 커브 (멀티 백테스트 비교, 7색 팔레트, formatEquity Y축)
 - `frontend/src/pages/StrategyPage.tsx` — placeholder → 완전한 전략 성과 페이지 (자산/전략 선택, backtests→equity+trades 병렬 fetch, mergeEquityCurves(), 12지표 메트릭스 비교 테이블, 전략별 거래 이력 테이블)
+
+### Step 5.10 — 대시보드 홈
+- `frontend/src/pages/DashboardPage.tsx` — dashboard/summary API, 7자산 요약 카드 + 미니차트 + 백테스트 테이블
+- `frontend/src/components/charts/MiniChart.tsx` — **신규**, 스파크라인 미니 차트 (120x40)
+
+### UX 디버깅 — 발견된 버그 (2026-02-14 사용자 테스트)
+
+#### 발견된 버그 목록
+| 페이지 | 이슈 | 원인 | 유형 |
+|--------|------|------|------|
+| Home | MiniChart X축 역순 | 백엔드 DESC 정렬, 프론트 정렬 누락 | 코드 |
+| Price | Gold/Silver Network Error | `GC=F`/`SI=F` API 응답 실패 (데이터 유무 확인 필요) | 조사 |
+| Price | 거래량 미표시 | `mergeByDate()` close만 추출, volume 무시 | 코드 |
+| Factor | KS200/005930/000660 미표시 | 팩터 데이터 유무 확인 필요 | 조사 |
+| Signal | X축 역순 | 백엔드 DESC, 프론트 정렬 누락 | 코드 |
+| Signal | 마커 설명 없음 | 범례 UI 미구현 | 코드 |
+| Signal | 관망/무신호 구분 불가 | signal=0 완전 비표시 | 코드 |
+| Signal | 추세추종 미표시 | 전략 ID `trend_follow` vs 백엔드 `trend` 불일치 | 코드 |
+| Signal | 평균회귀 마커만 표시 | 가격 데이터 부재 또는 필터링 이슈 | 조사 |
+| Strategy | 전체 미표시 | 전략 ID 불일치 + 백테스트 데이터 확인 필요 | 코드+조사 |
+| Dashboard | 백테스트 상태 배지 | `"completed"` vs 백엔드 `"success"` 불일치 | 코드 |
+
+#### 핵심 결정사항
+| 항목 | 결정 | 근거 |
+|------|------|------|
+| 전략 ID 수정 | `trend_follow` → `trend` | 백엔드 `STRATEGY_REGISTRY` 키: `momentum`, `trend`, `mean_reversion` |
+| X축 정렬 | 프론트에서 ASC 정렬 추가 | 백엔드 repo는 DESC 유지 (최신 우선 조회 효율), 프론트에서 차트용 정렬 |
+| 관망 표시 | 회색 원(●) 마커 | 매수(▲초록)/청산(▼빨강)과 시각적 구분 |
+| 가격 실패 격리 | `Promise.allSettled` | 개별 자산 실패가 전체 페이지 에러로 전파 방지 |
 
 ## 7. 컨벤션 체크리스트
 

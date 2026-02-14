@@ -1,6 +1,6 @@
 # Phase 5: Frontend
 > Last Updated: 2026-02-14
-> Status: In Progress (Stage D 진행중, 9/10)
+> Status: In Progress (Stage E UX 디버깅, 10/13)
 
 ## 1. Summary (개요)
 
@@ -18,7 +18,7 @@
 
 - **백엔드 API 완료**: 12개 엔드포인트 운영 중 (405 tests)
 - **DB**: price_daily 5,573+, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
-- **프론트엔드**: Stage D 진행중 — 가격 차트, 수익률 비교, 상관 히트맵, 팩터 현황, 시그널 타임라인, 전략 성과 비교 완료 (9/10)
+- **프론트엔드**: Stage D 완료(10/10) → Stage E UX 디버깅 진행중 (10/13)
 - **환경**: Node.js v20.16.0, npm 10.8.1, Vite 6.4, React 19, TS 5.9
 
 ## 3. Target State (목표 상태)
@@ -46,6 +46,9 @@ Vite 프로젝트 생성, 의존성 설치, API 클라이언트 + 타입, 레이
 ### Stage D: 전략 성과 + 홈 (Step 5.9~5.10)
 에쿼티 커브 비교 + 메트릭스 카드 + 거래 이력 테이블, 대시보드 홈 (요약 카드 + 미니 차트).
 
+### Stage E: UX 디버깅 (Step 5.11~5.13)
+사용자 UX 테스트에서 발견된 버그 수정. 전략 ID 불일치, X축 정렬, 시그널 범례, Gold/Silver 에러, 거래량 차트, 데이터 확인.
+
 ## 5. Task Breakdown
 
 | Step | Task | Size | Stage | 의존성 |
@@ -60,8 +63,11 @@ Vite 프로젝트 생성, 의존성 설치, API 클라이언트 + 타입, 레이
 | 5.8 | 시그널 타임라인 (가격 + 매매 마커 오버레이) | M | C | 5.4 |
 | 5.9 | 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) | L | D | 5.2, 5.3 |
 | 5.10 | 대시보드 홈 (요약 카드 + 미니 차트) | M | D | 5.2, 5.3 |
+| 5.11 | UX 버그: 전략 ID + X축 정렬 + 시그널 범례 | M | E | 5.8, 5.10 |
+| 5.12 | UX 버그: Gold/Silver 에러 + 거래량 차트 | M | E | 5.4 |
+| 5.13 | UX 버그: 팩터/전략 데이터 확인 | S | E | 5.11 |
 
-**Size 분포**: S: 0, M: 8, L: 2, XL: 0 — **총 10 tasks**
+**Size 분포**: S: 1, M: 10, L: 2, XL: 0 — **총 13 tasks**
 
 ## 6. Risks & Mitigation
 

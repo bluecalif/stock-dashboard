@@ -36,6 +36,7 @@ Phase docs 업데이트 → Git Commit (+ project-overall 동기화는 선택적
 dev/active/[phase-name]/[phase-name]-tasks.md
 dev/active/[phase-name]/[phase-name]-context.md
 dev/active/[phase-name]/[phase-name]-plan.md
+dev/active/[phase-name]/debug-history.md
 docs/session-compact.md
 ```
 
@@ -69,7 +70,15 @@ dev/active/project-overall/project-overall-context.md
 - `api/repositories/base.py` — 신규 생성
 ```
 
-#### 3.3 `[phase-name]-plan.md`
+#### 3.3 `debug-history.md`
+- 해당 step에서 발생한 버그/디버깅 이력 추가
+- 간단한 버그: 테이블 row 추가 (Bug #, Page/Module, Issue, Fix, File)
+- 심층 디버깅: `### X.Y-N: [Bug Title]` 서브섹션으로 증상/원인/수정 상세 기록
+- Modified Files Summary 섹션 갱신 (변경 파일 트리)
+- Lessons Learned 섹션에 재사용 가능한 교훈 추가
+- 버그/디버깅 없는 step이면 이 섹션 스킵
+
+#### 3.4 `[phase-name]-plan.md`
 - Last Updated 날짜 갱신
 - Status / Current Step 갱신
 - Current State 섹션에 완료 항목 추가
@@ -111,7 +120,7 @@ dev/active/project-overall/project-overall-context.md
 ```bash
 # 코드 변경 + 문서 변경 포함
 git add backend/api/ frontend/       # 해당 Phase 코드
-git add dev/active/[phase-name]/     # Phase dev-docs
+git add dev/active/[phase-name]/     # Phase dev-docs (debug-history.md 포함)
 git add docs/session-compact.md      # session-compact (변경 시)
 # --sync-overall 시에만:
 # git add dev/active/project-overall/
@@ -175,6 +184,7 @@ Phase docs 업데이트:
 - tasks.md: Step X.Y 완료 체크 (N/M, P%)
 - context.md: N개 파일/결정사항 추가
 - plan.md: 상태 업데이트
+- debug-history.md: N개 버그/디버깅 이력 추가 (없으면 스킵)
 
 project-overall 동기화: (--sync-overall 시에만)
 - tasks.md: 동일 step 체크 완료

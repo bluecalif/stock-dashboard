@@ -38,6 +38,7 @@ argument-hint: 계획할 내용 (예: "Phase 4 API", "Phase 5 Frontend")
 | `[phase-name]-plan.md` | 종합 계획 (Summary, Current State, Target State, Stages, Tasks, Risks, Dependencies) |
 | `[phase-name]-context.md` | 핵심 파일, 결정사항, 데이터 인터페이스, 컨벤션 체크 |
 | `[phase-name]-tasks.md` | 체크리스트 형식 진행 추적 (commit hash 포함) |
+| `debug-history.md` | 전체 Phase 디버깅 이력 (버그, 원인, 수정, 교훈) — Phase당 단일 파일 |
 
 **파일 헤더:**
 ```markdown
@@ -55,6 +56,28 @@ argument-hint: 계획할 내용 (예: "Phase 4 API", "Phase 5 Frontend")
 5. Task Breakdown — 태스크 테이블 (Size: S/M/L/XL, 의존성)
 6. Risks & Mitigation
 7. Dependencies — 내부(다른 모듈) + 외부(라이브러리)
+```
+
+**debug-history.md 필수 섹션:**
+```
+# [Phase Name] Debug History
+> Last Updated: YYYY-MM-DD
+
+## Step X.Y: [Step Name]
+
+| Bug # | Page/Module | Issue | Fix | File |
+|-------|-------------|-------|-----|------|
+
+### X.Y-N: [Bug Title] (심층 디버깅 시)
+- **증상**: 에러 메시지 또는 관찰된 동작
+- **원인**: 근본 원인 분석
+- **수정**: 변경 내용 + 파일 경로
+
+## Modified Files Summary
+(Phase 전체 변경 파일 트리)
+
+## Lessons Learned
+(반복되는 패턴, 환경 이슈, 방어적 코딩 교훈)
 ```
 
 **context.md 필수 섹션:**
@@ -109,7 +132,8 @@ Phase dev-docs:
 dev/active/[phase-name]/
 ├── [phase-name]-plan.md      (종합 계획)
 ├── [phase-name]-context.md   (컨텍스트)
-└── [phase-name]-tasks.md     (태스크 추적)
+├── [phase-name]-tasks.md     (태스크 추적)
+└── debug-history.md          (디버깅 이력)
 
 project-overall 동기화:
 dev/active/project-overall/

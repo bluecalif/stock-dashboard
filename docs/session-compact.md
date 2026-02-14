@@ -4,7 +4,7 @@
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 5 Frontend — Stage C 완료 (Step 5.8 완료, Step 5.9로 이동)
+Phase 5 Frontend — Stage D 진행중 (Step 5.9 완료, Step 5.10으로 이동)
 
 ## Completed
 - [x] **Step 5.1~5.3**: Stage A 기반 구조 (이전 세션)
@@ -26,6 +26,10 @@ Phase 5 Frontend — Stage C 완료 (Step 5.8 완료, Step 5.9로 이동)
   - `src/components/charts/SignalOverlay.tsx` — ComposedChart(Line+Scatter), 커스텀 삼각형 마커(매수▲초록/청산▼빨강), 시그널 Tooltip
   - `src/pages/SignalPage.tsx` — 자산/전략 선택(3전략 멀티 토글), prices+signals 병렬 fetch, 전략별 차트 렌더링, 시그널 매트릭스 테이블
   - TSC ✅ / Vite build ✅
+- [x] **Step 5.9 완료**: 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력)
+  - `src/components/charts/EquityCurveChart.tsx` — Recharts LineChart 멀티 백테스트 에쿼티 커브 비교, mergeEquityCurves()
+  - `src/pages/StrategyPage.tsx` — 자산/전략 선택(3전략 멀티 토글), backtests→equity+trades 병렬 fetch, 12지표 메트릭스 비교 테이블, 전략별 거래 이력 테이블
+  - TSC ✅ / Vite build ✅
 
 ## Current State
 
@@ -36,7 +40,7 @@ Phase 5 Frontend — Stage C 완료 (Step 5.8 완료, Step 5.9로 이동)
 | 2 | Collector | ✅ 완료 | 10/10 |
 | 3 | Research Engine | ✅ 완료 | 12/12 |
 | 4 | API | ✅ 완료 | 15/15 |
-| 5 | Frontend | **진행중** | 8/10 |
+| 5 | Frontend | **진행중** | 9/10 |
 | 6 | Deploy & Ops | 미착수 | 0/16 |
 
 ### Git / Tests
@@ -52,8 +56,8 @@ frontend/src/
 ├── components/
 │   ├── layout/   # Sidebar, Layout ✅
 │   ├── common/   # Loading, ErrorMessage, AssetSelect, DateRangePicker ✅
-│   └── charts/   # PriceLineChart ✅ + ReturnsChart ✅ + CorrelationHeatmap ✅ + FactorChart ✅ + SignalOverlay ✅
-├── pages/        # PricePage ✅ + CorrelationPage ✅ + FactorPage ✅ + SignalPage ✅ + 2개 placeholder
+│   └── charts/   # PriceLineChart ✅ + ReturnsChart ✅ + CorrelationHeatmap ✅ + FactorChart ✅ + SignalOverlay ✅ + EquityCurveChart ✅
+├── pages/        # PricePage ✅ + CorrelationPage ✅ + FactorPage ✅ + SignalPage ✅ + StrategyPage ✅ + 1개 placeholder
 ├── App.tsx       # BrowserRouter + Routes ✅
 ├── main.tsx      # 엔트리포인트 ✅
 └── index.css     # Tailwind directives ✅
@@ -72,6 +76,10 @@ frontend/src/
 - SignalOverlay: ComposedChart(Line+Scatter), 커스텀 SVG 삼각형 마커 (SignalMarker 컴포넌트)
 - SignalPage: 자산 단일 + 전략 멀티 토글, signalMap(date→signal) 기반 데이터 병합
 - 시그널 매트릭스: STRATEGIES.map → limit=1 fetch로 최신 시그널 조회, signalLabel()로 매수/청산/관망 표시
+- EquityCurveChart: EquityPoint 타입(date + 동적 run label 키), mergeEquityCurves()로 멀티 백테스트 date 병합
+- StrategyPage: 전략별 최신 백테스트 1개씩 fetch(limit=1), equity+trades 병렬 fetch, parseMetrics()로 metrics_json 파싱
+- 성과 메트릭스 테이블: 12지표(총수익률/CAGR/MDD/변동성/Sharpe/Sortino/Calmar/승률/거래횟수/평균PnL/B&H CAGR/초과수익), 음수값 빨간색
+- 거래 이력 테이블: 전략별 분리, 매수(초록)/매도(빨강) 배지, 손익 색상 코딩
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
@@ -85,10 +93,9 @@ frontend/src/
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
 
 ## Next Action
-1. **Step 5.9 실행**: 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) `[L]`
-   - `src/pages/StrategyPage.tsx` — 전략/자산 선택, backtests API 호출
-   - `src/components/charts/EquityCurveChart.tsx` — 에쿼티 커브 라인 차트
-   - 성과 메트릭스 카드 (CAGR, MDD, Sharpe, 승률 등)
-   - 거래 이력 테이블 (entry/exit, pnl, cost)
-   - 전략 간 비교 (동일 자산, 다른 전략)
-2. 이후 Step 5.10 (대시보드 홈) 순서로 진행
+1. **Step 5.10 실행**: 대시보드 홈 (요약 카드 + 미니 차트) `[M]`
+   - `src/pages/DashboardPage.tsx` — dashboard/summary API 호출
+   - 7자산 요약 카드 (최신가격, 등락률, 최신 시그널)
+   - `src/components/charts/MiniChart.tsx` — 미니 가격 라인 (최근 30일)
+   - 최근 백테스트 결과 요약 테이블
+2. Step 5.10 완료 시 Phase 5 Frontend 완료 → Phase 6 (Deploy & Ops) 착수

@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Context
 > Last Updated: 2026-02-14
-> Status: In Progress (8/10)
+> Status: In Progress (9/10)
 
 ## 1. 핵심 파일 (이 Phase에서 읽어야 할 기존 코드)
 
@@ -282,6 +282,10 @@ frontend/
 ### Step 5.8 — 시그널 타임라인
 - `frontend/src/components/charts/SignalOverlay.tsx` — **신규**, ComposedChart(Line+Scatter) 가격차트 + 매매 마커 오버레이 (매수: 초록▲, 청산: 빨강▼), 커스텀 Tooltip
 - `frontend/src/pages/SignalPage.tsx` — placeholder → 완전한 시그널 타임라인 페이지 (자산/전략 선택, prices+signals 병렬 fetch, 전략별 차트 렌더링, 3전략 시그널 매트릭스 테이블)
+
+### Step 5.9 — 전략 성과 비교
+- `frontend/src/components/charts/EquityCurveChart.tsx` — **신규**, Recharts LineChart 에쿼티 커브 (멀티 백테스트 비교, 7색 팔레트, formatEquity Y축)
+- `frontend/src/pages/StrategyPage.tsx` — placeholder → 완전한 전략 성과 페이지 (자산/전략 선택, backtests→equity+trades 병렬 fetch, mergeEquityCurves(), 12지표 메트릭스 비교 테이블, 전략별 거래 이력 테이블)
 
 ## 7. 컨벤션 체크리스트
 

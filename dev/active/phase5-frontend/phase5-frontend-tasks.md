@@ -1,6 +1,6 @@
 # Phase 5: Frontend — Tasks
 > Last Updated: 2026-02-14
-> Status: In Progress (8/10, Stage C 완료)
+> Status: In Progress (9/10, Stage D 진행중)
 
 ## 5A. 기반 구조
 
@@ -66,12 +66,12 @@
 
 ## 5D. 전략 성과 + 홈
 
-- [ ] 5.9 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) `[L]`
-  - `src/pages/StrategyPage.tsx` — 전략/자산 선택, backtests API 호출
-  - `src/components/charts/EquityCurveChart.tsx` — 에쿼티 커브 라인 차트
-  - 성과 메트릭스 카드 (CAGR, MDD, Sharpe, 승률 등)
-  - 거래 이력 테이블 (entry/exit, pnl, cost)
-  - 전략 간 비교 (동일 자산, 다른 전략)
+- [x] 5.9 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) `[L]`
+  - `src/pages/StrategyPage.tsx` — 자산/전략 선택(3전략 멀티 토글), backtests→equity+trades 병렬 fetch, 성과 메트릭스 비교 테이블(12지표), 거래 이력 테이블
+  - `src/components/charts/EquityCurveChart.tsx` — Recharts LineChart, 멀티 백테스트 에쿼티 커브 비교, mergeEquityCurves()
+  - 성과 메트릭스: 총수익률/CAGR/MDD/변동성/Sharpe/Sortino/Calmar/승률/거래횟수/평균PnL/B&H CAGR/초과수익
+  - 거래 이력: 진입일/진입가/청산일/청산가/방향(매수/매도)/수량/손익/수수료
+  - 전략 간 비교 (동일 자산, 다른 전략 — 최신 백테스트 1개씩)
 
 - [ ] 5.10 대시보드 홈 (요약 카드 + 미니 차트) `[M]`
   - `src/pages/DashboardPage.tsx` — dashboard/summary API 호출
@@ -82,7 +82,7 @@
 ---
 
 ## Summary
-- **Total**: 10 tasks (7 completed, 70%)
+- **Total**: 10 tasks (9 completed, 90%)
 - **Size 분포**: M: 8, L: 2
 - **Stages**: A(3) → B(2) → C(3) → D(2)
 - **Critical Path**: 5.1 → 5.2/5.3 → 5.4 → 나머지 페이지

@@ -1,6 +1,6 @@
 # Phase 5: Frontend
 > Last Updated: 2026-02-14
-> Status: In Progress (Stage C 완료, 8/10)
+> Status: In Progress (Stage D 진행중, 9/10)
 
 ## 1. Summary (개요)
 
@@ -18,7 +18,7 @@
 
 - **백엔드 API 완료**: 12개 엔드포인트 운영 중 (405 tests)
 - **DB**: price_daily 5,573+, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
-- **프론트엔드**: Stage C 완료 — 가격 차트, 수익률 비교, 상관 히트맵, 팩터 현황, 시그널 타임라인 완료
+- **프론트엔드**: Stage D 진행중 — 가격 차트, 수익률 비교, 상관 히트맵, 팩터 현황, 시그널 타임라인, 전략 성과 비교 완료 (9/10)
 - **환경**: Node.js v20.16.0, npm 10.8.1, Vite 6.4, React 19, TS 5.9
 
 ## 3. Target State (목표 상태)

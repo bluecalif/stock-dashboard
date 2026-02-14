@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 완료, Phase 5 미착수)
+> Last Updated: 2026-02-14
+> Status: In Progress (Phase 5 완료, Phase 6 미착수)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -74,22 +74,31 @@
 ### 4E. E2E 검증 ✅ 완료
 - [x] 4.15 E2E 파이프라인 실행 + 시각화 (백엔드 최종 검증) `[M]`
 
-## Phase 5: 프론트엔드 (Frontend)
-> dev-docs: `dev/active/phase5-frontend/` (생성 예정)
+## Phase 5: 프론트엔드 (Frontend) ✅ 완료 (13/13)
+> dev-docs: `dev/active/phase5-frontend/`
 
-### 5A. 기반 + 핵심 차트
-- [ ] 5.1 Vite + React 18 + TypeScript 프로젝트 초기화 `[M]`
-- [ ] 5.2 API 클라이언트 (Axios) + 타입 정의 `[M]`
-- [ ] 5.3 레이아웃 (사이드바 네비게이션 + 메인 콘텐츠) `[M]`
-- [ ] 5.4 가격 차트 페이지 (라인/캔들, Recharts) `[L]`
-- [ ] 5.5 수익률 비교 차트 (정규화 누적수익률) `[M]`
+### 5A. 기반 구조 ✅ 완료
+- [x] 5.1 Vite + React 18 + TypeScript 프로젝트 초기화 `[M]` — `f227b2b`
+- [x] 5.2 API 클라이언트 (Axios) + 타입 정의 `[M]` — `f227b2b`
+- [x] 5.3 레이아웃 (사이드바 네비게이션 + 메인 콘텐츠) `[M]` — `f227b2b`
 
-### 5B. 분석 시각화
-- [ ] 5.6 상관 히트맵 (자산 간 correlation matrix) `[M]`
-- [ ] 5.7 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블) `[M]`
-- [ ] 5.8 시그널 타임라인 (가격 + 매매 마커 오버레이) `[M]`
-- [ ] 5.9 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) `[L]`
-- [ ] 5.10 대시보드 홈 (요약 카드 + 미니 차트) `[M]`
+### 5B. 핵심 차트 ✅ 완료
+- [x] 5.4 가격 차트 페이지 (라인차트, Recharts) `[L]` — `91effb9`
+- [x] 5.5 수익률 비교 차트 (정규화 누적수익률) `[M]` — `91effb9`
+
+### 5C. 분석 시각화 ✅ 완료
+- [x] 5.6 상관 히트맵 (자산 간 correlation matrix) `[M]` — `048d34d`
+- [x] 5.7 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블) `[M]` — `3b8ceed`
+- [x] 5.8 시그널 타임라인 (가격 + 매매 마커 오버레이) `[M]` — `d0bf7a4`
+
+### 5D. 전략 성과 + 홈 ✅ 완료
+- [x] 5.9 전략 성과 비교 (에쿼티 커브 + 메트릭스 + 거래 이력) `[L]` — `aafa80d`
+- [x] 5.10 대시보드 홈 (요약 카드 + 미니 차트) `[M]` — `3b583a9`
+
+### 5E. UX 디버깅 ✅ 완료
+- [x] 5.11 UX 버그: 전략 ID + X축 정렬 + 시그널 범례 `[M]` — `398f7da`
+- [x] 5.12 UX 버그: Gold/Silver 에러 + 거래량 차트 `[M]` — `398f7da`
+- [x] 5.13 UX 버그: 팩터/전략 데이터 + Bug #9 `[S]` — `398f7da`, `d227ee9`
 
 ## Phase 6: 배포 & 운영 (Deploy & Ops)
 > dev-docs: `dev/active/phase6-deploy/` (생성 예정)
@@ -133,8 +142,8 @@
 ## Summary
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
 - **Phase 4**: 15 tasks — **ALL COMPLETE** (✅)
-- **Phase 5**: 10 tasks — 미착수 (0%)
+- **Phase 5**: 13 tasks — **ALL COMPLETE** (✅)
 - **Phase 6**: 16 tasks — 미착수 (0%)
-- **Grand Total**: 77 tasks (51 완료 + 26 남음)
-- **Critical Path**: Phase 5 (Frontend) → Phase 6 (Deploy)
+- **Grand Total**: 80 tasks (64 완료 + 16 남음)
+- **Critical Path**: Phase 6 (Deploy & Ops)
 - **Tests**: 405 passed, 7 skipped, ruff clean

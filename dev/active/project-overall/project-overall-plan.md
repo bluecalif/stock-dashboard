@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 완료, Phase 5 착수)
+> Last Updated: 2026-02-14
+> Status: In Progress (Phase 5 완료, Phase 6 미착수)
 
 ## 1. Summary (개요)
 
@@ -12,8 +12,8 @@
 - FDR 기반 일봉 수집 파이프라인 ✅
 - PostgreSQL 데이터 저장소 (Railway) ✅
 - 팩터/전략/백테스트 분석 엔진 ✅
-- FastAPI 조회/백테스트/집계 API (12개 엔드포인트)
-- React + Recharts 대시보드 SPA (6개 페이지)
+- FastAPI 조회/백테스트/집계 API (12개 엔드포인트) ✅
+- React + Recharts 대시보드 SPA (6개 페이지) ✅
 
 ## 2. Current State (현재 상태)
 
@@ -21,9 +21,9 @@
 - **Phase 2 완료**: FDR 수집기, 재시도, UPSERT, 정합성 검증, 3년 백필 (5,559 rows)
 - **Phase 3 완료**: 전처리, 팩터 15개, 전략 3종, 백테스트, 성과지표, 배치 스크립트
 - **Phase 4 완료**: FastAPI 12 endpoints, Router-Service-Repository 3계층, 405 tests
-- **Step 4.15**: E2E 파이프라인 검증 (7자산 × 3전략 = 21 백테스트, 5개 시각화 차트)
+- **Phase 5 완료**: React SPA 6페이지, 13 steps, UX 버그 11개 수정, 사용자 확인 통과
 - **Git**: `master` 브랜치, 405 passed + 7 skipped, ruff clean
-- **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, 7개 자산
+- **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 
 ## 3. Target State (목표 상태)
 
@@ -33,7 +33,7 @@
 | DB | 8개 테이블 운영, Alembic 마이그레이션 관리 | ✅ 완료 |
 | 분석 | 팩터 15종, 전략 3종, 백테스트 실행 가능 | ✅ 완료 |
 | API | 12개 엔드포인트 운영 (조회/백테스트/집계) | ✅ 완료 (15 steps, 12 endpoints, 405 tests) |
-| 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | Phase 5 착수 |
+| 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | ✅ 완료 (13 steps, UX 검증 완료) |
 | 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | 부분 (배치만 완료) |
 
 ## 4. Implementation Phases (구현 단계)
@@ -85,26 +85,26 @@
 - dashboard/summary, correlation (on-the-fly)
 - httpx TestClient 단위/통합 테스트
 
-### Phase 5: 프론트엔드 (Frontend) ← 현재
+### Phase 5: 프론트엔드 (Frontend) ✅ 완료
 > dev-docs: `dev/active/phase5-frontend/`
 
-**Stage A: 기반 구조** (Step 5.1~5.3)
-- Vite 5.x + React 18 + TypeScript + TailwindCSS 프로젝트 초기화
+**Stage A: 기반 구조** (Step 5.1~5.3) ✅
+- Vite 6.4 + React 19 + TypeScript 5.9 + TailwindCSS 3.4
 - Axios API 클라이언트 + 14개 TypeScript 타입 (백엔드 Pydantic 1:1)
 - 사이드바 레이아웃 + React Router v6 (6개 경로)
 
-**Stage B: 핵심 차트** (Step 5.4~5.5)
-- 가격 차트 페이지 (라인차트, 자산/기간 선택, 멀티 자산 비교)
-- 정규화 누적수익률 비교 차트
+**Stage B: 핵심 차트** (Step 5.4~5.5) ✅
+- 가격 차트 (라인차트 + ComposedChart 거래량) + 수익률 비교 차트
 
-**Stage C: 분석 시각화** (Step 5.6~5.8)
-- 상관 히트맵 (N×N 커스텀 셀, 기간/윈도우 조절)
-- 팩터 현황 (RSI/MACD 서브차트 + 비교 테이블)
-- 시그널 타임라인 (가격 + 매수/청산 마커 오버레이)
+**Stage C: 분석 시각화** (Step 5.6~5.8) ✅
+- 상관 히트맵, 팩터 현황 (RSI/MACD), 시그널 타임라인 (매매 마커)
 
-**Stage D: 전략 성과 + 홈** (Step 5.9~5.10)
-- 전략 성과 비교 (에쿼티 커브 + 메트릭스 카드 + 거래 이력)
-- 대시보드 홈 (7자산 요약 카드 + 미니 차트)
+**Stage D: 전략 성과 + 홈** (Step 5.9~5.10) ✅
+- 에쿼티 커브 비교 + 메트릭스 + 거래 이력, 대시보드 홈
+
+**Stage E: UX 디버깅** (Step 5.11~5.13) ✅
+- UX 버그 11개 수정 (전략 ID, X축 정렬, CORS, NaN, missing_threshold 등)
+- 13 tasks, 11 commits, 사용자 UX 확인 완료
 
 ### Phase 6: 배포 & 운영 (Deploy & Ops)
 

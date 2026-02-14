@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-02-13
-> Status: In Progress (Phase 4 완료, Phase 5 착수)
+> Last Updated: 2026-02-14
+> Status: In Progress (Phase 5 완료, Phase 6 미착수)
 
 ## 핵심 파일
 
@@ -32,6 +32,10 @@
 | 2026-02-13 | Frontend: TailwindCSS 채택 | 유틸리티 CSS, 빠른 프로토타이핑, masterplan §8.5.2 옵션 |
 | 2026-02-13 | Frontend: React useState + useEffect | MVP 수준에서 별도 상태 라이브러리 불필요 |
 | 2026-02-13 | Frontend: Recharts 커스텀 셀로 히트맵 | 별도 히트맵 라이브러리 추가 최소화 |
+| 2026-02-14 | missing_threshold 10%로 상향 | 한국주식 공휴일 캘린더 차이로 6.7% 결측 발생 |
+| 2026-02-14 | NaN 방어: API 스키마 field_validator | DB NaN → JSON 직렬화 실패 방지 |
+| 2026-02-14 | CORS: 5173 + 5174 둘 다 등록 | Vite 포트 충돌 대비 |
+| 2026-02-14 | Phase 5 완료: UX 버그 11개 수정 | 사용자 2차 확인 통과, 전체 6페이지 정상 동작 |
 
 ## 자산 목록
 
@@ -107,7 +111,7 @@
 - [x] Router → Service → Repository 3계층 아키텍처 (Service 계층 Step 4.11에서 도입)
 - [x] Pydantic 스키마 정의 — 8개 모듈, 14개 클래스
 - [x] 의존성 주입 패턴 — `api/dependencies.py` get_db()
-- [x] CORS 설정 — `api/main.py` localhost:5173
+- [x] CORS 설정 — `api/main.py` localhost:5173/5174 + 127.0.0.1
 - [x] Pagination (limit/offset) — PaginationParams Depends
 
 ### 인코딩 관련

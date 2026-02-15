@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Response
 from sqlalchemy import text
 
-from config.settings import settings
 from db.session import SessionLocal
 
 router = APIRouter(prefix="/v1", tags=["health"])
@@ -23,15 +22,6 @@ def health_check():
         finally:
             db.close()
     return {"status": "ok", "db": db_status}
-
-
-@router.get("/debug/cors")
-def debug_cors():
-    """Temporary: show CORS config for debugging. Remove after verification."""
-    parsed = []
-    if settings.cors_origins:
-        parsed = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-    return {"cors_origins_env": settings.cors_origins, "cors_origins_parsed": parsed}
 
 
 @router.get("/ready")

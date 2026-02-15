@@ -36,7 +36,9 @@ _origins = [
     "http://127.0.0.1:5174",
 ]
 if settings.cors_origins:
-    _origins.extend(o.strip() for o in settings.cors_origins.split(",") if o.strip())
+    _origins.extend(
+        o.strip().rstrip("/") for o in settings.cors_origins.split(",") if o.strip()
+    )
 
 app.add_middleware(
     CORSMiddleware,

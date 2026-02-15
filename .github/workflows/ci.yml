@@ -82,13 +82,8 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          DEPLOY_ID="${{ steps.railway-deploy.outputs.deploy_id }}"
-          echo "Deployment ID: $DEPLOY_ID"
-          if [ -n "$DEPLOY_ID" ]; then
-            railway logs "$DEPLOY_ID" 2>&1 || echo "Could not fetch logs for deployment"
-          fi
-          # Also try without deployment ID
-          railway logs 2>&1 || echo "Could not fetch recent logs"
+          sleep 10
+          railway logs --service backend 2>&1 || echo "Could not fetch logs"
 
       - name: Fail if deploy failed
         if: steps.railway-deploy.outputs.deploy_failed == 'true'

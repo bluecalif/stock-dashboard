@@ -1,4 +1,29 @@
-아래는 **“CI(Continuous Integration) 환경(= GitHub Actions 같은 자동화 파이프라인)”에서 CLI로 배포**하는 방법을 **Railway / Vercel 중심으로**, **권한 거부(401/403) 방지**에 초점을 맞춰 **깔끔하게 재정리**한 버전입니다.
+# CLI 배포 가이드 — Railway / Vercel
+
+> Last Updated: 2026-02-15
+
+CI/CD 환경(GitHub Actions)에서 CLI로 배포하는 방법. 권한 거부(401/403) 방지 + 트러블슈팅 + 운영 명령어 포함.
+
+---
+
+## 배포 전 필수 환경변수 체크리스트
+
+배포가 "성공"해도 이 환경변수들이 없으면 앱이 **실제로 동작하지 않습니다**.
+
+### GitHub Secrets (CI/CD 파이프라인용, 4개)
+- [ ] `RAILWAY_TOKEN` — Railway Project Token (배포용)
+- [ ] `VERCEL_TOKEN` — Vercel API Token
+- [ ] `VERCEL_ORG_ID` — Vercel 팀/조직 ID
+- [ ] `VERCEL_PROJECT_ID` — Vercel 프로젝트 ID
+
+### Railway 환경변수 (대시보드 → backend 서비스 → Variables)
+- [ ] `DATABASE_URL` — PostgreSQL 내부 URL (`postgresql://...railway.internal/...`)
+- [ ] `CORS_ORIGINS` — Vercel 배포 URL (예: `https://stock-dashboard-xxx.vercel.app`)
+
+### Vercel 환경변수 (대시보드 → Project → Settings → Environment Variables)
+- [ ] `VITE_API_BASE_URL` — Railway 공개 URL (예: `https://backend-production-xxx.up.railway.app`)
+
+> **중요**: Vercel의 `VITE_` 접두사 환경변수는 **빌드 시** 번들에 포함됩니다. 등록/변경 후 반드시 **재배포** 필요.
 
 ---
 
@@ -283,11 +308,232 @@ jobs:
 * Project Token은 Railway 대시보드에서 프로젝트 단위로 생성하며, 특정 환경(production 등)에 스코프됨.
 * Account/Workspace Token(`RAILWAY_API_TOKEN`)은 계정 레벨 작업(PR 환경 생성 등)에만 필요하며, 일반 배포에는 불필요. ([Railway Docs][3])
 
-[1]: https://docs.github.com/actions/security-guides/using-secrets-in-github-actions?utm_source=chatgpt.com "Using secrets in GitHub Actions"
-[2]: https://docs.railway.com/cli/deploying?utm_source=chatgpt.com "Deploying with the CLI"
-[3]: https://docs.railway.com/cli?utm_source=chatgpt.com "CLI | Railway Docs"
-[4]: https://vercel.com/kb/guide/using-vercel-cli-for-custom-workflows?utm_source=chatgpt.com "How can I use the Vercel CLI for custom workflows?"
-[5]: https://docs.railway.com/cli/login?utm_source=chatgpt.com "railway login | Railway Docs"
-[6]: https://station.railway.com/questions/error-project-token-not-found-when-dep-391b52a3?utm_source=chatgpt.com "\"Error: Project Token Not Found When Deploying with ..."
-[7]: https://station.railway.com/questions/token-for-git-hub-action-53342720?utm_source=chatgpt.com "Token for GitHub Action"
-[8]: https://vercel.com/docs/cli/deploy?utm_source=chatgpt.com "vercel deploy"
+---
+
+## Railway 서비스 구조 & 내부 네트워크
+
+### 서비스 구성
+
+Railway 프로젝트 `stock-dashboard` 내에 두 서비스가 존재:
+
+| 서비스명 | 유형 | 용도 |
+|----------|------|------|
+| `backend` | App (Dockerfile) | FastAPI API 서버 |
+| `Postgres` | Database | PostgreSQL (Railway 제공) |
+
+### DB URL: 내부 vs 공개
+
+| 구분 | 형식 | 사용 위치 |
+|------|------|----------|
+| 내부 URL | `postgresql://...railway.internal/...` | Railway 앱 내부 (**추천**) |
+| 공개 URL | `postgresql://...proxy.rlwy.net/...` | 외부 접속 (로컬 개발용) |
+
+- Railway 서비스 간에는 **내부 URL** 사용 → 레이턴시 낮음, 비용 절감
+- 내부 URL: Postgres 서비스 → Variables 탭 → `DATABASE_PRIVATE_URL`
+- **backend 서비스의 `DATABASE_URL`에 내부 URL을 넣어야 함**
+
+### Dockerfile vs nixpacks
+
+| 기준 | Dockerfile | nixpacks (기본) |
+|------|-----------|----------------|
+| 빌드 제어 | 완전 제어 | Railway 자동 감지 |
+| 디버깅 | 로컬 `docker build`로 재현 가능 | Railway 빌드 로그만 의존 |
+| Python 버전 고정 | `FROM python:3.12-slim`으로 명시 | 감지 실패 가능성 |
+| monorepo 호환성 | 명시적 COPY로 안전 | 프로젝트 루트 오인식 가능 |
+
+> **본 프로젝트 결정**: D-3에서 nixpacks 빌드 실패 (로그 없이 즉시 실패) → Dockerfile 전환.
+> monorepo(`backend/` 서브디렉토리) 구조에서 nixpacks가 `pyproject.toml` 위치를 오인식하는 것이 원인.
+
+---
+
+## 배포 후 체크리스트
+
+배포 성공 후 반드시 확인해야 할 항목:
+
+### 1. 헬스체크
+
+```bash
+# Railway 백엔드 헬스체크
+curl -sf https://<railway-url>/v1/health | python -m json.tool
+
+# 기대 응답: {"status": "ok", "db": "connected"}
+# DB 미연결 시: 503 {"status": "error", "db": "disconnected"}
+```
+
+### 2. CORS preflight 확인
+
+```bash
+curl -H "Origin: https://<vercel-url>" \
+     -H "Access-Control-Request-Method: GET" \
+     -X OPTIONS \
+     https://<railway-url>/v1/health -v 2>&1 | grep -i "access-control"
+
+# access-control-allow-origin: https://<vercel-url> 가 보여야 함
+```
+
+### 3. 프론트엔드 API URL 확인
+
+- 브라우저에서 Vercel 앱 접속
+- 개발자 도구 → Network 탭
+- API 요청 URL이 `http://localhost:8000`이 아닌 Railway URL인지 확인
+- localhost로 요청하고 있으면 → Vercel `VITE_API_BASE_URL` 미설정 → 등록 후 재배포
+
+### 4. 데이터 조회 확인
+
+```bash
+# 자산 목록 조회
+curl -sf https://<railway-url>/v1/assets | python -m json.tool
+
+# 가격 데이터 조회
+curl -sf "https://<railway-url>/v1/prices?asset_id=KS200&limit=5" | python -m json.tool
+```
+
+---
+
+## 트러블슈팅 가이드
+
+실제 배포 과정에서 겪은 D-1~D-4 이슈를 패턴별로 분류.
+
+### 패턴 1: 빌드 실패
+
+**증상**: GitHub Actions `deploy-railway` job 빨간불, "Build failed" 또는 "Deploy failed" (수초 만에)
+
+**D-3 사례**: nixpacks가 `backend/pyproject.toml`을 찾지 못해 빌드 로그 없이 즉시 실패
+
+**체크리스트**:
+1. Railway 대시보드 → 해당 배포 → Build Logs 확인
+2. nixpacks 오류 → `railway.toml`에 `builder = "dockerfile"` 추가
+3. Dockerfile 오류 → 로컬에서 `docker build -f backend/Dockerfile backend/` 재현
+4. `.railwayignore`에 `.venv/`, `__pycache__/` 등 제외 확인
+
+### 패턴 2: 헬스체크 실패
+
+**증상**: 빌드 성공 후 배포 실패, "Health check failed" 또는 서비스 재시작 루프
+
+**D-4 사례**:
+- `healthcheckPath` 미설정 → Railway가 기본 경로(`/`) 체크 → 404
+- `healthcheckTimeout` 부족 → 앱 기동 전 타임아웃
+- CMD에서 `PORT` 환경변수 미사용 → 포트 불일치
+
+**체크리스트**:
+1. `railway.toml`에 `healthcheckPath = "/v1/health"` 명시 확인
+2. `healthcheckTimeout = 120` 이상 설정
+3. Dockerfile CMD가 `${PORT:-8000}` 환경변수를 올바르게 사용하는지 확인
+4. Railway 대시보드 → Deploy Logs에서 실제 기동 포트 확인
+
+### 패턴 3: 권한/토큰 오류
+
+**증상**: `401 Unauthorized`, `403 Forbidden`, "Project Token Not Found"
+
+**D-1 사례**: `railway up --ci` (--service 플래그 누락) → 잘못된 서비스로 배포 시도
+
+**D-2 사례**: `--service stock-dashboard` 지정 → 서비스 미존재
+
+**체크리스트**:
+1. `ci.yml`에 `railway up --ci --service backend` 형식으로 `--service` 명시
+2. `RAILWAY_TOKEN`이 **Project Token**인지 확인 (Account Token 아님)
+3. `gh secret list`로 Secrets 등록 여부 확인
+4. Railway 대시보드에서 Token 만료 여부 확인
+5. 서비스명이 Railway 대시보드의 실제 서비스명과 일치하는지 확인
+
+### 패턴 4: 환경변수 누락
+
+**증상**: 앱 기동 성공하나 API 호출 시 연결 실패, CORS 오류, localhost 호출
+
+**CORS 오류**:
+- 브라우저 콘솔: `Access to XMLHttpRequest ... has been blocked by CORS policy`
+- 원인: Railway `CORS_ORIGINS`에 Vercel URL 미등록
+- 해결: Railway 대시보드 → backend 서비스 → Variables → `CORS_ORIGINS=https://<vercel-url>`
+
+**localhost 호출**:
+- 브라우저 Network 탭에서 `http://localhost:8000/...` 요청 확인
+- 원인: Vercel `VITE_API_BASE_URL` 미설정
+- 해결: Vercel 대시보드 → Settings → Environment Variables → `VITE_API_BASE_URL` 추가 후 **재배포**
+
+**DB 연결 실패**:
+- `/v1/health` 응답: 503 `{"status": "error", "db": "disconnected"}`
+- 원인: Railway `DATABASE_URL` 미설정
+- 해결: Postgres 서비스 Variables → `DATABASE_PRIVATE_URL` 복사 → backend Variables에 `DATABASE_URL`로 등록
+
+### 패턴 5: 서비스 미존재
+
+**D-2 사례**: `railway up --ci --service backend` 실행 시 서비스가 없으면 오류
+
+**해결**: Railway 대시보드 → 프로젝트 → **"+ New"** → **"Empty Service"** → 이름을 `backend`로 설정
+
+---
+
+## 운영 명령어 모음
+
+### 로그 확인
+
+```bash
+# Railway — 실시간 로그 스트림
+railway logs --service backend
+
+# Railway — 최근 배포 로그
+railway logs --service backend --tail 100
+
+# Vercel — 배포 목록
+vercel ls --token="$VERCEL_TOKEN"
+
+# Vercel — 특정 배포 로그
+vercel logs <deployment-url> --token="$VERCEL_TOKEN"
+```
+
+### 재배포
+
+```bash
+# Railway — 현재 코드로 재배포 (CI에서)
+railway up --ci --service backend
+
+# Railway — 대시보드에서 재배포
+# backend 서비스 → Deployments → 최근 배포 → "Redeploy"
+
+# Vercel — 프로덕션 재배포 (CI에서)
+vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+vercel build --prod --token="$VERCEL_TOKEN"
+vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+```
+
+### 롤백
+
+```bash
+# Railway — 대시보드에서 롤백
+# backend 서비스 → Deployments → 이전 배포 → "Rollback"
+
+# Vercel — 이전 배포로 즉시 전환 (무중단)
+vercel rollback <deployment-url-or-id> --token="$VERCEL_TOKEN"
+```
+
+### 환경변수 확인
+
+```bash
+# Railway — 서비스 환경변수 확인 (로컬에서, Account Token 필요)
+railway variables --service backend
+
+# GitHub Secrets 확인 (이름만, 값은 불가)
+gh secret list
+```
+
+---
+
+## Lessons Learned (D-1 ~ D-4)
+
+1. **Railway 서비스 구분**: Railway 프로젝트에 DB만 있어도 "multiple services"로 판단됨 → `--service` 필수
+2. **Project Token vs Account Token**: Project Token은 `railway up` 전용. 서비스 생성/계정 작업에는 Account Token 필요
+3. **nixpacks 빌드 불안정**: monorepo에서 nixpacks가 빌드 로그 없이 실패 가능 → Dockerfile이 더 안정적
+4. **Railway PORT 주입**: Railway가 `$PORT` 환경변수를 주입하므로 CMD에서 반드시 `${PORT:-8000}` 사용
+5. **헬스체크 경로 일치**: `railway.toml`의 `healthcheckPath`와 실제 엔드포인트 경로가 정확히 일치해야 함 (prefix 포함)
+6. **환경변수 = 배포의 마지막 마일**: 코드/설정이 완벽해도 환경변수 3종(DATABASE_URL, CORS_ORIGINS, VITE_API_BASE_URL) 미설정이면 앱 미동작
+
+---
+
+[1]: https://docs.github.com/actions/security-guides/using-secrets-in-github-actions "Using secrets in GitHub Actions"
+[2]: https://docs.railway.com/cli/deploying "Deploying with the CLI"
+[3]: https://docs.railway.com/cli "CLI | Railway Docs"
+[4]: https://vercel.com/kb/guide/using-vercel-cli-for-custom-workflows "How can I use the Vercel CLI for custom workflows?"
+[5]: https://docs.railway.com/cli/login "railway login | Railway Docs"
+[6]: https://station.railway.com/questions/error-project-token-not-found-when-dep-391b52a3 "Error: Project Token Not Found"
+[7]: https://station.railway.com/questions/token-for-git-hub-action-53342720 "Token for GitHub Action"
+[8]: https://vercel.com/docs/cli/deploy "vercel deploy"

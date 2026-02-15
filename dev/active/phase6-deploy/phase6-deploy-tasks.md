@@ -47,6 +47,24 @@
 
 ---
 
+## Stage G: 배포 안정화 (근본 이슈 해결)
+- [x] 6.10 헬스체크 개선 & 의존성 503 체인 `[M]`
+  - `dependencies.py`: RuntimeError → HTTPException(503)
+  - `health.py`: DB 실패 시 503 반환 + `/v1/ready` 진단 엔드포인트 분리
+- [x] 6.11 Dockerfile & railway.toml 개선 `[S]`
+  - Dockerfile: CMD exec form 전환, alembic 파일 COPY 추가
+  - railway.toml: startCommand에 `alembic upgrade head &&` 추가
+- [x] 6.12 cli-deployment.md 대폭 확장 `[L]`
+  - 트러블슈팅 가이드 (D-1~D-4 패턴별)
+  - 배포 전/후 체크리스트
+  - Railway 서비스 구조 & Dockerfile vs nixpacks
+  - 운영 명령어 모음
+- [ ] 6.13 D-4 수정 커밋 & push → Railway 배포 확인 `[M]`
+  - 환경변수 설정 안내 (DATABASE_URL, CORS_ORIGINS, VITE_API_BASE_URL)
+  - CI 파이프라인 실행 → Railway 배포 성공 확인
+
+---
+
 ## Summary
-- **Tasks**: 9/9 완료 (100%)
-- **Phase 6 Complete**
+- **Tasks**: 12/13 완료 (92%)
+- **Phase 6 In Progress** — Stage G 배포 안정화 진행 중

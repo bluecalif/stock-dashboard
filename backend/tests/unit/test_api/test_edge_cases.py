@@ -42,10 +42,10 @@ class TestDBErrors:
     """Each router should return 500 when DB/service raises unexpected error."""
 
     def test_health_db_error(self, mock_db, client):
-        """Health check reports disconnected on DB failure."""
+        """Health check returns 503 on DB failure."""
         mock_db.execute.side_effect = Exception("DB down")
         resp = client.get("/v1/health")
-        assert resp.status_code == 200
+        assert resp.status_code == 503
         assert resp.json()["db"] == "disconnected"
 
     @patch("api.routers.assets.asset_repo")

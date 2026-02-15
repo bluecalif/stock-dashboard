@@ -1,6 +1,6 @@
 # Phase 6: Deploy & Ops
 > Last Updated: 2026-02-15
-> Status: In Progress
+> Status: In Progress — Stage G 배포 안정화
 
 ## 1. Summary (개요)
 
@@ -74,6 +74,11 @@
 ### Stage F: 문서화 (Step 6.5, 6.6)
 - `docs/runbook.md` 운영 문서 (배포 절차 포함)
 - dev-docs 갱신 + 커밋
+
+### Stage G: 배포 안정화 (Step 6.10~6.13)
+- **근본 이슈 해결**: 헬스체크 503 체인, Alembic 자동화, CMD exec form
+- **문서 확장**: cli-deployment.md에 트러블슈팅/체크리스트/운영 명령어 추가
+- **배포 검증**: D-4 수정 push → Railway 성공 확인 + 환경변수 설정
 
 ## 5. Task Breakdown
 

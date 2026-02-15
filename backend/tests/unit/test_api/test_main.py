@@ -50,9 +50,26 @@ class TestHealthEndpoint:
         assert data["db"] == "connected"
 
     def test_health_db_disconnected(self, client, mock_db):
-        """GET /v1/health returns disconnected when DB raises."""
+        """GET /v1/health returns 503 when DB raises."""
         mock_db.execute.side_effect = Exception("connection refused")
         response = client.get("/v1/health")
+        assert response.status_code == 503
+        data = response.json()
+        assert data["status"] == "error"
+        assert data["db"] == "disconnected"
+
+    def test_ready_ok(self, client, mock_db):
+        """GET /v1/ready returns 200 with connected status."""
+        response = client.get("/v1/ready")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["db"] == "connected"
+
+    def test_ready_db_disconnected(self, client, mock_db):
+        """GET /v1/ready returns 200 even when DB raises."""
+        mock_db.execute.side_effect = Exception("connection refused")
+        response = client.get("/v1/ready")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"

@@ -89,12 +89,31 @@ Vercel:
 | 2026-02-15 | 백엔드 배포: Railway App | 이미 Railway PostgreSQL 사용 중, 동일 프로젝트에 App 추가로 내부 네트워크 활용 |
 | 2026-02-15 | 프론트엔드 배포: Vercel | React SPA 정적 배포에 최적, GitHub 연동 자동 배포 |
 | 2026-02-15 | CI: GitHub Actions (pytest + ruff) | 무료 티어 충분, GitHub 네이티브 통합 |
+| 2026-02-15 | 헬스체크 503 분리: /health(엄격) + /ready(진단) | Railway 헬스체크가 DB 다운을 감지하도록 |
+| 2026-02-15 | Alembic startCommand 통합 | idempotent, 배포마다 자동 마이그레이션 |
+| 2026-02-15 | dependencies.py RuntimeError → HTTPException(503) | 503 체인 일관성 |
 
 ## Changed Files (Step 6.1 + 6.4)
 - `backend/scripts/daily_collect.bat` — 수정: research 파이프라인 호출 추가 + 30일 로그 로테이션
 
 ## Changed Files (Step 6.2)
 - `backend/tests/unit/test_factor_store.py` — 수정: mock_preprocess 시그니처에 **kwargs 추가
+
+## Changed Files (CI/CD Deploy — 2026-02-15)
+- `.github/workflows/ci.yml` — deploy-railway + deploy-vercel job 추가
+- `backend/.railwayignore` — 신규: .venv 등 Railway 업로드 제외
+- `backend/railway.toml` — builder: nixpacks→dockerfile, healthcheck 수정
+- `backend/Dockerfile` — 신규: Python 3.12-slim 배포 이미지
+- `docs/cli-deployment.md` — 토큰 생성/등록 가이드 (이전 세션)
+
+## Changed Files (Step 6.10~6.12 — 배포 안정화)
+- `backend/api/dependencies.py` — RuntimeError → HTTPException(503)
+- `backend/api/routers/health.py` — DB 실패 503 반환 + `/v1/ready` 진단 엔드포인트
+- `backend/Dockerfile` — CMD exec form 전환, alembic.ini COPY 추가
+- `backend/railway.toml` — startCommand에 `alembic upgrade head &&` 추가
+- `backend/tests/unit/test_api/test_main.py` — 헬스체크 테스트 503 업데이트 + ready 테스트 추가
+- `backend/tests/unit/test_api/test_edge_cases.py` — 헬스체크 테스트 503 업데이트
+- `docs/cli-deployment.md` — 트러블슈팅/체크리스트/서비스구조/운영명령어 대폭 확장
 
 ## 4. 컨벤션 체크리스트
 
@@ -112,13 +131,20 @@ Vercel:
 - [x] `encoding='utf-8'` 명시
 
 ### CI/CD
-- [ ] GitHub Actions workflow YAML 유효성
-- [ ] PostgreSQL service container 설정
-- [ ] pip cache 설정
-- [ ] GitHub Secrets 등록 (DATABASE_URL 등)
+- [x] GitHub Actions workflow YAML 유효성
+- [x] PostgreSQL service container 설정
+- [x] pip cache 설정
+- [x] GitHub Secrets 등록 (RAILWAY_TOKEN, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)
 
 ### 배포
-- [ ] Railway 환경변수 설정
+- [ ] Railway 환경변수 설정 (DATABASE_URL, CORS_ORIGINS)
 - [ ] Vercel 환경변수 설정 (VITE_API_BASE_URL)
 - [ ] CORS 프로덕션 도메인 추가
-- [ ] health 엔드포인트 응답 확인
+- [x] health 엔드포인트 경로 수정 (/v1/health)
+
+### 배포 안정화 (Stage G)
+- [ ] dependencies.py: RuntimeError → HTTPException(503)
+- [ ] health.py: DB 실패 503 반환 + /v1/ready 분리
+- [ ] Dockerfile: CMD exec form + alembic 파일 COPY
+- [ ] railway.toml: alembic upgrade head 자동화
+- [ ] cli-deployment.md: 트러블슈팅/체크리스트/운영 명령어 추가

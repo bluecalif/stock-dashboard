@@ -34,3 +34,5 @@ logs/
 
 # Temp
 temp_compact.md
+.vercel
+.claude/cache/

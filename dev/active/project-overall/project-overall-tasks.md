@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-02-14
-> Status: In Progress (Phase 5 완료, Phase 6 미착수)
+> Last Updated: 2026-02-15
+> Status: ALL PHASES COMPLETE (Phase 1-6)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -100,42 +100,29 @@
 - [x] 5.12 UX 버그: Gold/Silver 에러 + 거래량 차트 `[M]` — `398f7da`
 - [x] 5.13 UX 버그: 팩터/전략 데이터 + Bug #9 `[S]` — `398f7da`, `d227ee9`
 
-## Phase 6: 배포 & 운영 (Deploy & Ops)
-> dev-docs: `dev/active/phase6-deploy/` (생성 예정)
+## Phase 6: 배포 & 운영 (Deploy & Ops) ✅ 완료 (9/9)
+> dev-docs: `dev/active/phase6-deploy/`
 
-### 6A. 환경 분리 및 설정
-- [ ] 6.1 환경 분리 (dev/staging/prod .env 전략) `[M]`
-- [ ] 6.2 CORS + TLS + 보안 헤더 설정 `[S]`
+### 6A. 배치 통합
+- [x] 6.1 리서치 파이프라인 배치 스케줄링 `[S]` — `c80fd08`
+- [x] 6.4 로그 로테이션 (30일 자동 삭제) `[S]` — `c80fd08`
 
-### 6B. 백엔드 배포
-- [ ] 6.3 FastAPI 프로덕션 서버 설정 (uvicorn workers, NSSM) `[M]`
-- [ ] 6.4 Alembic 프로덕션 마이그레이션 절차 `[S]`
+### 6B. 테스트 검증
+- [x] 6.2 테스트 전체 실행 & 검증 `[M]` — `66cbef1`
 
-### 6C. 프론트엔드 빌드 및 배포
-- [ ] 6.5 Vite 프로덕션 빌드 + 최적화 `[M]`
-- [ ] 6.6 프론트엔드 호스팅 설정 (Vercel/Netlify/Nginx) `[M]`
+### 6C. 운영 도구
+- [x] 6.3 Pre-deployment 체크 스크립트 `[M]` — `93407b4`
 
-### 6D. CI/CD 파이프라인
-- [ ] 6.7 GitHub Actions CI — lint + test + build `[L]`
-- [ ] 6.8 GitHub Actions CD — 조건부 배포 `[M]`
+### 6D. CI/CD
+- [x] 6.7 GitHub Actions CI 파이프라인 `[M]` — `4b263b9`
 
-### 6E. 스케줄러 및 배치
-- [ ] 6.9 Windows Task Scheduler 배치 등록 `[M]`
-- [ ] 6.10 Discord Webhook 알림 연동 `[S]`
+### 6E. 프로덕션 배포
+- [x] 6.8 백엔드 Railway 배포 `[M]` — `e80d50b`
+- [x] 6.9 프론트엔드 Vercel 배포 `[M]` — `f745079`
 
-### 6F. 모니터링 및 관측성
-- [ ] 6.11 JSON 구조화 로그 + API 응답시간 미들웨어 `[M]`
-- [ ] 6.12 `job_run` 기반 모니터링 `[M]`
-
-### 6G. 백업 및 복구
-- [ ] 6.13 DB 백업 스크립트 (`pg_dump`) + 복구 절차 `[M]`
-- [ ] 6.14 롤백 전략 문서 (Alembic downgrade + Git rollback) `[S]`
-
-### 6H. 운영 문서
-- [ ] 6.15 배포 체크리스트 + 운영 런북 `[M]`
-
-### 6G. Hantoo fallback (선택)
-- [ ] 6.16 Hantoo REST API fallback (005930, 000660) `[L]`
+### 6F. 문서화
+- [x] 6.5 운영 문서 (Runbook) `[M]` — `65e6703`
+- [x] 6.6 dev-docs 갱신 & 커밋 `[S]`
 
 ---
 
@@ -143,7 +130,6 @@
 - **Phase 0~3**: 36 tasks — **ALL COMPLETE** (✅)
 - **Phase 4**: 15 tasks — **ALL COMPLETE** (✅)
 - **Phase 5**: 13 tasks — **ALL COMPLETE** (✅)
-- **Phase 6**: 16 tasks — 미착수 (0%)
-- **Grand Total**: 80 tasks (64 완료 + 16 남음)
-- **Critical Path**: Phase 6 (Deploy & Ops)
+- **Phase 6**: 9 tasks — **ALL COMPLETE** (✅)
+- **Grand Total**: 73 tasks — ALL COMPLETE
 - **Tests**: 405 passed, 7 skipped, ruff clean

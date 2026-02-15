@@ -59,17 +59,17 @@
   - 배포 전/후 체크리스트
   - Railway 서비스 구조 & Dockerfile vs nixpacks
   - 운영 명령어 모음
-- [ ] 6.13 Railway 배포 완전 확인 & 환경변수 설정 `[M]` — 진행 중
+- [x] 6.13 Railway 배포 완전 확인 & 환경변수 설정 `[M]` — `db1b1be`
   - [x] D-6~D-9: Railway 배포 성공 + DB 연결 확인 — `2db9684`, `6fd0a4a`
   - [x] DATABASE_URL 설정 (Railway 대시보드 직접 입력)
   - [x] 공개 도메인 생성: `backend-production-e5bc.up.railway.app`
   - [x] API 엔드포인트 동작 확인 (health, ready, prices, factors, signals)
-  - [ ] CORS_ORIGINS 설정 (Vercel 배포 URL)
-  - [ ] Vercel VITE_API_BASE_URL 설정
-  - [ ] E2E 검증: 브라우저에서 Vercel → Railway API 호출
+  - [x] CORS_ORIGINS 설정 (Railway 대시보드, trailing slash 이슈 → 코드에서 rstrip 처리)
+  - [x] Vercel VITE_API_BASE_URL 설정 (Vercel 대시보드)
+  - [x] E2E 검증: CORS preflight + API 데이터 반환 확인 (Vercel → Railway)
 
 ---
 
 ## Summary
-- **Tasks**: 12/13 완료 (92%)
-- **Phase 6 In Progress** — Stage G 배포 안정화 진행 중
+- **Tasks**: 13/13 완료 (100%) ✅
+- **Phase 6 Complete** — 전체 배포 + E2E 검증 완료

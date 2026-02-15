@@ -239,6 +239,31 @@ postgresql://postgres:***@postgres.railway.internal:5432/railway
 
 **현재 상태**: 백엔드 API 완전 동작. 남은 작업: CORS_ORIGINS, Vercel VITE_API_BASE_URL, E2E 검증.
 
+---
+
+### D-10: CORS origin trailing slash — Disallowed CORS origin
+> 2026-02-15 세션 4 — E2E 검증 중 CORS 차단 발견, 1커밋으로 해결
+
+**증상**: Railway에 `CORS_ORIGINS` 환경변수 설정 완료, Redeploy 후에도 Vercel origin에서 `Disallowed CORS origin` (400 Bad Request). localhost origin은 정상 동작.
+
+**분석**: 임시 디버그 엔드포인트(`/v1/debug/cors`)로 확인 결과:
+```json
+{"cors_origins_env":"https://stock-dashboard-alpha-lilac.vercel.app/","cors_origins_parsed":["https://stock-dashboard-alpha-lilac.vercel.app/"]}
+```
+- Railway 대시보드에서 URL 입력 시 끝에 `/` (trailing slash) 포함
+- CORS origin 비교는 exact match → `https://...vercel.app/` ≠ `https://...vercel.app`
+- `CORSMiddleware`가 origin을 거부
+
+**수정**: `api/main.py`에서 CORS origins 파싱 시 `.rstrip("/")` 추가
+```python
+_origins.extend(
+    o.strip().rstrip("/") for o in settings.cors_origins.split(",") if o.strip()
+)
+```
+
+**커밋**: `db1b1be`
+**결과**: CORS preflight 200 OK, `Access-Control-Allow-Origin` 정상 반환, E2E 검증 성공
+
 ### Vercel deploy — 성공
 - **상태**: 연속 성공 (deploy-vercel job)
 - **구성**: `vercel pull → build → deploy --prebuilt --prod`
@@ -255,6 +280,7 @@ backend/db/session.py           — postgres:// → postgresql:// 자동 변환
 backend/db/alembic/env.py       — postgres:// → postgresql:// 자동 변환
 backend/tests/unit/test_api/test_main.py       — monkeypatch 기반 health 테스트로 전환
 backend/tests/unit/test_api/test_edge_cases.py — health 503→200 반영
+backend/api/main.py                            — CORS origins trailing slash rstrip 처리
 ```
 
 ## Step 6.10~6.12: 배포 안정화 (근본 이슈 해결)
@@ -287,3 +313,4 @@ backend/tests/unit/test_api/test_edge_cases.py — health 503→200 반영
 16. **Railway Postgres `postgres://` 스키마**: Railway Postgres는 `postgres://` 스키마 URL을 제공하나, SQLAlchemy 2.x는 `postgresql://`만 지원. 앱 코드에서 자동 변환 필수
 17. **Railway 변수 참조 `${{ServiceName.VAR}}`**: 서비스 이름이 정확히 일치해야 함. 대소문자 또는 이름 불일치 시 빈 문자열로 resolve됨. 디버깅 어려움 → 초기에는 직접 URL 입력이 안전
 18. **Railway 환경변수 변경 시 자동 재배포 안 될 수 있음**: 변수 변경 후 Deployments 탭에서 수동 Redeploy 필요한 경우 있음
+19. **CORS origin trailing slash 주의**: 대시보드 UI에서 URL 입력 시 trailing `/`가 포함될 수 있음. CORS는 exact match이므로 코드에서 `.rstrip("/")` 처리 필수

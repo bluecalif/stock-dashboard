@@ -1,6 +1,6 @@
 # Phase 6: Deploy & Ops — Context
 > Last Updated: 2026-02-15
-> Status: In Progress
+> Status: Complete
 
 ## 1. 핵심 파일
 
@@ -95,6 +95,7 @@ Vercel:
 | 2026-02-15 | Minimum Viable Deploy 전략 | 변수 많을 때 모두 제거 → 최소 배포 성공 → 점진 복원 |
 | 2026-02-15 | postgres:// 자동 변환 코드 추가 | Railway Postgres는 postgres:// 제공, SQLAlchemy 2.x 비호환 |
 | 2026-02-15 | Railway 변수 참조 대신 직접 URL | `${{Postgres.DATABASE_URL}}` 미해석 → 직접 URL 안전 |
+| 2026-02-15 | CORS origins trailing slash rstrip | 대시보드 입력 시 trailing `/` 포함 가능 → 코드에서 자동 제거 |
 
 ## Changed Files (Step 6.1 + 6.4)
 - `backend/scripts/daily_collect.bat` — 수정: research 파이프라인 호출 추가 + 30일 로그 로테이션
@@ -132,6 +133,9 @@ Vercel:
 - `backend/db/session.py` — `postgres://` → `postgresql://` 자동 변환
 - `backend/db/alembic/env.py` — `postgres://` → `postgresql://` 자동 변환
 
+## Changed Files (Step 6.13 — CORS fix + E2E 검증, 세션 4)
+- `backend/api/main.py` — CORS origins에 trailing slash rstrip 처리 추가
+
 ## 4. 컨벤션 체크리스트
 
 ### 배치 스크립트
@@ -155,9 +159,9 @@ Vercel:
 
 ### 배포
 - [x] Railway 환경변수 설정 (DATABASE_URL) — 직접 URL 입력
-- [ ] Railway 환경변수 설정 (CORS_ORIGINS) — Vercel URL 필요
-- [ ] Vercel 환경변수 설정 (VITE_API_BASE_URL)
-- [ ] CORS 프로덕션 도메인 추가
+- [x] Railway 환경변수 설정 (CORS_ORIGINS) — Vercel URL 설정 완료
+- [x] Vercel 환경변수 설정 (VITE_API_BASE_URL) — Railway URL 설정 완료
+- [x] CORS 프로덕션 도메인 추가 — trailing slash rstrip 처리 포함
 - [x] health 엔드포인트 경로 수정 (/v1/health)
 
 ### 배포 안정화 (Stage G)

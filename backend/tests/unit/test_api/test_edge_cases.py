@@ -41,11 +41,13 @@ def client(mock_db):
 class TestDBErrors:
     """Each router should return 500 when DB/service raises unexpected error."""
 
-    def test_health_db_error(self, mock_db, client):
-        """Health check returns 503 on DB failure."""
+    def test_health_db_error(self, mock_db, client, monkeypatch):
+        """Health check returns 200 even on DB failure (liveness)."""
         mock_db.execute.side_effect = Exception("DB down")
+        mock_session_local = MagicMock(return_value=mock_db)
+        monkeypatch.setattr("api.routers.health.SessionLocal", mock_session_local)
         resp = client.get("/v1/health")
-        assert resp.status_code == 503
+        assert resp.status_code == 200
         assert resp.json()["db"] == "disconnected"
 
     @patch("api.routers.assets.asset_repo")

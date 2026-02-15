@@ -41,39 +41,65 @@ def client(mock_db):
 
 
 class TestHealthEndpoint:
-    def test_health_ok(self, client, mock_db):
-        """GET /v1/health returns ok when DB is reachable."""
+    def test_health_ok(self, client, mock_db, monkeypatch):
+        """GET /v1/health returns 200 when DB is reachable."""
+        mock_session_local = MagicMock(return_value=mock_db)
+        monkeypatch.setattr("api.routers.health.SessionLocal", mock_session_local)
         response = client.get("/v1/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
         assert data["db"] == "connected"
 
-    def test_health_db_disconnected(self, client, mock_db):
-        """GET /v1/health returns 503 when DB raises."""
+    def test_health_db_disconnected(self, client, mock_db, monkeypatch):
+        """GET /v1/health returns 200 even when DB raises (liveness)."""
         mock_db.execute.side_effect = Exception("connection refused")
+        mock_session_local = MagicMock(return_value=mock_db)
+        monkeypatch.setattr("api.routers.health.SessionLocal", mock_session_local)
         response = client.get("/v1/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["db"] == "disconnected"
+
+    def test_health_no_db_configured(self, client, monkeypatch):
+        """GET /v1/health returns 200 even when SessionLocal is None."""
+        monkeypatch.setattr("api.routers.health.SessionLocal", None)
+        response = client.get("/v1/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["db"] == "not_configured"
+
+    def test_ready_ok(self, client, mock_db, monkeypatch):
+        """GET /v1/ready returns 200 with connected status."""
+        mock_session_local = MagicMock(return_value=mock_db)
+        monkeypatch.setattr("api.routers.health.SessionLocal", mock_session_local)
+        response = client.get("/v1/ready")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["db"] == "connected"
+
+    def test_ready_db_disconnected(self, client, mock_db, monkeypatch):
+        """GET /v1/ready returns 503 when DB raises (readiness)."""
+        mock_db.execute.side_effect = Exception("connection refused")
+        mock_session_local = MagicMock(return_value=mock_db)
+        monkeypatch.setattr("api.routers.health.SessionLocal", mock_session_local)
+        response = client.get("/v1/ready")
         assert response.status_code == 503
         data = response.json()
         assert data["status"] == "error"
         assert data["db"] == "disconnected"
 
-    def test_ready_ok(self, client, mock_db):
-        """GET /v1/ready returns 200 with connected status."""
+    def test_ready_no_db_configured(self, client, monkeypatch):
+        """GET /v1/ready returns 503 when SessionLocal is None."""
+        monkeypatch.setattr("api.routers.health.SessionLocal", None)
         response = client.get("/v1/ready")
-        assert response.status_code == 200
+        assert response.status_code == 503
         data = response.json()
-        assert data["status"] == "ok"
-        assert data["db"] == "connected"
-
-    def test_ready_db_disconnected(self, client, mock_db):
-        """GET /v1/ready returns 200 even when DB raises."""
-        mock_db.execute.side_effect = Exception("connection refused")
-        response = client.get("/v1/ready")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "ok"
-        assert data["db"] == "disconnected"
+        assert data["status"] == "error"
+        assert data["db"] == "not_configured"
 
 
 class TestCORS:

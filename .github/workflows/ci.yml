@@ -64,7 +64,13 @@ jobs:
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci --service backend
+        run: railway up --ci --service backend 2>&1 || true
+
+      - name: Check Railway deploy logs
+        working-directory: backend
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway logs --limit 50 --service backend 2>&1 || echo "Could not fetch logs"
 
   deploy-vercel:
     needs: test

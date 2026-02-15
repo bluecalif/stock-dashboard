@@ -11,10 +11,10 @@
   - `daily_collect.bat`에 30일 이상 로그 파일 자동 삭제 추가
 
 ## Stage B: 테스트 검증
-- [ ] 6.2 테스트 전체 실행 & 검증 `[M]`
+- [x] 6.2 테스트 전체 실행 & 검증 `[M]`
   - `python -m pytest` 전체 실행
-  - 실패 테스트 수정
-  - 결과 기록
+  - 실패 테스트 수정: test_partial_failure mock 시그니처 수정
+  - 결과: 405 passed, 7 skipped, 0 failed
 
 ## Stage C: 운영 도구
 - [ ] 6.3 Pre-deployment 체크 스크립트 `[M]`
@@ -66,4 +66,4 @@
 
 ## Summary
 - **Tasks**: 9개 (S: 3, M: 6)
-- **Status**: 2/9 완료 (22%)
+- **Status**: 3/9 완료 (33%)

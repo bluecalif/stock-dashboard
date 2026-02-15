@@ -5,7 +5,7 @@
 
 | Bug # | Page/Module | Issue | Fix | File |
 |-------|-------------|-------|-----|------|
-| (테스트 실행 후 기록) | | | | |
+| 1 | test_factor_store | mock_preprocess에 missing_threshold kwarg 미지원 → preprocess_failed | mock 시그니처에 `**kwargs` 추가 | `tests/unit/test_factor_store.py:234` |
 
 ## Modified Files Summary
 ```

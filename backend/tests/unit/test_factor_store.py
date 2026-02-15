@@ -231,7 +231,7 @@ class TestStoreFactorsAll:
         mock_session = MagicMock()
         call_count = {"n": 0}
 
-        def mock_preprocess(session, asset_id, start=None, end=None):
+        def mock_preprocess(session, asset_id, start=None, end=None, **kwargs):
             call_count["n"] += 1
             if asset_id == "005930":
                 raise ValueError("No data for 005930")

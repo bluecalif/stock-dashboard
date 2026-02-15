@@ -93,6 +93,9 @@ Vercel:
 ## Changed Files (Step 6.1 + 6.4)
 - `backend/scripts/daily_collect.bat` — 수정: research 파이프라인 호출 추가 + 30일 로그 로테이션
 
+## Changed Files (Step 6.2)
+- `backend/tests/unit/test_factor_store.py` — 수정: mock_preprocess 시그니처에 **kwargs 추가
+
 ## 4. 컨벤션 체크리스트
 
 ### 배치 스크립트

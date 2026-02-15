@@ -21,7 +21,7 @@ Phase 6 (Deploy & Ops) 구현 — 통합 검증 + CI/CD + 실배포 + 운영 안
 | Phase | 상태 | Tasks |
 |-------|------|-------|
 | 1-5 (Skeleton~Frontend) | ✅ 완료 | 64/64 |
-| 6 Deploy & Ops | 진행 중 | 2/9 |
+| 6 Deploy & Ops | 진행 중 | 3/9 |
 
 ### Phase 6 태스크 (9개, 모두 미완료)
 | # | Task | Size | Stage |
@@ -55,7 +55,7 @@ docs/session-compact.md        (수정: 스코프 확장 반영)
 ## Remaining / TODO
 - [x] **Step 6.1**: `daily_collect.bat`에 `run_research.py` 호출 추가 (collect → healthcheck → research)
 - [x] **Step 6.4**: `daily_collect.bat`에 30일 로그 로테이션 추가
-- [ ] **Step 6.2**: `python -m pytest` 전체 실행, 실패 수정
+- [x] **Step 6.2**: `python -m pytest` 전체 실행 — 405 passed, 7 skipped, 1 fix (mock 시그니처)
 - [ ] **Step 6.3**: `backend/scripts/preflight.py` 신규 생성 (.env/DB/테이블/시드/데이터 검증)
 - [ ] **Step 6.7**: `.github/workflows/ci.yml` 생성 (pytest + ruff, PostgreSQL service container)
 - [ ] **Step 6.8**: Railway App 배포 (Procfile, railway.toml, requirements.txt, CORS 수정)

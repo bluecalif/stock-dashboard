@@ -28,10 +28,10 @@ def health_check():
 @router.get("/debug/cors")
 def debug_cors():
     """Temporary: show CORS config for debugging. Remove after verification."""
-    return {
-        "cors_origins_env": settings.cors_origins,
-        "cors_origins_parsed": [o.strip() for o in settings.cors_origins.split(",") if o.strip()] if settings.cors_origins else [],
-    }
+    parsed = []
+    if settings.cors_origins:
+        parsed = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    return {"cors_origins_env": settings.cors_origins, "cors_origins_parsed": parsed}
 
 
 @router.get("/ready")

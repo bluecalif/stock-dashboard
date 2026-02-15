@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-02-14
-> Status: In Progress (Phase 5 완료, Phase 6 미착수)
+> Last Updated: 2026-02-15
+> Status: In Progress (Phase 0~6 완료, Phase 7 계획 중)
 
 ## 핵심 파일
 
@@ -36,6 +36,12 @@
 | 2026-02-14 | NaN 방어: API 스키마 field_validator | DB NaN → JSON 직렬화 실패 방지 |
 | 2026-02-14 | CORS: 5173 + 5174 둘 다 등록 | Vite 포트 충돌 대비 |
 | 2026-02-14 | Phase 5 완료: UX 버그 11개 수정 | 사용자 2차 확인 통과, 전체 6페이지 정상 동작 |
+| 2026-02-14 | Phase 6 스코프 축소: 통합 검증 + 운영 안정화 | 배치/로깅/알림/헬스체크 이미 구현됨. CI/CD/배포는 후속 |
+| 2026-02-14 | 로그 로테이션: 30일 자동 삭제 | Windows forfiles 커맨드 활용 |
+| 2026-02-15 | Phase 6 완료 | CI/CD + Railway + Vercel + CORS + E2E 검증 성공 |
+| 2026-02-15 | Phase 7: GitHub Actions cron 선택 | 무료, 기존 CI/CD 인프라 활용, Railway cron보다 간편 |
+| 2026-02-15 | Railway Public Networking 필요 | GitHub Actions → Railway DB 직접 접속 (내부 URL 사용 불가) |
+| 2026-02-15 | cron UTC 09:00 (KST 18:00) | 한국 장 마감 후 충분한 여유, FDR 데이터 반영 대기 |
 
 ## 자산 목록
 
@@ -122,21 +128,23 @@
 ### 배포/운영 관련
 - [x] 환경변수 하드코딩 금지 (`.env` + Pydantic Settings)
 - [x] `.env` 파일 gitignore 확인
-- [ ] CORS 화이트리스트 설정
+- [x] CORS 화이트리스트 설정 (Phase 6)
+- [x] GitHub Secrets로 시크릿 관리 (Phase 6)
+- [x] CI 파이프라인 (lint + test + build) (Phase 6)
+- [x] 프로덕션 빌드 최적화 (Phase 6)
 - [ ] DB TLS 연결 강제
-- [ ] GitHub Secrets로 시크릿 관리
-- [ ] CI 파이프라인 (lint + test + build)
-- [ ] 프로덕션 빌드 최적화
 - [ ] 배치 실패 시 Discord 알림 동작 확인
 - [ ] DB 백업 + 복구 절차 검증
+- [ ] GitHub Actions cron 일일 자동 수집 (Phase 7)
 
 ## 배포 인프라 결정 사항
 
 | 항목 | 후보 | 상태 |
 |------|------|------|
 | 스타일링 | TailwindCSS 3.x | 확정 |
-| 프론트엔드 호스팅 | Vercel / Netlify / Nginx (Windows) | 미결정 |
-| 백엔드 프로세스 매니저 | NSSM / Windows Service | 미결정 |
-| CI/CD | GitHub Actions | 확정 |
-| DB 호스팅 | Railway PostgreSQL | 확정 |
+| 프론트엔드 호스팅 | Vercel | 확정 ✅ |
+| 백엔드 호스팅 | Railway | 확정 ✅ |
+| CI/CD | GitHub Actions | 확정 ✅ |
+| 일일 수집 스케줄 | GitHub Actions cron | 확정 (Phase 7) |
+| DB 호스팅 | Railway PostgreSQL | 확정 ✅ |
 | 알림 채널 | Discord Webhook | 확정 |

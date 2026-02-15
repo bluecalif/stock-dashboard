@@ -37,7 +37,8 @@ Phase 6 전체 완료 — CI/CD + Railway + Vercel + E2E 검증
 - 배포: ✅ 정상 서빙
 
 ## Remaining / TODO
-- 없음. Phase 0~6 전체 완료.
+- **Phase 7**: GitHub Actions cron 일일 자동 수집 (6 tasks, 계획 중)
+  - dev-docs: `dev/active/phase7-scheduler/`
 
 ## Key Decisions
 - **CORS origins trailing slash rstrip**: 대시보드 입력 시 trailing `/` 포함 가능 → 코드에서 자동 제거
@@ -70,11 +71,11 @@ Phase 6 전체 완료 — CI/CD + Railway + Vercel + E2E 검증
 |-------|------|-------|
 | 0~5 | ✅ 완료 | 64/64 |
 | 6 | ✅ 완료 | 13/13 (100%) |
-| **Total** | **✅ 완료** | **77/77 (100%)** |
+| 7 | 계획 중 | 0/6 (0%) |
+| **Total** | **진행 중** | **77/83 (93%)** |
 
 ## Next Action
-- 프로젝트 MVP 완료. 다음 단계는 사용자와 논의 후 결정.
-  - 운영 모니터링 / 알림 강화
-  - 추가 자산 / 전략 확장
-  - Hantoo REST API 연동 (v0.9+)
-  - 사용자 인증 / 대시보드 개선
+- **Phase 7 실행**: GitHub Actions cron 워크플로우 구현
+  1. Railway Public Networking 활성화 (수동)
+  2. GitHub Secrets 등록 (수동)
+  3. `daily-collect.yml` 작성 + 검증

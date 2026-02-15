@@ -1,12 +1,12 @@
 # Project Overall Plan
-> Last Updated: 2026-02-14
-> Status: In Progress (Phase 5 완료, Phase 6 미착수)
+> Last Updated: 2026-02-15
+> Status: In Progress (Phase 0~6 완료, Phase 7 계획 중)
 
 ## 1. Summary (개요)
 
 **목적**: 7개 자산(KOSPI200, 삼성전자, SK하이닉스, SOXL, BTC, Gold, Silver)의 일봉 데이터 수집/저장/분석/시각화 MVP 구축.
 
-**범위**: Phase 1~6 (골격 → 수집 → 분석 → API → 프론트엔드 → 배포/운영)
+**범위**: Phase 1~7 (골격 → 수집 → 분석 → API → 프론트엔드 → 배포/운영 → 스케줄 자동화)
 
 **예상 결과물**:
 - FDR 기반 일봉 수집 파이프라인 ✅
@@ -22,7 +22,8 @@
 - **Phase 3 완료**: 전처리, 팩터 15개, 전략 3종, 백테스트, 성과지표, 배치 스크립트
 - **Phase 4 완료**: FastAPI 12 endpoints, Router-Service-Repository 3계층, 405 tests
 - **Phase 5 완료**: React SPA 6페이지, 13 steps, UX 버그 11개 수정, 사용자 확인 통과
-- **Git**: `master` 브랜치, 405 passed + 7 skipped, ruff clean
+- **Phase 6 완료**: CI/CD (GitHub Actions) + Railway 배포 + Vercel 배포 + E2E 검증
+- **Git**: `master` 브랜치, 409 passed + 7 skipped, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 
 ## 3. Target State (목표 상태)
@@ -34,7 +35,8 @@
 | 분석 | 팩터 15종, 전략 3종, 백테스트 실행 가능 | ✅ 완료 |
 | API | 12개 엔드포인트 운영 (조회/백테스트/집계) | ✅ 완료 (15 steps, 12 endpoints, 405 tests) |
 | 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | ✅ 완료 (13 steps, UX 검증 완료) |
-| 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | 부분 (배치만 완료) |
+| 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | ✅ 완료 (CI/CD + Railway + Vercel) |
+| 자동 수집 | GitHub Actions cron 기반 일일 자동 수집 | 계획 중 (Phase 7) |
 
 ## 4. Implementation Phases (구현 단계)
 
@@ -106,40 +108,34 @@
 - UX 버그 11개 수정 (전략 ID, X축 정렬, CORS, NaN, missing_threshold 등)
 - 13 tasks, 11 commits, 사용자 UX 확인 완료
 
-### Phase 6: 배포 & 운영 (Deploy & Ops)
+### Phase 6: 배포 & 운영 (Deploy & Ops) ✅ 완료
+> dev-docs: `dev/active/phase6-deploy/`
 
-#### 6A. 환경 분리 및 설정
-- 환경별 설정 분리 (dev / staging / prod)
-- Production `.env` 관리 (Railway env vars)
-- CORS_ORIGINS 화이트리스트, DB TLS 강제
+- CI/CD: GitHub Actions (lint + test + deploy-railway + deploy-vercel)
+- 배포: Railway (백엔드) + Vercel (프론트엔드)
+- CORS 설정 + E2E 검증 완료
+- 9 tasks, 13 steps
 
-#### 6B. 백엔드 배포
-- FastAPI 프로덕션 서버 (uvicorn workers, NSSM/Windows Service)
-- Alembic 프로덕션 마이그레이션 절차
+### Phase 7: 스케줄 자동 수집 (Scheduled Collection) — 계획 중
+> dev-docs: `dev/active/phase7-scheduler/`
+> 스코프: GitHub Actions cron으로 일일 수집 파이프라인 자동화
 
-#### 6C. 프론트엔드 빌드 및 배포
-- Vite 프로덕션 빌드 + 최적화
-- 정적 파일 호스팅 (Vercel / Netlify / Nginx)
+**Stage A: 사전 준비** (Step 7.1~7.2)
+- Railway PostgreSQL Public Networking 활성화
+- GitHub Secrets 등록 (RAILWAY_DATABASE_URL, ALERT_WEBHOOK_URL)
 
-#### 6D. CI/CD 파이프라인
-- GitHub Actions: lint + test + build + 조건부 배포
+**Stage B: Workflow 구현** (Step 7.3)
+- `.github/workflows/daily-collect.yml` — cron (KST 18:00) + workflow_dispatch
+- 파이프라인: collect.py → healthcheck.py → run_research.py
 
-#### 6E. 스케줄러 및 배치
-- Windows Task Scheduler 일일 수집 + 분석 순차 실행
-- Discord Webhook 알림
-
-#### 6F. 모니터링, 백업, 문서
-- JSON 구조화 로그, API 응답시간 미들웨어
-- DB 백업 (`pg_dump`), 복구 절차
-- 배포 체크리스트, 운영 런북
-
-#### 6G. Hantoo fallback (선택, v0.9+)
-- 국내주식(005930, 000660) REST API 이중화
+**Stage C: 검증 + 문서** (Step 7.4~7.6)
+- workflow_dispatch 수동 실행 E2E 검증
+- Runbook 업데이트 + dev-docs 갱신
 
 ## 5. 데이터 흐름
 
 ```
-scheduler → collector (FDR) → price_daily
+GitHub Actions cron (KST 18:00) → collector (FDR) → price_daily
                                    ↓
                          research_engine (preprocessing → factors → signals → backtest)
                                    ↓
@@ -156,7 +152,8 @@ scheduler → collector (FDR) → price_daily
 |------|--------|-------------|------------|
 | FDR 단일 소스 장애 | 전 자산 수집 중단 | 중 | Phase 6에서 Hantoo fallback 추가, FDR 실패율 모니터링 |
 | Railway PostgreSQL 연결 불안정 | 데이터 적재/조회 불가 | 저 | TLS 강제, 커넥션 풀링, 헬스체크 |
-| Windows 단일 호스트 장애 | 전체 서비스 중단 | 중 | 주기 백업, 재기동 스크립트 |
+| Windows 단일 호스트 장애 | 수집 중단 (Phase 7에서 해소) | 저 | GitHub Actions cron으로 이전 |
+| GitHub Actions cron 지연 | 수집 시간 최대 15분 변동 | 저 | 장 마감 후이므로 허용 범위 |
 | API 상관행렬 on-the-fly 성능 | 응답 지연 | 저 | 데이터량 소규모(7자산×3년), 캐싱 고려 |
 | 대시보드 대량 데이터 렌더 | UX 저하 | 저 | Pagination, 날짜 범위 제한, 데이터 다운샘플 |
 | 프로덕션 환경변수 유출 | 보안 침해 | 중 | GitHub Secrets, `.env` gitignore |

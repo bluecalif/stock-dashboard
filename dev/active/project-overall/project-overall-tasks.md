@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-02-15
-> Status: ALL PHASES COMPLETE (Phase 1-6)
+> Status: Phase 0~6 완료, Phase 7 계획 중
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -124,6 +124,21 @@
 - [x] 6.5 운영 문서 (Runbook) `[M]` — `65e6703`
 - [x] 6.6 dev-docs 갱신 & 커밋 `[S]`
 
+## Phase 7: 스케줄 자동 수집 (Scheduled Collection) — 계획 중 (0/6)
+> dev-docs: `dev/active/phase7-scheduler/`
+
+### 7A. 사전 준비 (수동)
+- [ ] 7.1 Railway Public Networking 확인/활성화 `[S]`
+- [ ] 7.2 GitHub Secrets 등록 (RAILWAY_DATABASE_URL, ALERT_WEBHOOK_URL) `[S]` — blocked by 7.1
+
+### 7B. Workflow 구현
+- [ ] 7.3 `.github/workflows/daily-collect.yml` 작성 `[M]`
+
+### 7C. 검증 + 문서
+- [ ] 7.4 workflow_dispatch 수동 실행 E2E 검증 `[M]` — blocked by 7.2, 7.3
+- [ ] 7.5 Runbook 업데이트 (스케줄 수집 섹션) `[S]` — blocked by 7.4
+- [ ] 7.6 dev-docs 갱신 + 커밋 `[S]` — blocked by 7.5
+
 ---
 
 ## Summary
@@ -131,5 +146,6 @@
 - **Phase 4**: 15 tasks — **ALL COMPLETE** (✅)
 - **Phase 5**: 13 tasks — **ALL COMPLETE** (✅)
 - **Phase 6**: 9 tasks — **ALL COMPLETE** (✅)
-- **Grand Total**: 73 tasks — ALL COMPLETE
-- **Tests**: 405 passed, 7 skipped, ruff clean
+- **Phase 7**: 6 tasks — PLANNING (0/6)
+- **Grand Total**: 79 tasks (73 complete + 6 planned)
+- **Tests**: 409 passed, 7 skipped, ruff clean

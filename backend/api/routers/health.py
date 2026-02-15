@@ -1,10 +1,8 @@
 """Health check endpoints."""
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Response
 from sqlalchemy import text
-from sqlalchemy.orm import Session
 
-from api.dependencies import get_db
 from db.session import SessionLocal
 
 router = APIRouter(prefix="/v1", tags=["health"])

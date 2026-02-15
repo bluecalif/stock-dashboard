@@ -115,6 +115,13 @@ Vercel:
 - `backend/tests/unit/test_api/test_edge_cases.py` — 헬스체크 테스트 503 업데이트
 - `docs/cli-deployment.md` — 트러블슈팅/체크리스트/서비스구조/운영명령어 대폭 확장
 
+## Changed Files (Step 6.13 — D-5 디버깅, 세션 2)
+- `backend/api/routers/health.py` — DI 분리: `Depends(get_db)` 제거, 항상 200 liveness
+- `backend/railway.toml` — `startCommand`: `&&` → `|| true;`, healthcheck 주석 처리 (디버깅)
+- `backend/tests/unit/test_api/test_main.py` — `monkeypatch` 기반 health 테스트 전환 + 6 tests
+- `backend/tests/unit/test_api/test_edge_cases.py` — health 503→200 반영
+- `.github/workflows/ci.yml` — Railway deploy 로그 수집 단계 추가
+
 ## 4. 컨벤션 체크리스트
 
 ### 배치 스크립트

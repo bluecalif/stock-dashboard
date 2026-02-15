@@ -5,26 +5,28 @@
 ## 1. Architecture
 
 ```
-[Windows PC]                    [Cloud]
- ├── Task Scheduler             ├── Railway PostgreSQL (DB)
- │   └── daily_collect.bat      ├── Railway App (FastAPI API)
- │       ├── collect.py         │   └── /v1/* endpoints
- │       ├── healthcheck.py     └── Vercel (React SPA)
- │       └── run_research.py        └── → Railway API
- └── Local dev environment
+[GitHub Actions]                [Cloud]
+ └── Daily Collect (cron)       ├── Railway PostgreSQL (DB)
+     ├── collect.py             ├── Railway App (FastAPI API)
+     ├── healthcheck.py         │   └── /v1/* endpoints
+     └── run_research.py        └── Vercel (React SPA)
+                                    └── → Railway API
 ```
 
 ## 2. Daily Pipeline
 
-**Schedule**: 매일 18:00 KST (Windows Task Scheduler)
-**Script**: `backend/scripts/daily_collect.bat`
-**Pipeline**: collect (T-7~T) → healthcheck → research → log rotation
+**Schedule**: 매일 18:00 KST (GitHub Actions cron, UTC 09:00)
+**Workflow**: `.github/workflows/daily-collect.yml`
+**Pipeline**: collect (T-7~T) → healthcheck → research
 
-### Logs
-- 경로: `logs/collect_YYYYMMDD.log`
-- 자동 삭제: 30일 이상 된 로그
+### GitHub Actions 스케줄 수집
+- **자동 실행**: UTC 09:00 (KST 18:00), 매일
+- **수동 실행**: GitHub → Actions → Daily Collect → Run workflow
+  - `start_date`, `end_date` 파라미터로 날짜 범위 지정 가능
+- **로그**: GitHub Actions 실행 로그에서 확인
+- **알림**: healthcheck 실패 시 Discord webhook으로 알림
 
-### 수동 실행
+### 로컬 수동 실행
 ```bash
 cd backend
 .venv/Scripts/python scripts/collect.py --start 2026-02-01 --end 2026-02-15
@@ -73,8 +75,20 @@ cd backend
 ### 3.3 CI/CD (GitHub Actions)
 
 **Trigger**: push/PR to master
-**Jobs**: pytest + ruff lint
+**Jobs**: pytest + ruff lint → deploy-railway + deploy-vercel
 **Config**: `.github/workflows/ci.yml`
+
+### 3.4 Scheduled Collection (GitHub Actions)
+
+**Trigger**: cron (UTC 09:00 daily) + workflow_dispatch
+**Jobs**: collect → healthcheck → research
+**Config**: `.github/workflows/daily-collect.yml`
+
+**GitHub Secrets** (필요):
+| Secret | Description |
+|--------|-------------|
+| `RAILWAY_DATABASE_URL` | Railway PostgreSQL **Public** URL (TCP Proxy) |
+| `ALERT_WEBHOOK_URL` | Discord webhook URL (헬스체크 알림) |
 
 ## 4. Pre-deployment Check
 
@@ -99,9 +113,9 @@ cd backend
 3. `preflight.py` 실행하여 진단
 
 ### 데이터 수집 실패
-1. `logs/collect_YYYYMMDD.log` 확인
+1. GitHub Actions → Daily Collect → 실패한 run 로그 확인
 2. FDR 서버 상태 확인 (네트워크/타임아웃)
-3. 수동 재실행: `python scripts/collect.py --start ... --end ...`
+3. 수동 재실행: Actions → Run workflow (날짜 지정 가능)
 
 ### API 응답 없음
 1. Railway dashboard에서 서비스 상태/로그 확인
@@ -117,10 +131,12 @@ cd backend
 
 | Item | Method | Frequency |
 |------|--------|-----------|
-| Data freshness | `healthcheck.py` (자동) | Daily 18:00 |
+| Data freshness | `healthcheck.py` (GitHub Actions) | Daily 18:00 KST |
+| Data collection | GitHub Actions Daily Collect | Daily 18:00 KST |
+| Discord alert | healthcheck 실패 시 자동 알림 | On failure |
 | API health | `/health` endpoint | On deploy |
 | Test suite | GitHub Actions CI | On push/PR |
-| Logs | `logs/` directory | As needed |
+| Logs | GitHub Actions run logs | As needed |
 
 ## 7. Key Assets (7)
 

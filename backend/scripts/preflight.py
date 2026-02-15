@@ -7,19 +7,13 @@ from pathlib import Path
 # Ensure backend/ is on sys.path when running as script
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import create_engine, inspect, func, select, text
+from sqlalchemy import create_engine, func, inspect, select, text
 from sqlalchemy.orm import Session
 
 from config.settings import settings
 from db.models import (
     AssetMaster,
-    BacktestEquityCurve,
-    BacktestRun,
-    BacktestTradeLog,
-    FactorDaily,
-    JobRun,
     PriceDaily,
-    SignalDaily,
 )
 
 # 7 expected seed assets

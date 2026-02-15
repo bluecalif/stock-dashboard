@@ -61,16 +61,38 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
+        id: railway-deploy
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci --service backend 2>&1 || true
+        run: |
+          OUTPUT=$(railway up --ci --service backend 2>&1) || true
+          echo "$OUTPUT"
+          # Extract deployment ID from build logs URL
+          DEPLOY_ID=$(echo "$OUTPUT" | grep -oP 'id=\K[a-f0-9-]+' | head -1)
+          echo "deploy_id=$DEPLOY_ID" >> "$GITHUB_OUTPUT"
+          # Check if deploy succeeded
+          if echo "$OUTPUT" | grep -q "Deploy failed"; then
+            echo "deploy_failed=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Check Railway deploy logs
+      - name: Fetch Railway runtime logs
+        if: always()
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway logs --limit 50 --service backend 2>&1 || echo "Could not fetch logs"
+        run: |
+          DEPLOY_ID="${{ steps.railway-deploy.outputs.deploy_id }}"
+          echo "Deployment ID: $DEPLOY_ID"
+          if [ -n "$DEPLOY_ID" ]; then
+            railway logs "$DEPLOY_ID" 2>&1 || echo "Could not fetch logs for deployment"
+          fi
+          # Also try without deployment ID
+          railway logs 2>&1 || echo "Could not fetch recent logs"
+
+      - name: Fail if deploy failed
+        if: steps.railway-deploy.outputs.deploy_failed == 'true'
+        run: exit 1
 
   deploy-vercel:
     needs: test

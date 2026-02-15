@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     fdr_base_delay: float = 1.0
     log_level: str = "INFO"
     alert_webhook_url: str = ""
+    cors_origins: str = ""  # comma-separated extra origins for CORS
     pythonutf8: int = 1
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}

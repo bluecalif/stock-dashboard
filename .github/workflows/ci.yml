@@ -64,7 +64,7 @@ jobs:
         working-directory: backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci
+        run: railway up --ci --service stock-dashboard
 
   deploy-vercel:
     needs: test

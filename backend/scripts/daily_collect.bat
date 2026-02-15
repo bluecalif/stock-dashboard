@@ -1,8 +1,8 @@
 @echo off
 REM ============================================================
-REM Stock Dashboard - Daily OHLCV Collection
+REM Stock Dashboard - Daily Pipeline
 REM Schedule: Daily 18:00 KST via Windows Task Scheduler
-REM Collects last 7 days (UPSERT-safe overlap for gap prevention)
+REM Pipeline: collect (T-7~T) → healthcheck → research → log rotation
 REM ============================================================
 
 setlocal enabledelayedexpansion
@@ -18,6 +18,7 @@ set PROJECT_ROOT=%SCRIPT_DIR%..\..
 set VENV_PYTHON=%BACKEND_DIR%\.venv\Scripts\python.exe
 set COLLECT_SCRIPT=%BACKEND_DIR%\scripts\collect.py
 set HEALTHCHECK_SCRIPT=%BACKEND_DIR%\scripts\healthcheck.py
+set RESEARCH_SCRIPT=%BACKEND_DIR%\scripts\run_research.py
 set LOG_DIR=%PROJECT_ROOT%\logs
 
 REM Verify venv exists
@@ -64,6 +65,24 @@ if %HC_CODE% EQU 0 (
 )
 
 echo [%date% %time%] Healthcheck exit code: %HC_CODE% >> "%LOG_FILE%"
+
+REM Run research pipeline (factors → signals → backtest)
+echo [%date% %time%] Running research pipeline...
+"%VENV_PYTHON%" "%RESEARCH_SCRIPT%" --start %START_DATE% --end %END_DATE% >> "%LOG_FILE%" 2>&1
+set RS_CODE=%ERRORLEVEL%
+
+if %RS_CODE% EQU 0 (
+    echo [%date% %time%] Research pipeline completed successfully.
+) else (
+    echo [%date% %time%] Research pipeline finished with errors (exit code: %RS_CODE%).
+)
+
+echo [%date% %time%] Research exit code: %RS_CODE% >> "%LOG_FILE%"
+
+REM Log rotation: delete logs older than 30 days
+forfiles /P "%LOG_DIR%" /M collect_*.log /D -30 /C "cmd /c del @path" >nul 2>&1
+
+echo [%date% %time%] Pipeline complete. >> "%LOG_FILE%"
 
 endlocal
 REM Exit with collection exit code (primary indicator)

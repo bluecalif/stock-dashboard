@@ -1,113 +1,107 @@
 # Session Compact
 
-> Generated: 2026-02-14 20:30
+> Generated: 2026-02-15 10:00
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-Phase 5 Frontend UX 디버깅 완료 (Step 5.13) → UX 재확인 → 커밋 → Phase 6 착수
+Phase 6 (Deploy & Ops) 구현 — 통합 검증 + CI/CD + 실배포 + 운영 안정화. 9개 Step 실행.
 
 ## Completed
-- [x] **Step 5.1~5.12**: 프론트엔드 전체 구현 + UX 버그 수정 (이전 세션)
-- [x] **Step 5.13-1: Missing Threshold 수정**
-  - `factor_store.py`: `store_factors_for_asset()`에 `missing_threshold` 파라미터 추가
-  - `run_research.py`: `store_factors_for_asset()` 및 `preprocess()` 호출에 `missing_threshold=0.10` 전달
-  - KS200/005930/000660 Factor/Signal/Backtest 전체 생성 성공
-- [x] **Step 5.13-2: Backtest store_failed 수정**
-  - `backtest_store.py`: `_to_date()`, `_to_float()` 헬퍼 추가 → numpy/Timestamp → Python native 변환
-  - 전 자산 12개 백테스트 run 저장 성공
-- [x] **Step 5.13-3: CORS 차단 수정**
-  - `api/main.py`: `allow_origins`에 `localhost:5174`, `127.0.0.1:5174` 추가
-- [x] **Step 5.13-4: NaN JSON Serialization 수정**
-  - `api/schemas/signal.py`: `score` 필드에 `nan_to_none` field_validator 추가
-  - `api/schemas/factor.py`: `value` 필드를 `float | None`으로 변경 + 동일 validator 추가
-- [x] **파이프라인 재실행**: 전체 7개 자산 × 3개 전략 = 21개 조합 완료
-- [x] **디버그 히스토리 문서화**: `dev/active/phase5-frontend/debug-history.md` 생성
+- [x] **Phase 6 dev-docs 생성** (`/dev-docs` 스킬 실행, 이전 세션)
+- [x] **project-overall 동기화** (이전 세션)
+- [x] **Phase 6 스코프 확장**: CI/CD + 실배포 포함으로 dev-docs 재작성 (6 tasks → 9 tasks)
+  - `phase6-deploy-plan.md` — 9 tasks, 6 stages (A~F), Railway + Vercel + GitHub Actions 포함
+  - `phase6-deploy-tasks.md` — 6.7/6.8/6.9 신규 추가, Summary 9개
+  - `phase6-deploy-context.md` — 배포 아키텍처/CI/CD 흐름/결정사항 7건/컨벤션 체크리스트
+  - `docs/session-compact.md` — TODO 9개, Key Decisions 갱신
 
 ## Current State
 
 ### 프로젝트 진행률
 | Phase | 상태 | Tasks |
 |-------|------|-------|
-| 1-4 (Skeleton~API) | ✅ 완료 | 46/46 |
-| 5 Frontend | ✅ 완료 | 13/13 |
-| 6 Deploy & Ops | 미착수 | 0/16 |
+| 1-5 (Skeleton~Frontend) | ✅ 완료 | 64/64 |
+| 6 Deploy & Ops | 진행 중 | 2/9 |
 
-### UX 버그 현황
-| # | 페이지 | 이슈 | 상태 |
-|---|--------|------|------|
-| 1 | Home | MiniChart X축 역순 | ✅ 수정 |
-| 2 | Price | Gold/Silver Network Error | ✅ 수정 |
-| 3 | Price | 거래량 미표시 | ✅ 수정 |
-| 4 | Factor | KS200/005930/000660 미표시 | ✅ 파이프라인 수정 완료 |
-| 5 | Signal | X축 역순 | ✅ 수정 |
-| 6 | Signal | 마커 설명 없음 | ✅ 수정 |
-| 7 | Signal | 관망/무신호 구분 불가 | ✅ 수정 |
-| 8 | Signal | 추세추종 미표시 | ✅ 수정 |
-| 9 | Signal | 평균회귀 마커만 표시 | ✅ close 컬럼 포함 수정 완료 (`d227ee9`) |
-| 10 | Strategy | 전체 미표시 | ✅ 백테스트 데이터 생성 완료 |
-| 11 | Dashboard | 백테스트 상태 배지 | ✅ 수정 |
-
-### 파이프라인 실행 결과 (2026-02-14)
-| 자산 | Factor | Momentum | Trend | Mean Reversion |
-|------|--------|----------|-------|----------------|
-| KS200 | ✅ 4017 | CAGR 72.6% | CAGR 89.8% | CAGR 6.4% |
-| 005930 | ✅ 4017 | CAGR 79.6% | CAGR 144.1% | CAGR 3.4% |
-| 000660 | ✅ 4017 | CAGR 30.6% | CAGR 183.1% | CAGR 12.7% |
-| SOXL | ✅ 4002 | CAGR 0.0% | CAGR 242.5% | CAGR -22.9% |
-| BTC | ✅ | CAGR -1.7% | CAGR -11.0% | CAGR -9.4% |
-| GC=F | ✅ | CAGR 33.9% | CAGR 50.9% | CAGR 1.3% |
-| SI=F | ✅ | CAGR 32.3% | CAGR 84.9% | CAGR 7.4% |
+### Phase 6 태스크 (9개, 모두 미완료)
+| # | Task | Size | Stage |
+|---|------|------|-------|
+| 6.1 | 리서치 파이프라인 배치 스케줄링 | S | A: 배치 통합 |
+| 6.4 | 로그 로테이션 | S | A: 배치 통합 |
+| 6.2 | 테스트 전체 실행 & 검증 | M | B: 테스트 검증 |
+| 6.3 | Pre-deployment 체크 스크립트 | M | C: 운영 도구 |
+| 6.7 | GitHub Actions CI 파이프라인 | M | D: CI/CD |
+| 6.8 | 백엔드 Railway 배포 | M | E: 프로덕션 배포 |
+| 6.9 | 프론트엔드 Vercel 배포 | M | E: 프로덕션 배포 |
+| 6.5 | 운영 문서 (Runbook) | M | F: 문서화 |
+| 6.6 | dev-docs 갱신 & 커밋 | S | F: 문서화 |
 
 ### Changed Files (이번 세션)
 ```
-backend/
-├── api/
-│   ├── main.py                    — CORS: 5174 포트 추가
-│   └── schemas/
-│       ├── signal.py              — score NaN→None field_validator
-│       └── factor.py              — value NaN→None field_validator, float→float|None
-├── research_engine/
-│   ├── backtest_store.py          — _to_date(), _to_float() 헬퍼 + 타입 변환
-│   └── factor_store.py            — missing_threshold 파라미터 추가
-└── scripts/
-    └── run_research.py            — missing_threshold=0.10 전달
+dev/active/phase6-deploy/
+├── phase6-deploy-plan.md      (수정: CI/CD + 배포 추가)
+├── phase6-deploy-context.md   (수정: 배포 인프라 추가)
+├── phase6-deploy-tasks.md     (수정: 9 tasks로 확장)
+└── debug-history.md           (기존, 미변경)
 
-dev/active/phase5-frontend/
-└── debug-history.md               — 신규 생성 (디버그 히스토리)
+docs/session-compact.md        (수정: 스코프 확장 반영)
 ```
 
 ### Git / Tests
-- Branch: `master`, **커밋 안 됨** (프론트+백엔드 수정사항 전부 미커밋)
-- TSC: 미확인 (이번 세션에서 프론트엔드 파일은 변경 안 함)
+- Branch: `master`, Phase 6 dev-docs 전체 미커밋 (untracked)
+- project-overall 3개 파일도 미커밋 (modified)
+- Tests: 미실행 (Step 6.2에서 확인 예정)
 
 ## Remaining / TODO
-- [x] **UX 재확인**: 사용자 2차 확인 완료 — 전체 페이지 정상 동작 확인
-- [x] **Bug #9 수정**: mean_reversion close 컬럼 누락 → `d227ee9`에서 수정 완료
-- [x] **커밋**: Step 5.11~5.13 + Bug #9 전부 커밋 완료 (`398f7da`, `d227ee9`)
-- [ ] **Phase 6 (Deploy & Ops) 착수**
+- [x] **Step 6.1**: `daily_collect.bat`에 `run_research.py` 호출 추가 (collect → healthcheck → research)
+- [x] **Step 6.4**: `daily_collect.bat`에 30일 로그 로테이션 추가
+- [ ] **Step 6.2**: `python -m pytest` 전체 실행, 실패 수정
+- [ ] **Step 6.3**: `backend/scripts/preflight.py` 신규 생성 (.env/DB/테이블/시드/데이터 검증)
+- [ ] **Step 6.7**: `.github/workflows/ci.yml` 생성 (pytest + ruff, PostgreSQL service container)
+- [ ] **Step 6.8**: Railway App 배포 (Procfile, railway.toml, requirements.txt, CORS 수정)
+- [ ] **Step 6.9**: Vercel 배포 (vercel.json, VITE_API_BASE_URL 환경변수 처리)
+- [ ] **Step 6.5**: `docs/runbook.md` 운영 문서 생성 (배포 절차 포함)
+- [ ] **Step 6.6**: dev-docs 갱신 + 전체 커밋 + session-compact 갱신
 
 ## Key Decisions
-- **missing_threshold 10%**: 한국주식(KS200/005930/000660) 공휴일 캘린더 차이로 6.7% 결측 → 10%로 상향
-- **NaN 방어**: DB에서 NaN이 올 수 있으므로 API 스키마 레벨에서 field_validator로 None 변환
-- **CORS 포트 범위**: Vite 포트 충돌 대비 5173 + 5174 둘 다 등록
-- **전략 ID**: 백엔드 STRATEGY_REGISTRY = `momentum`, `trend`, `mean_reversion`
-- **uvicorn --reload 불안정**: Windows WatchFiles 리로더 신뢰 불가 → 코드 변경 시 수동 재시작
+- **Phase 6 스코프 확장** (2026-02-15): CI/CD + 실배포 포함. 6 tasks → 9 tasks
+- **백엔드 배포: Railway App**: 기존 Railway PostgreSQL과 동일 프로젝트, 내부 네트워크 활용
+- **프론트엔드 배포: Vercel**: React SPA 정적 배포, GitHub 연동 자동 배포
+- **CI: GitHub Actions**: pytest + ruff, PostgreSQL service container, 무료 티어
+- **Discord webhook**: 미설정 상태 → 코드 검증만, 실발송 테스트 제외
+- **로그 로테이션**: Windows `forfiles` 커맨드로 30일 자동 삭제
 
 ## Context
 다음 세션에서는 답변에 한국어를 사용하세요.
-- **작업 디렉토리**: `frontend/` (React SPA) + `backend/` (파이프라인/API)
+- **작업 디렉토리**: `backend/` (Python) + `frontend/` (React)
 - **venv**: `backend/.venv/Scripts/activate` (Windows), Python 3.12.3
 - **Bash 경로**: `/c/Projects-2026/stock-dashboard` (Windows 백슬래시 불가)
-- **UX 체크 결과**: `docs/front-UX-check.md` (사용자 2차 작성 중)
-- **디버그 히스토리**: `dev/active/phase5-frontend/debug-history.md`
-- **서버 포트**: Backend `localhost:8000`, Frontend `localhost:5174` (5173 충돌 시)
-- **mean_reversion 워닝**: `Missing 'close' column for mean_reversion` — 전 자산 공통, 시그널 0개지만 백테스트는 별도 실행됨
+- **기존 배치 구조**: `daily_collect.bat` — collect.py → healthcheck.py 순차 실행 (run_research.py 미포함)
+- **run_research.py 인자**: `--start YYYY-MM-DD --end YYYY-MM-DD` (필수), `--assets`, `--strategy` (선택)
+- **preflight.py 검증 항목**: DATABASE_URL → DB 연결 → 8개 테이블 → 7개 시드 → 최근 데이터
+- **DB 테이블 8개**: asset_master, price_daily, factor_daily, signal_daily, backtest_run, backtest_equity_curve, backtest_trade_log, job_run
+- **배포 인프라**: Railway (DB + API), Vercel (Frontend), GitHub Actions (CI/CD)
+- **배포 아키텍처**:
+  ```
+  [Windows PC]                    [Cloud]
+   ├── Task Scheduler             ├── Railway PostgreSQL (DB)
+   │   └── daily_collect.bat      ├── Railway App (FastAPI API)
+   │       ├── collect.py         │   └── /v1/* endpoints
+   │       ├── healthcheck.py     └── Vercel (React SPA)
+   │       └── run_research.py        └── → Railway API
+   └── 로컬 개발 환경
+  ```
 - Git remote: `https://github.com/bluecalif/stock-dashboard.git`
-- **커밋 안 됨**: 프론트엔드 6개 + 백엔드 6개 + dev 1개 = 총 13개 파일 수정/생성 상태
+- dev-docs: `dev/active/phase6-deploy/` (plan, tasks, context, debug-history)
+- **CORS 현재 설정** (`api/main.py`): localhost:5173/5174만 허용 → Railway 배포 시 Vercel 도메인 추가 필요
+- **settings.py**: `database_url`, `fdr_timeout`, `log_level`, `alert_webhook_url` 등 Pydantic BaseSettings
 
 ## Next Action
-1. **UX 재확인 계속**: 사용자에게 브라우저에서 전체 페이지 테스트 요청 (서버는 이미 구동 중)
-2. `docs/front-UX-check.md` 2차 결과에 따라 추가 수정
-3. Bug #9 (mean_reversion close 컬럼) 조사 및 수정
-4. 전체 수정사항 커밋
-5. Phase 6 착수
+1. **Step 6.1 + 6.4**: `daily_collect.bat` 수정 (research 추가 + 로그 로테이션)
+2. **Step 6.2**: pytest 전체 실행 & 실패 수정
+3. **Step 6.3**: `preflight.py` 생성
+4. **Step 6.7**: GitHub Actions CI 파이프라인 생성
+5. **Step 6.8**: Railway 백엔드 배포
+6. **Step 6.9**: Vercel 프론트엔드 배포
+7. **Step 6.5**: `runbook.md` 생성 (배포 절차 포함)
+8. **Step 6.6**: 전체 커밋

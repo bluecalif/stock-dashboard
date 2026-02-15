@@ -72,12 +72,103 @@
   - 2차: deployment ID 캡처 + `railway logs <DEPLOY_ID>` → `No service could be found` (`aba4c26`)
   - Railway CLI가 token 기반 실행 시 서비스 자동 링크 안 됨 → `--service` flag 필요
 
-**현재 상태**: 헬스체크 비활성화(`railway.toml` 주석 처리)하여 서비스 시작 자체를 먼저 확인하는 방향으로 전환 중. 미커밋 변경 있음.
+**결론**: D-5에서 식별된 3가지 핵심 의문 → D-6에서 1번(캐시) + 3번(PORT 변수 확장) 확정. → **Minimum Viable Deploy 전략으로 전환**.
 
-**핵심 의문**: 로컬에서는 `/v1/health` → 200 정상 동작하나, Railway에서 계속 `service unavailable`. 가능한 원인:
-1. Docker 레이어 캐시로 구 코드 사용 (빌드 19초 완료 → 캐시 의심)
-2. Railway 내부 네트워킹/PORT 바인딩 문제
-3. `startCommand`의 `${PORT:-8000}`에서 Railway PORT 주입 타이밍 이슈
+**핵심 의문 (D-5 시점)**:
+1. ❌ Docker 레이어 캐시로 구 코드 사용 (빌드 19초 완료 → 캐시 의심) → **D-6에서 확인: 2단계 빌드로 해결**
+2. ⬜ Railway 내부 네트워킹/PORT 바인딩 문제 → 해당 없음 (PORT 변수 확장 문제였음)
+3. ❌ `startCommand`의 `${PORT:-8000}`에서 Railway PORT 주입 타이밍 이슈 → **D-6에서 확인: 근본 원인**
+
+---
+
+### D-6: Minimum Viable Deploy + 근본 원인 해결 — Railway startCommand 셸 변수 미확장
+> 2026-02-15 세션 3 — D-5 핵심 의문 해소, 2커밋으로 배포 성공
+
+**전략 전환: Minimum Viable Deploy**
+- D-5에서 5회 디버깅에도 `service unavailable` 지속 → 변수 너무 많아 원인 특정 불가
+- 복잡한 설정(healthcheck, alembic, 로그 수집 로직) 전부 제거 → **최소 상태에서 배포 성공 확인 후 점진 복원**
+
+**커밋 1 (`a449fdc`): Minimum Viable Deploy — 3개 파일 동시 수정**
+
+1. **`backend/Dockerfile` — Docker 캐시 무효화 (2단계 pip install)**
+   ```dockerfile
+   # 1단계: 의존성만 설치 (pyproject.toml 변경 시에만 재실행 — 캐시 활용)
+   COPY pyproject.toml .
+   RUN pip install --no-cache-dir .
+
+   # 2단계: 소스 코드 복사 (항상 최신 — 캐시 무효화)
+   COPY alembic.ini .
+   COPY collector/ collector/
+   ...
+   # editable 재설치 (fast — --no-deps이므로 egg-link만 생성)
+   RUN pip install --no-cache-dir -e . --no-deps
+   ```
+   - **Before**: `COPY pyproject.toml . → COPY 소스 → pip install -e .` (소스 변경해도 deps 캐시가 소스 포함)
+   - **After**: deps 먼저 설치 → 소스 복사 → editable 재설치. 소스 변경 시 반드시 최신 코드 반영
+
+2. **`backend/railway.toml` — healthcheck/alembic 완전 제거**
+   ```toml
+   [deploy]
+   startCommand = "sh -c 'uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}'"
+   restartPolicyType = "on_failure"
+   restartPolicyMaxRetries = 3
+   ```
+   - `healthcheckPath`, `healthcheckTimeout` 삭제 (헬스체크 비활성화)
+   - `alembic upgrade head || true;` 삭제 (DB 미설정 상태에서 불필요한 복잡성)
+   - **순수 uvicorn만** 실행하여 서비스 시작 자체를 먼저 확인
+
+3. **`.github/workflows/ci.yml` — Railway 로그 수집 단순화**
+   ```yaml
+   - name: Show Railway deploy logs
+     run: |
+       sleep 10
+       railway logs --service backend 2>&1 || echo "Could not fetch logs"
+   ```
+   - D-5에서의 deployment ID 캡처 로직 제거 (불안정)
+   - `--service backend` 플래그 추가 (Railway CLI token 기반 실행 시 필수)
+   - `sleep 10`으로 로그 생성 대기
+
+**CI 실행 결과**: 빌드 성공 + 런타임 로그 드디어 확보!
+
+**런타임 로그에서 발견된 에러**:
+```
+ERROR:    Error loading ASGI app. Could not import module "api.main".
+...실은 아닌...
+'${PORT:-8000}' is not a valid integer
+```
+
+**근본 원인 확정**:
+- Railway의 `startCommand`는 **셸 없이 리터럴로 명령 실행**
+- `uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}` → `${PORT:-8000}`이 문자열 그대로 전달
+- uvicorn이 `'${PORT:-8000}'`을 정수로 파싱 시도 → `not a valid integer` → 즉시 크래시
+- D-4에서 Dockerfile CMD에 `sh -c`로 감싼 건 맞았지만, `railway.toml`의 `startCommand`가 CMD를 **덮어씀**
+- startCommand에도 `sh -c`가 필요했으나 D-5까지 이 사실을 몰랐음
+
+**커밋 2 (`8e97c72`): startCommand sh -c 래핑**
+```toml
+# Before (D-5까지):
+startCommand = "alembic upgrade head || true; uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+
+# After:
+startCommand = "sh -c 'uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}'"
+```
+
+**배포 성공 확인** (Railway 런타임 로그):
+```
+INFO:     Started server process [2]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:7276 (Press CTRL+C to quit)
+```
+- PORT=7276 (Railway 주입) 정상 바인딩 확인
+- `/v1/health` 응답 확인 가능 상태
+
+**D-6 핵심 인사이트: startCommand vs Dockerfile CMD**
+| 항목 | Dockerfile CMD | railway.toml startCommand |
+|------|---------------|--------------------------|
+| 셸 확장 | `sh -c` 명시하면 동작 | **셸 없이 리터럴 실행** — `sh -c` 필수 |
+| 우선순위 | 기본 | **startCommand가 CMD를 덮어씀** |
+| 변수 확장 | `["sh", "-c", "..."]` exec form에서 가능 | 반드시 `sh -c '...'`로 래핑 |
 
 ### Vercel deploy — 성공
 - **상태**: 3회 연속 성공 (deploy-vercel job)
@@ -85,10 +176,10 @@
 
 ## Modified Files Summary
 ```
-.github/workflows/ci.yml       — deploy-railway + deploy-vercel job 추가, 로그 수집 단계 추가
+.github/workflows/ci.yml       — deploy-railway + deploy-vercel job 추가, 로그 수집 단계 추가/단순화
 backend/.railwayignore          — 신규: .venv 등 업로드 제외
-backend/railway.toml            — builder dockerfile 변경, healthcheck 수정, startCommand || true
-backend/Dockerfile              — 신규: Python 3.12-slim 기반 배포 이미지, CMD exec form
+backend/railway.toml            — builder dockerfile, healthcheck 수정→제거, startCommand sh -c 래핑
+backend/Dockerfile              — 신규: Python 3.12-slim, 2단계 pip install (캐시 무효화)
 backend/api/routers/health.py   — DI 분리: Depends(get_db) → SessionLocal 직접 사용, 200 liveness
 backend/api/dependencies.py     — RuntimeError → HTTPException(503)
 backend/tests/unit/test_api/test_main.py       — monkeypatch 기반 health 테스트로 전환
@@ -118,3 +209,7 @@ backend/tests/unit/test_api/test_edge_cases.py — health 503→200 반영
 9. **startCommand `&&` vs `||true;`**: `&&`는 앞 명령 실패 시 뒷 명령 미실행. DB 미설정 시 `alembic upgrade head` 실패 → uvicorn 미시작. `|| true;`로 graceful 실패 허용 필수
 10. **Railway CLI logs 명령 제약**: `railway logs --limit` 미지원, Token 기반 실행 시 `--service` flag 필수, deployment ID로도 서비스 지정 필요
 11. **CI에서 Railway 배포 실패 원인 추적 어려움**: Railway 빌드/런타임 로그가 CI stdout에 충분히 노출되지 않음. SPA 대시보드에서만 확인 가능한 정보가 있어 디버깅 병목
+12. **Railway startCommand는 셸 없이 실행**: `${PORT:-8000}` 같은 셸 변수 확장이 안 됨. 반드시 `sh -c '...'`로 래핑 필수. Dockerfile CMD에 `sh -c`가 있어도 startCommand가 CMD를 덮어쓰므로 startCommand 자체에 `sh -c` 필요
+13. **Minimum Viable Deploy 전략**: 디버깅 변수가 많을 때 모든 복잡성 제거 → 최소 상태로 배포 성공 확인 → 점진 복원이 가장 효과적. 5회 실패 후 이 전략으로 1회 만에 근본 원인 특정
+14. **Docker 2단계 빌드로 캐시 무효화**: `COPY pyproject.toml → pip install` (deps 캐시) → `COPY 소스 → pip install -e . --no-deps` (항상 최신). 소스 변경 시 deps 재설치 없이 빠른 빌드 + 최신 코드 보장
+15. **startCommand vs Dockerfile CMD 우선순위**: `railway.toml`의 `startCommand`가 존재하면 Dockerfile CMD를 완전히 무시. 두 곳 모두 설정 시 혼란 발생 → startCommand에 통일 권장

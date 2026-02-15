@@ -170,8 +170,77 @@ INFO:     Uvicorn running on http://0.0.0.0:7276 (Press CTRL+C to quit)
 | 우선순위 | 기본 | **startCommand가 CMD를 덮어씀** |
 | 변수 확장 | `["sh", "-c", "..."]` exec form에서 가능 | 반드시 `sh -c '...'`로 래핑 |
 
+---
+
+### D-7: 점진 복원 — healthcheck + alembic 재활성화
+> 2026-02-15 세션 3 — D-6 배포 성공 확인 후 점진 복원
+
+**변경**: `railway.toml`에 D-6에서 제거했던 설정 재활성화
+```toml
+startCommand = "sh -c 'alembic upgrade head || true; uvicorn api.main:app --host 0.0.0.0 --port ${PORT:-8000}'"
+healthcheckPath = "/v1/health"
+healthcheckTimeout = 120
+```
+
+**결과**: CI 성공, Railway 배포 성공, healthcheck `/v1/health` → 200 OK 통과
+- alembic은 `Could not parse SQLAlchemy URL` 에러 → `|| true`로 graceful 실패 → uvicorn 정상 시작
+- alembic 실패 원인은 D-8에서 분석
+
+**커밋**: `2db9684`
+
+---
+
+### D-8: postgres:// 스키마 호환성 — SQLAlchemy 2.x는 postgresql:// 필수
+> 2026-02-15 세션 3 — alembic URL 파싱 실패 근본 원인 해결
+
+**증상**: D-7 배포 성공했으나 alembic이 `Could not parse SQLAlchemy URL from given URL string` 에러 지속. `/v1/health` → `{"db":"not_configured"}` — DB 미연결.
+
+**분석**:
+- Railway Postgres는 `DATABASE_URL`을 `postgres://` 스키마로 제공
+- SQLAlchemy 2.x는 `postgres://` 스키마를 지원하지 않음 (deprecated) → `postgresql://` 필수
+- `db/session.py`와 `db/alembic/env.py` 모두 URL을 그대로 사용 → 파싱 실패
+
+**수정**: 두 파일에 자동 변환 로직 추가
+```python
+_url = settings.database_url
+if _url.startswith("postgres://"):
+    _url = _url.replace("postgres://", "postgresql://", 1)
+```
+
+**커밋**: `6fd0a4a`
+
+---
+
+### D-9: Railway 변수 참조 미해석 — `${{Postgres.DATABASE_URL}}` 실패
+> 2026-02-15 세션 3 — 환경변수 설정 최종 해결
+
+**증상**: D-8 코드 수정 배포 후에도 `/v1/health` → `{"db":"not_configured"}`. DATABASE_URL이 컨테이너에 빈 문자열로 전달됨.
+
+**분석**:
+- backend 서비스에 `DATABASE_URL = ${{Postgres.DATABASE_URL}}`로 설정
+- Railway 변수 참조 `${{ServiceName.VAR}}`에서 서비스 이름이 정확히 일치해야 함
+- Postgres 서비스의 실제 이름이 참조에 쓴 이름과 불일치 → 참조가 빈 문자열로 resolve
+
+**수정**: 참조 대신 **실제 URL 직접 입력**
+```
+postgresql://postgres:***@postgres.railway.internal:5432/railway
+```
+- Railway 대시보드 → backend 서비스 → Variables → DATABASE_URL 값 직접 교체
+- 환경변수 변경 후 수동 Redeploy 클릭 (자동 재배포 트리거 안 됨)
+
+**결과**:
+```
+/v1/health → {"status":"ok","db":"connected"} ✅
+/v1/ready  → {"status":"ok","db":"connected"} ✅
+/v1/prices/daily?asset_id=KS200 → OHLCV 데이터 반환 ✅
+/v1/factors?symbol=KS200 → 팩터 데이터 반환 ✅
+/v1/signals?symbol=KS200 → 시그널 데이터 반환 ✅
+```
+
+**현재 상태**: 백엔드 API 완전 동작. 남은 작업: CORS_ORIGINS, Vercel VITE_API_BASE_URL, E2E 검증.
+
 ### Vercel deploy — 성공
-- **상태**: 3회 연속 성공 (deploy-vercel job)
+- **상태**: 연속 성공 (deploy-vercel job)
 - **구성**: `vercel pull → build → deploy --prebuilt --prod`
 
 ## Modified Files Summary
@@ -182,6 +251,8 @@ backend/railway.toml            — builder dockerfile, healthcheck 수정→제
 backend/Dockerfile              — 신규: Python 3.12-slim, 2단계 pip install (캐시 무효화)
 backend/api/routers/health.py   — DI 분리: Depends(get_db) → SessionLocal 직접 사용, 200 liveness
 backend/api/dependencies.py     — RuntimeError → HTTPException(503)
+backend/db/session.py           — postgres:// → postgresql:// 자동 변환
+backend/db/alembic/env.py       — postgres:// → postgresql:// 자동 변환
 backend/tests/unit/test_api/test_main.py       — monkeypatch 기반 health 테스트로 전환
 backend/tests/unit/test_api/test_edge_cases.py — health 503→200 반영
 ```
@@ -213,3 +284,6 @@ backend/tests/unit/test_api/test_edge_cases.py — health 503→200 반영
 13. **Minimum Viable Deploy 전략**: 디버깅 변수가 많을 때 모든 복잡성 제거 → 최소 상태로 배포 성공 확인 → 점진 복원이 가장 효과적. 5회 실패 후 이 전략으로 1회 만에 근본 원인 특정
 14. **Docker 2단계 빌드로 캐시 무효화**: `COPY pyproject.toml → pip install` (deps 캐시) → `COPY 소스 → pip install -e . --no-deps` (항상 최신). 소스 변경 시 deps 재설치 없이 빠른 빌드 + 최신 코드 보장
 15. **startCommand vs Dockerfile CMD 우선순위**: `railway.toml`의 `startCommand`가 존재하면 Dockerfile CMD를 완전히 무시. 두 곳 모두 설정 시 혼란 발생 → startCommand에 통일 권장
+16. **Railway Postgres `postgres://` 스키마**: Railway Postgres는 `postgres://` 스키마 URL을 제공하나, SQLAlchemy 2.x는 `postgresql://`만 지원. 앱 코드에서 자동 변환 필수
+17. **Railway 변수 참조 `${{ServiceName.VAR}}`**: 서비스 이름이 정확히 일치해야 함. 대소문자 또는 이름 불일치 시 빈 문자열로 resolve됨. 디버깅 어려움 → 초기에는 직접 URL 입력이 안전
+18. **Railway 환경변수 변경 시 자동 재배포 안 될 수 있음**: 변수 변경 후 Deployments 탭에서 수동 Redeploy 필요한 경우 있음

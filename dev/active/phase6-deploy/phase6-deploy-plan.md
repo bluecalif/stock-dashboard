@@ -1,6 +1,6 @@
 # Phase 6: Deploy & Ops
 > Last Updated: 2026-02-15
-> Status: In Progress — Stage G 배포 안정화
+> Status: In Progress — Step 6.13 환경변수 + E2E 검증 남음
 
 ## 1. Summary (개요)
 

@@ -92,6 +92,9 @@ Vercel:
 | 2026-02-15 | 헬스체크 503 분리: /health(엄격) + /ready(진단) | Railway 헬스체크가 DB 다운을 감지하도록 |
 | 2026-02-15 | Alembic startCommand 통합 | idempotent, 배포마다 자동 마이그레이션 |
 | 2026-02-15 | dependencies.py RuntimeError → HTTPException(503) | 503 체인 일관성 |
+| 2026-02-15 | Minimum Viable Deploy 전략 | 변수 많을 때 모두 제거 → 최소 배포 성공 → 점진 복원 |
+| 2026-02-15 | postgres:// 자동 변환 코드 추가 | Railway Postgres는 postgres:// 제공, SQLAlchemy 2.x 비호환 |
+| 2026-02-15 | Railway 변수 참조 대신 직접 URL | `${{Postgres.DATABASE_URL}}` 미해석 → 직접 URL 안전 |
 
 ## Changed Files (Step 6.1 + 6.4)
 - `backend/scripts/daily_collect.bat` — 수정: research 파이프라인 호출 추가 + 30일 로그 로테이션
@@ -122,6 +125,13 @@ Vercel:
 - `backend/tests/unit/test_api/test_edge_cases.py` — health 503→200 반영
 - `.github/workflows/ci.yml` — Railway deploy 로그 수집 단계 추가
 
+## Changed Files (Step 6.13 — D-6~D-9 디버깅, 세션 3)
+- `backend/Dockerfile` — 2단계 pip install (deps 캐시 + editable 재설치)
+- `backend/railway.toml` — healthcheck/alembic 복원, `sh -c` 래핑
+- `.github/workflows/ci.yml` — 로그 수집 단순화 (`--service backend` + `sleep 10`)
+- `backend/db/session.py` — `postgres://` → `postgresql://` 자동 변환
+- `backend/db/alembic/env.py` — `postgres://` → `postgresql://` 자동 변환
+
 ## 4. 컨벤션 체크리스트
 
 ### 배치 스크립트
@@ -144,14 +154,16 @@ Vercel:
 - [x] GitHub Secrets 등록 (RAILWAY_TOKEN, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)
 
 ### 배포
-- [ ] Railway 환경변수 설정 (DATABASE_URL, CORS_ORIGINS)
+- [x] Railway 환경변수 설정 (DATABASE_URL) — 직접 URL 입력
+- [ ] Railway 환경변수 설정 (CORS_ORIGINS) — Vercel URL 필요
 - [ ] Vercel 환경변수 설정 (VITE_API_BASE_URL)
 - [ ] CORS 프로덕션 도메인 추가
 - [x] health 엔드포인트 경로 수정 (/v1/health)
 
 ### 배포 안정화 (Stage G)
-- [ ] dependencies.py: RuntimeError → HTTPException(503)
-- [ ] health.py: DB 실패 503 반환 + /v1/ready 분리
-- [ ] Dockerfile: CMD exec form + alembic 파일 COPY
-- [ ] railway.toml: alembic upgrade head 자동화
-- [ ] cli-deployment.md: 트러블슈팅/체크리스트/운영 명령어 추가
+- [x] dependencies.py: RuntimeError → HTTPException(503)
+- [x] health.py: DB 실패 503 반환 + /v1/ready 분리
+- [x] Dockerfile: CMD exec form + alembic 파일 COPY + 2단계 빌드
+- [x] railway.toml: alembic upgrade head 자동화 (|| true; 패턴)
+- [x] cli-deployment.md: 트러블슈팅/체크리스트/운영 명령어 추가
+- [x] postgres:// → postgresql:// 자동 변환 (session.py + env.py)

@@ -6,34 +6,33 @@ Generates a comprehensive multi-panel dashboard image for final backend verifica
 
 import sys
 import time
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 # Ensure backend/ is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import matplotlib
+
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 
-from config.logging import setup_logging
-from config.settings import settings
-from db.session import SessionLocal
-from db.models import AssetMaster, PriceDaily, FactorDaily, SignalDaily, BacktestRun
-
 # Pipeline modules
 from collector.ingest import ingest_asset
-from research_engine.preprocessing import preprocess
-from research_engine.factors import compute_all_factors, ALL_FACTOR_NAMES
+from config.logging import setup_logging
+from db.models import AssetMaster, BacktestRun, FactorDaily, PriceDaily, SignalDaily
+from db.session import SessionLocal
+from research_engine.backtest import BacktestConfig, run_backtest
 from research_engine.factor_store import store_factors_for_asset
+from research_engine.factors import compute_all_factors
+from research_engine.metrics import compute_metrics, metrics_to_dict
+from research_engine.preprocessing import preprocess
 from research_engine.signal_store import store_signals_for_asset
 from research_engine.strategies import STRATEGY_REGISTRY
-from research_engine.backtest import BacktestConfig, run_backtest
-from research_engine.metrics import compute_metrics, metrics_to_dict
 
 # ──────────────────────────────────────────────────────────────
 # Config
@@ -341,7 +340,7 @@ def _plot_correlation(session, asset_ids: list[str]):
     fig, ax = plt.subplots(figsize=(8, 7))
     fig.suptitle("Asset Return Correlation Matrix", fontsize=14, fontweight="bold")
 
-    mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
+    np.triu(np.ones_like(corr, dtype=bool), k=1)
     n = len(corr)
 
     im = ax.imshow(corr.values, cmap="RdBu_r", vmin=-1, vmax=1, aspect="auto")
@@ -371,7 +370,10 @@ def _plot_correlation(session, asset_ids: list[str]):
 def _plot_equity_curves(bt_results: dict, asset_ids: list[str]):
     """Panel 3: Equity curves per strategy."""
     fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-    fig.suptitle("Backtest Equity Curves by Strategy (Initial: 10M KRW)", fontsize=14, fontweight="bold")
+    fig.suptitle(
+        "Backtest Equity Curves by Strategy (Initial: 10M KRW)",
+        fontsize=14, fontweight="bold",
+    )
 
     for idx, strat in enumerate(STRATEGIES):
         ax = axes[idx]
@@ -555,7 +557,6 @@ def _plot_combined_dashboard(session, asset_ids: list[str], bt_results: dict):
         for aid in asset_ids:
             if aid in bt_results and strat in bt_results[aid]:
                 bt = bt_results[aid][strat]["backtest"]
-                bh = bt.buy_hold_equity
                 eq = bt.equity_curve
                 if eq.empty:
                     continue
@@ -643,7 +644,7 @@ def _plot_combined_dashboard(session, asset_ids: list[str], bt_results: dict):
         sig_labels_y.append(ASSET_LABELS.get(aid, aid))
 
     sig_arr = np.array(sig_matrix)
-    im = ax_signals.imshow(sig_arr, cmap="RdYlGn", vmin=-1, vmax=1, aspect="auto")
+    ax_signals.imshow(sig_arr, cmap="RdYlGn", vmin=-1, vmax=1, aspect="auto")
     ax_signals.set_xticks(range(len(STRATEGIES)))
     ax_signals.set_xticklabels([s.replace("_", "\n").title()[:10] for s in STRATEGIES], fontsize=7)
     ax_signals.set_yticks(range(len(sig_labels_y)))
@@ -681,10 +682,10 @@ def main():
         asset_ids = db_info["asset_ids"]
 
         # Step 2: Collect latest data
-        collect_results = collect_data(session, asset_ids)
+        collect_data(session, asset_ids)
 
         # Step 3: Generate factors
-        factor_results = generate_factors(session, asset_ids)
+        generate_factors(session, asset_ids)
 
         # Step 4: Generate signals
         signal_results, valid_ids = generate_signals(session, asset_ids)
@@ -702,8 +703,8 @@ def main():
 
     banner(f"E2E PIPELINE COMPLETE ({elapsed:.1f}s)")
     print(f"  Output: {OUTPUT_DIR}")
-    print(f"  Charts: 5 visualization files generated")
-    print(f"  Ready for Phase 5 (Frontend) development!")
+    print("  Charts: 5 visualization files generated")
+    print("  Ready for Phase 5 (Frontend) development!")
 
 
 if __name__ == "__main__":

@@ -3,8 +3,8 @@
 import datetime
 import uuid
 
-from db.models import BacktestEquityCurve, BacktestRun, BacktestTradeLog
 from api.repositories import backtest_repo
+from db.models import BacktestEquityCurve, BacktestRun, BacktestTradeLog
 
 
 class TestGetRuns:
@@ -73,7 +73,10 @@ class TestBulkInsert:
     def test_bulk_equity(self, db, seed_backtest):
         run_id = seed_backtest.run_id
         new_rows = [
-            BacktestEquityCurve(run_id=run_id, date=datetime.date(2026, 1, 10), equity=10500, drawdown=0.01),
+            BacktestEquityCurve(
+                run_id=run_id, date=datetime.date(2026, 1, 10),
+                equity=10500, drawdown=0.01,
+            ),
         ]
         backtest_repo.bulk_insert_equity(db, new_rows)
         result = backtest_repo.get_equity_curve(db, run_id)

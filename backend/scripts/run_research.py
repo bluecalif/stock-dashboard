@@ -106,7 +106,9 @@ def run_pipeline(session, asset_ids, strategy_names, start, end, config, skip_ba
 
         # Step 1: Preprocess + Factors → DB
         print(f"\n--- {asset_id}: Computing factors ---")
-        factor_result = store_factors_for_asset(session, asset_id, start, end, missing_threshold=0.10)
+        factor_result = store_factors_for_asset(
+            session, asset_id, start, end, missing_threshold=0.10,
+        )
         asset_summary["factors"] = factor_result.status
         if factor_result.status != "success":
             summary["errors"].append(f"{asset_id}/factors: {factor_result.errors}")

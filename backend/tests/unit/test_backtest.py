@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from research_engine.backtest import (
     BacktestConfig,
-    BacktestResult,
     TradeRecord,
     run_backtest,
     run_backtest_multi,
@@ -18,7 +16,9 @@ from research_engine.backtest import (
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _make_prices(n: int = 20, start_price: float = 100.0, daily_return: float = 0.01) -> pd.DataFrame:
+def _make_prices(
+    n: int = 20, start_price: float = 100.0, daily_return: float = 0.01,
+) -> pd.DataFrame:
     """Generate synthetic OHLCV price data."""
     dates = pd.bdate_range("2024-01-01", periods=n, freq="B")
     closes = start_price * np.cumprod(1 + np.full(n, daily_return))

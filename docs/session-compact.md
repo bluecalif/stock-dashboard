@@ -1,50 +1,51 @@
 # Session Compact
 
-> Generated: 2026-02-15 20:00
-> Source: Step Update (Step 6.13 완료 — Phase 6 Complete)
+> Generated: 2026-03-03
+> Source: Step Update (hotfix — Daily Collect 5일 연속 실패 수정)
 
 ## Goal
-Phase 6 전체 완료 — CI/CD + Railway + Vercel + E2E 검증
+Daily Collect hotfix — KS200 LOGOUT + 부분 성공 exit code + Discord 403 수정
 
 ## Completed (이번 세션)
-- [x] **CORS_ORIGINS 설정**: Railway 대시보드에서 Vercel URL 추가
-- [x] **CORS trailing slash 수정**: 대시보드 입력 시 `/` 포함 → 코드에서 rstrip 처리 (`db1b1be`)
-- [x] **Vercel VITE_API_BASE_URL 설정**: Vercel 대시보드에서 Railway URL 추가
-- [x] **E2E 검증 성공**: CORS preflight 200 OK + 모든 API 데이터 반환 확인
-- [x] **Phase 6 완료 처리**: 13/13 tasks (100%)
+- [x] **Hotfix**: Daily Collect 5일 연속 실패 (2/27~3/3) 원인 분석 및 수정 (`9624dbf`)
+  - KS200 LOGOUT: FDR Naver 경로 차단 → `^KS200` (Yahoo Finance) fallback 추가
+  - collect.py exit code: 1개라도 실패 → exit 1 → 부분 성공(6/7) 시 exit 0으로 변경
+  - Discord 403: Cloudflare가 Python urllib User-Agent 차단 → `User-Agent: StockDashboard/1.0` 추가
+  - SYMBOL_MAP: `"fallback"` → `"fallbacks"` 다중 fallback 체인 지원
 
 ## Current State
 
-### CI/CD 상태
-- **test job**: ✅ 연속 성공 (409 passed, 7 skipped)
-- **deploy-vercel**: ✅ 연속 성공
-- **deploy-railway**: ✅ 성공 — healthcheck 통과, DB 연결, API 동작, CORS 동작
-
 ### Git 상태
-- 최신 커밋: `db1b1be` (pushed to origin/master)
+- 최신 커밋: `9624dbf` (push 대기)
 - 브랜치: `master`
 
-### Railway 상태
-- 공개 URL: `https://backend-production-e5bc.up.railway.app`
-- DATABASE_URL: ✅ 설정 완료 (직접 URL)
-- CORS_ORIGINS: ✅ 설정 완료 (Vercel URL)
-- healthcheck: ✅ `/v1/health` → 200 OK
-- CORS: ✅ Vercel origin에 대해 `Access-Control-Allow-Origin` 정상 반환
+### GitHub Actions
+- **CI** (`ci.yml`): ✅ test → deploy-railway → deploy-vercel
+- **Daily Collect** (`daily-collect.yml`): ❌ 5일 연속 실패 (2/27~3/3) → hotfix 적용 (`9624dbf`)
+  - 원인: KS200 LOGOUT (1/7 실패) + exit 1 → 전체 실패 처리
 
-### Vercel 상태
-- 프로덕션 URL: `https://stock-dashboard-alpha-lilac.vercel.app`
-- VITE_API_BASE_URL: ✅ Railway URL 설정 완료
-- 배포: ✅ 정상 서빙
+### 인프라 상태
+- **Railway**: backend + Postgres 운영 중
+  - Public Networking: `mainline.proxy.rlwy.net:34025`
+  - 공개 URL: `https://backend-production-e5bc.up.railway.app`
+- **Vercel**: `https://stock-dashboard-alpha-lilac.vercel.app`
+- **GitHub Secrets**: `RAILWAY_DATABASE_URL`, `ALERT_WEBHOOK_URL` 등록 완료
+- **Discord**: webhook 알림 설정 완료
 
 ## Remaining / TODO
-- **Phase 7**: GitHub Actions cron 일일 자동 수집 (6 tasks, 계획 중)
-  - dev-docs: `dev/active/phase7-scheduler/`
+- Phase 0~7 전체 완료 (83/83 tasks, 100%)
+- 향후 고려사항:
+  - [ ] Hantoo REST API fallback (v0.9+)
+  - [ ] 대시보드 기능 확장 (알림 이력, 수집 상태 표시 등)
 
 ## Key Decisions
-- **CORS origins trailing slash rstrip**: 대시보드 입력 시 trailing `/` 포함 가능 → 코드에서 자동 제거
-- **Minimum Viable Deploy 전략**: 복잡한 설정 모두 제거 → 최소 배포 성공 → 점진 복원
-- **postgres:// 자동 변환**: 코드에서 처리 (대시보드 수정 불필요)
-- **Railway 변수 참조 포기**: `${{Postgres.DATABASE_URL}}` 미해석 → 직접 URL 입력이 안전
+- **GitHub Actions cron 선택**: Railway cron 대신 무료 + 기존 CI 인프라 활용
+- **Public Networking 필수**: GitHub Actions → Railway DB 직접 접속 (internal URL 사용 불가)
+- **RAILWAY_DATABASE_URL**: internal URL이 아닌 public TCP proxy URL 사용 필수
+- **continue-on-error for healthcheck**: 헬스체크 실패해도 research 파이프라인 실행
+- **KS200 fallback `^KS200`**: FDR Naver 경로(KS200, KS11) LOGOUT 지속 → Yahoo 경로(`^KS200`)가 실제 KOSPI200 지수 데이터 반환
+- **부분 성공 exit 0**: 전체 실패(0/7)만 exit 1, 부분 성공은 exit 0 → research pipeline 보장
+- **Discord User-Agent 필수**: Cloudflare가 `Python-urllib` UA 차단 (error 1010)
 
 ## Context
 - 다음 세션에서는 답변에 한국어를 사용하세요.
@@ -57,12 +58,9 @@ Phase 6 전체 완료 — CI/CD + Railway + Vercel + E2E 검증
 - **gh CLI**: `bluecalif` 계정, remote: `https://github.com/bluecalif/stock-dashboard.git`
 - **배포 아키텍처**:
   ```
-  [GitHub Actions CI/CD]
-   ├── test job (lint + pytest)
-   ├── deploy-railway (needs: test, master push만)
-   │   └── railway up --ci --service backend (Dockerfile)
-   └── deploy-vercel (needs: test, master push만)
-       └── vercel pull → build → deploy --prebuilt --prod
+  [GitHub Actions]
+   ├── CI (ci.yml): test → deploy-railway + deploy-vercel
+   └── Daily Collect (daily-collect.yml): collect → healthcheck → research
   ```
 
 ## Project Status
@@ -70,12 +68,11 @@ Phase 6 전체 완료 — CI/CD + Railway + Vercel + E2E 검증
 | Phase | 상태 | Tasks |
 |-------|------|-------|
 | 0~5 | ✅ 완료 | 64/64 |
-| 6 | ✅ 완료 | 13/13 (100%) |
-| 7 | 계획 중 | 0/6 (0%) |
-| **Total** | **진행 중** | **77/83 (93%)** |
+| 6 | ✅ 완료 | 13/13 |
+| 7 | ✅ 완료 | 6/6 |
+| **Total** | **✅ 완료** | **83/83 (100%)** |
 
 ## Next Action
-- **Phase 7 실행**: GitHub Actions cron 워크플로우 구현
-  1. Railway Public Networking 활성화 (수동)
-  2. GitHub Secrets 등록 (수동)
-  3. `daily-collect.yml` 작성 + 검증
+- hotfix push 후 Daily Collect 정상 동작 확인 (다음 cron 또는 workflow_dispatch)
+- MVP 전체 완료. 사용자 지시에 따라 다음 작업 결정.
+- 후보: Hantoo API 연동, 대시보드 기능 확장, 모니터링 강화 등

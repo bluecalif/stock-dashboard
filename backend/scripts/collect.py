@@ -73,8 +73,10 @@ def main(argv=None):
 
     print(f"{'='*50}")
 
-    # Exit code: 0 if all succeeded, 1 if any failed
-    sys.exit(0 if not failed else 1)
+    # Exit code: 0 if at least one succeeded (partial success), 1 if all failed
+    if not success:
+        sys.exit(1)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

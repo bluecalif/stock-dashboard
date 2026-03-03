@@ -22,8 +22,13 @@ class TestSymbolMap:
 
     def test_btc_has_fallback(self):
         """BTC must have a fallback symbol."""
-        assert "fallback" in SYMBOL_MAP["BTC"]
-        assert SYMBOL_MAP["BTC"]["fallback"] == "BTC/USD"
+        assert "fallbacks" in SYMBOL_MAP["BTC"]
+        assert "BTC/USD" in SYMBOL_MAP["BTC"]["fallbacks"]
+
+    def test_ks200_has_fallbacks(self):
+        """KS200 must have fallback symbols for FDR LOGOUT resilience."""
+        assert "fallbacks" in SYMBOL_MAP["KS200"]
+        assert "^KS200" in SYMBOL_MAP["KS200"]["fallbacks"]
 
 
 class TestStandardize:

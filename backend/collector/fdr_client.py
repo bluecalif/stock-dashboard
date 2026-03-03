@@ -12,11 +12,15 @@ from config.settings import settings
 logger = logging.getLogger(__name__)
 
 SYMBOL_MAP: dict[str, dict] = {
-    "KS200": {"fdr_symbol": "KS200", "category": "index"},
+    "KS200": {
+        "fdr_symbol": "KS200",
+        "category": "index",
+        "fallbacks": ["^KS200"],
+    },
     "005930": {"fdr_symbol": "005930", "category": "stock"},
     "000660": {"fdr_symbol": "000660", "category": "stock"},
     "SOXL": {"fdr_symbol": "SOXL", "category": "etf"},
-    "BTC": {"fdr_symbol": "BTC/KRW", "category": "crypto", "fallback": "BTC/USD"},
+    "BTC": {"fdr_symbol": "BTC/KRW", "category": "crypto", "fallbacks": ["BTC/USD"]},
     "GC=F": {"fdr_symbol": "GC=F", "category": "commodity"},
     "SI=F": {"fdr_symbol": "SI=F", "category": "commodity"},
 }
@@ -74,8 +78,8 @@ def fetch_ohlcv(asset_id: str, start: str, end: str) -> pd.DataFrame:
 
     info = SYMBOL_MAP[asset_id]
     symbols_to_try = [info["fdr_symbol"]]
-    if "fallback" in info:
-        symbols_to_try.append(info["fallback"])
+    if "fallbacks" in info:
+        symbols_to_try.extend(info["fallbacks"])
 
     max_retries = settings.fdr_max_retries
     base_delay = settings.fdr_base_delay
@@ -102,11 +106,15 @@ def fetch_ohlcv(asset_id: str, start: str, end: str) -> pd.DataFrame:
                     )
                     time.sleep(delay)
 
-        if "fallback" in info and symbol == info["fdr_symbol"]:
-            logger.warning(
-                "Primary symbol %s failed, trying fallback %s",
-                symbol, info["fallback"],
-            )
+        fallbacks = info.get("fallbacks", [])
+        if symbol in [info["fdr_symbol"]] + fallbacks[:-1]:
+            next_idx = ([info["fdr_symbol"]] + fallbacks).index(symbol) + 1
+            next_symbols = [info["fdr_symbol"]] + fallbacks
+            if next_idx < len(next_symbols):
+                logger.warning(
+                    "Symbol %s failed for %s, trying fallback %s",
+                    symbol, asset_id, next_symbols[next_idx],
+                )
 
     raise RuntimeError(
         f"All retries exhausted for {asset_id}: {last_error}"

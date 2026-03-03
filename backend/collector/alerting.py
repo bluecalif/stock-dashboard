@@ -28,7 +28,10 @@ def send_discord_alert(webhook_url: str, message: str) -> bool:
         req = urllib.request.Request(
             webhook_url,
             data=payload,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "StockDashboard/1.0",
+            },
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=10) as resp:

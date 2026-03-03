@@ -61,4 +61,4 @@ jobs:
 
       - name: Run research pipeline
         working-directory: backend
-        run: python scripts/run_research.py --start ${{ steps.dates.outputs.start }} --end ${{ steps.dates.outputs.end }}
+        run: python scripts/run_research.py --start ${{ steps.dates.outputs.start }} --end ${{ steps.dates.outputs.end }} --missing-threshold 0.20

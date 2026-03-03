@@ -51,6 +51,12 @@ def parse_args(argv=None):
         help="Skip backtest (only compute factors and signals)",
     )
     parser.add_argument(
+        "--missing-threshold",
+        type=float,
+        default=0.10,
+        help="Missing data ratio threshold (default: 0.10 = 10%%)",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -91,7 +97,10 @@ def _resolve_strategy_names(strategy_arg: str | None) -> list[str]:
     return list(STRATEGY_REGISTRY.keys())
 
 
-def run_pipeline(session, asset_ids, strategy_names, start, end, config, skip_backtest=False):
+def run_pipeline(
+    session, asset_ids, strategy_names, start, end, config,
+    skip_backtest=False, missing_threshold=0.10,
+):
     """Run the full research pipeline and return summary dict."""
     summary = {
         "assets": {},
@@ -107,7 +116,7 @@ def run_pipeline(session, asset_ids, strategy_names, start, end, config, skip_ba
         # Step 1: Preprocess + Factors → DB
         print(f"\n--- {asset_id}: Computing factors ---")
         factor_result = store_factors_for_asset(
-            session, asset_id, start, end, missing_threshold=0.10,
+            session, asset_id, start, end, missing_threshold=missing_threshold,
         )
         asset_summary["factors"] = factor_result.status
         if factor_result.status != "success":
@@ -118,7 +127,9 @@ def run_pipeline(session, asset_ids, strategy_names, start, end, config, skip_ba
         print(f"  Factors: {factor_result.row_count} rows ({factor_result.elapsed_ms:.0f}ms)")
 
         # Need preprocessed df and factors df for signals + backtest
-        df_preprocessed = preprocess(session, asset_id, start, end, missing_threshold=0.10)
+        df_preprocessed = preprocess(
+            session, asset_id, start, end, missing_threshold=missing_threshold,
+        )
         df_factors = compute_all_factors(df_preprocessed)
         # Include close price for strategies that need it (e.g. mean_reversion)
         df_factors["close"] = df_preprocessed["close"]
@@ -226,7 +237,7 @@ def main(argv=None):
 
         summary = run_pipeline(
             session, asset_ids, strategy_names, args.start, args.end,
-            config, args.skip_backtest,
+            config, args.skip_backtest, args.missing_threshold,
         )
     finally:
         session.close()
@@ -260,8 +271,11 @@ def main(argv=None):
 
     print(f"{'='*60}")
 
-    has_errors = bool(summary["errors"])
-    sys.exit(1 if has_errors else 0)
+    # Exit 0 if at least one asset succeeded, exit 1 only if all failed
+    any_success = any(
+        info["factors"] == "success" for info in summary["assets"].values()
+    )
+    sys.exit(0 if any_success else 1)
 
 
 if __name__ == "__main__":

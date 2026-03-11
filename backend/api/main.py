@@ -12,6 +12,7 @@ from api.routers import (
     assets,
     auth,
     backtests,
+    chat,
     correlation,
     dashboard,
     factors,
@@ -95,3 +96,4 @@ app.include_router(signals.router)
 app.include_router(backtests.router)
 app.include_router(dashboard.router)
 app.include_router(correlation.router)
+app.include_router(chat.router)

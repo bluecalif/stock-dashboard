@@ -20,7 +20,7 @@ dependencies = [
     "numpy",
     "python-dotenv",
     "python-jose[cryptography]",
-    "passlib[bcrypt]",
+    "bcrypt>=4.0",
     "python-multipart",
     "email-validator",
 ]

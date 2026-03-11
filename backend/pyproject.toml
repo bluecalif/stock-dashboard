@@ -23,6 +23,9 @@ dependencies = [
     "bcrypt>=4.0",
     "python-multipart",
     "email-validator",
+    "langgraph",
+    "langchain-core",
+    "langchain-google-genai",
 ]
 
 [project.optional-dependencies]

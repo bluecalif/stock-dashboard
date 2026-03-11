@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     cors_origins: str = ""  # comma-separated extra origins for CORS
     pythonutf8: int = 1
 
+    # Auth / JWT
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    refresh_token_expire_days: int = 7
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -223,13 +223,55 @@ def compute_factors(df: pd.DataFrame) -> pd.DataFrame:
 
 ---
 
-## Related Docs
+## Auth Patterns (Post-MVP)
 
-- `docs/masterplan-v0.md` - 전체 설계 (스키마, API 명세, 마일스톤)
-- `docs/data-accessibility-report.md` - FDR 접근성 검증 결과
-- `docs/guide_financereader.md` - FDR 사용법
-- `docs/guide_hantoo.md` - Hantoo API 참조 (v0.9+용)
+### JWT 토큰 플로우
+
+```python
+# api/dependencies.py
+from jose import jwt, JWTError
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> User:
+    payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+    user = user_repo.get_by_id(db, payload["sub"])
+    if not user:
+        raise HTTPException(401)
+    return user
+
+# 기존 공개 API용 — 인증 선택적
+async def get_current_user_optional(...) -> User | None:
+    try:
+        return await get_current_user(...)
+    except HTTPException:
+        return None
+```
+
+### Chat/Memory API 패턴
+
+```python
+# 인증 필수 엔드포인트
+@router.post("/v1/chat/sessions/{session_id}/messages")
+async def send_message(
+    session_id: UUID,
+    body: ChatMessageRequest,
+    user: User = Depends(get_current_user),  # 필수
+    db: Session = Depends(get_db),
+):
+    ...
+```
+
+**규칙**: 기존 `/v1/prices`, `/v1/factors` 등은 auth 없이 유지. chat/memory/preferences만 `get_current_user` 필수.
 
 ---
 
-**Skill Status**: Core guide complete.
+## Related Docs
+
+- `docs/masterplan-v0.md` - 전체 설계 (스키마, API 명세, 마일스톤)
+- `docs/post-mvp-implementation-sketch.md` - Post-MVP 구현 스케치
+- `.claude/skills/langgraph-dev/SKILL.md` - LangGraph 패턴 (Chat 백엔드)
+
+---
+
+**Skill Status**: Core guide + Post-MVP auth/chat patterns.

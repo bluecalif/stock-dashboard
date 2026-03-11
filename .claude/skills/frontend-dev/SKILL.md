@@ -179,11 +179,72 @@ VITE_API_BASE_URL=http://localhost:8000
 
 ---
 
-## Related Docs
+## Zustand Store 패턴 (Post-MVP)
 
-- `docs/masterplan-v0.md` - API 명세 (섹션 8), 대시보드 화면 정의
-- `.claude/skills/backend-dev/SKILL.md` - 백엔드 API 패턴 (프론트가 소비)
+```typescript
+// src/store/authStore.ts
+import { create } from "zustand";
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  token: null,
+  login: async (email, password) => {
+    const res = await authApi.login(email, password);
+    set({ user: res.user, token: res.access_token });
+  },
+  logout: () => set({ user: null, token: null }),
+}));
+```
+
+**규칙**: Zustand은 공유 상태(auth, chat, chart 설정)에만 사용. 페이지 로컬 상태는 기존 useState 유지.
+
+## SSE 스트리밍 훅 (Post-MVP)
+
+```typescript
+// src/hooks/useSSE.ts — fetch + ReadableStream (POST 지원)
+async function streamChat(sessionId: string, content: string, onEvent: (e: SSEEvent) => void) {
+  const res = await fetch(`${API_BASE}/v1/chat/sessions/${sessionId}/messages`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  // SSE 라인 파싱 루프...
+}
+```
+
+**규칙**: EventSource는 GET 전용 → POST SSE는 반드시 fetch + ReadableStream 사용.
+
+## Auth 라우트 가드 (Post-MVP)
+
+```tsx
+// src/components/auth/ProtectedRoute.tsx
+function ProtectedRoute({ children }: { children: ReactNode }) {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return <Navigate to="/login" />;
+  return <>{children}</>;
+}
+```
+
+**규칙**: 기존 6개 페이지는 공개 유지. chat/memory 관련 라우트만 ProtectedRoute 적용.
 
 ---
 
-**Skill Status**: Core guide complete.
+## Related Docs
+
+- `docs/masterplan-v0.md` - API 명세 (섹션 8), 대시보드 화면 정의
+- `docs/post-mvp-implementation-sketch.md` - Post-MVP 구현 스케치
+- `.claude/skills/backend-dev/SKILL.md` - 백엔드 API 패턴 (프론트가 소비)
+- `.claude/skills/langgraph-dev/SKILL.md` - LangGraph SSE 백엔드 패턴
+
+---
+
+**Skill Status**: Core guide + Post-MVP Zustand/SSE/Auth patterns.

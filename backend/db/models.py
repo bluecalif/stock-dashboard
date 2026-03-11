@@ -199,3 +199,50 @@ class UserSession(Base):
         Index("ix_user_sessions_user_id", "user_id"),
         Index("ix_user_sessions_expires", "expires_at"),
     )
+
+
+# ── Chat 테이블 ──────────────────────────────────────────────
+
+
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    created_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_chat_sessions_user_id", "user_id"),
+    )
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    role: Mapped[str] = mapped_column(String(20), nullable=False)
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tool_payload: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    token_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_chat_messages_session_id", "session_id"),
+    )

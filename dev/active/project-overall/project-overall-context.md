@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-03-11
-> Status: MVP 완료 (Phase 0~7), Post-MVP Phase A 착수 예정
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 기획 완료
 
 ## 핵심 파일
 
@@ -14,7 +14,8 @@
 | `.claude/skills/backend-dev/SKILL.md` | 백엔드 개발 가이드 (Auth 패턴 포함) |
 | `.claude/skills/frontend-dev/SKILL.md` | 프론트엔드 개발 가이드 (Zustand, SSE, ProtectedRoute 포함) |
 | `.claude/skills/langgraph-dev/SKILL.md` | LangGraph + Gemini 에이전트 가이드 |
-| `dev/active/phaseA-auth/` | Phase A (Auth) dev-docs (plan/context/tasks/debug) |
+| `dev/active/phaseA-auth/` | Phase A (Auth) dev-docs — ✅ 완료 |
+| `dev/active/phaseB-chatbot/` | Phase B (Chatbot) dev-docs (plan/context/tasks/debug) |
 
 ## 주요 결정사항
 
@@ -40,7 +41,7 @@
 ### Post-MVP 결정사항 (2026-03-10 확정)
 | 항목 | 결정 | 근거 |
 |------|------|------|
-| Auth | JWT 자체 구현 (python-jose + passlib) | 외부 서비스 의존 없이 제어 가능 |
+| Auth | JWT 자체 구현 (python-jose + bcrypt) | 외부 서비스 의존 없이 제어 가능, passlib 제거 (bcrypt 5.x 호환) |
 | LLM 플랫폼 | **LangGraph** (langgraph + langchain-core + langchain-google-genai) | 명시적 그래프, SSE 이벤트 분리, 내장 checkpointer |
 | LLM 모델 | **Gemini 3.1 Pro** (메인) + **Gemini 3.1 Flash Lite** (분류/온보딩) | 비용 효율 (OpenAI → Claude → Gemini 비교 후) |
 | Chat 프로토콜 | SSE 스트리밍 (FastAPI StreamingResponse) | WebSocket 대비 구현 간편, HTTP 호환 |
@@ -200,11 +201,13 @@
 - [ ] DB 백업 + 복구 절차 검증
 
 ### Post-MVP 컨벤션 (신규)
-- [ ] JWT 토큰 Bearer 헤더 전달
-- [ ] get_current_user / get_current_user_optional DI 패턴
-- [ ] 기존 공개 API optional auth 유지
+- [x] JWT 토큰 Bearer 헤더 전달
+- [x] get_current_user / get_current_user_optional DI 패턴
+- [x] 기존 공개 API optional auth 유지
 - [ ] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, ui_action, done)
-- [ ] Zustand store 분리 (authStore, chatStore, chartStore)
+- [x] Zustand authStore 구현 완료
+- [ ] Zustand chatStore (Phase B)
+- [ ] Zustand chartStore (Phase D)
 - [ ] LangGraph Tool JSON schema 검증
 - [ ] 사용자 데이터 user_id 기준 격리
 

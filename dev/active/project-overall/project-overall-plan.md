@@ -1,6 +1,6 @@
 # Project Overall Plan
 > Last Updated: 2026-03-11
-> Status: MVP 완료 (Phase 0~7), Post-MVP 기획 완료 (Phase A~F 계획)
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 기획 완료
 
 ## 1. Summary (개요)
 
@@ -34,8 +34,9 @@
 - **Phase 5**: React SPA 6페이지, UX 검증 완료
 - **Phase 6**: CI/CD + Railway + Vercel 배포
 - **Phase 7**: GitHub Actions cron 일일 자동 수집 (6/6 완료)
-- **Post-MVP 기획**: 기술 결정 + 6 Phase 계획 완료
-- **Git**: `master` 브랜치, 409 passed + 7 skipped, ruff clean
+- **Phase A Auth**: 16/16 tasks 완료 (JWT 인증 + Frontend Auth)
+- **Phase B Chatbot**: 기획 완료 (19 tasks 계획)
+- **Git**: `master` 브랜치, 426 passed, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -50,7 +51,7 @@
 | 대시보드 | 6개 페이지 (홈/가격/상관/팩터/시그널/전략성과) | ✅ 완료 |
 | 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | ✅ 완료 |
 | 자동 수집 | GitHub Actions cron 기반 일일 자동 수집 | ✅ 완료 |
-| **인증** | JWT 인증, 사용자별 데이터 격리 | ⬜ Phase A |
+| **인증** | JWT 인증, 사용자별 데이터 격리 | ✅ Phase A |
 | **챗봇** | LangGraph + Gemini 대화형 분석 | ⬜ Phase B |
 | **분석 시나리오** | 상관 설명, 지표 해석, 전략 비교 API | ⬜ Phase C |
 | **차트 커스텀** | 대화 → 차트 반영, preset 저장, 페이지 재편 | ⬜ Phase D |
@@ -99,7 +100,7 @@
 **구현 순서**: `A (Auth) → B (Chat) → C (Analysis) → D (Graph Custom) → E (Memory+Vector) → F (Onboarding)`
 **세부 기획 원칙**: Phase A, B는 상세 확정. Phase C~F는 각 Phase 진입 시 `/dev-docs`로 상세 기획 후 구현.
 
-#### Phase A: Auth + 사용자 컨텍스트 — ⬜ 미시작 (다음 착수) [상세 확정]
+#### Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 [상세 확정]
 > dev-docs: `dev/active/phaseA-auth/`
 
 **목적**: JWT 인증 + 사용자별 데이터 격리 기반 마련
@@ -125,10 +126,11 @@
 
 **토큰 플로우**: Login → access(30분) + refresh(7일) → Bearer 헤더 → get_current_user DI
 **기존 API**: auth 없이 접근 가능 유지 (optional auth)
-**기술 결정**: python-jose + passlib (JWT 자체 구현)
+**기술 결정**: python-jose + bcrypt 직접 사용 (passlib 제거 — bcrypt 5.x 호환)
 **파일 집계**: 신규 14 / 수정 6 / Migration 1
+**완료**: 16/16 tasks — `49f9928`~`fcdeed3`
 
-#### Phase B: Chatbot 기본 루프 — ⬜ 미시작 [상세 확정]
+#### Phase B: Chatbot 기본 루프 — ⬜ 미시작 (다음 착수) [상세 확정]
 
 **목적**: LangGraph + Gemini 기반 대화형 분석 루프
 
@@ -281,4 +283,4 @@ GitHub Actions cron (KST 18:00) → collector (FDR) → price_daily
 ### 기술
 - Python 3.12.3, Node.js 18+, PostgreSQL 15+ (Railway)
 - venv: `backend/.venv/` (Windows)
-- **신규**: python-jose, passlib (Auth), langgraph, Zustand (Frontend)
+- **신규**: python-jose, bcrypt (Auth), langgraph, langchain-core, langchain-google-genai, Zustand (Frontend)

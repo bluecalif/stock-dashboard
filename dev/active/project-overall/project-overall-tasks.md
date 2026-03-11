@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-03-11
-> Status: MVP 완료 (83/83), Post-MVP Phase A 착수 예정
+> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 기획 (0/19)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -146,44 +146,63 @@
 > 구현 순서: A → B → C → D → E → F
 > Phase A, B: 상세 확정. Phase C~F: 진입 시 `/dev-docs`로 상세 기획.
 
-## Phase A: Auth + 사용자 컨텍스트 — ⬜ 미시작 (0/16)
+## Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16)
 > dev-docs: `dev/active/phaseA-auth/`
 
 ### Stage A: Backend 기반
-- [ ] A.1 DB 모델: User, UserSession + Alembic migration `[M]`
-- [ ] A.2 Settings: jwt_secret_key, jwt_algorithm, access/refresh TTL `[S]`
-- [ ] A.3 Pydantic 스키마: auth.py `[S]`
-- [ ] A.4 Repository: user_repo.py, session_repo.py `[M]`
+- [x] A.1 DB 모델: User, UserSession + Alembic migration `[M]` → `49f9928`
+- [x] A.2 Settings: jwt_secret_key, jwt_algorithm, access/refresh TTL `[S]` → `6bbc6bb`
+- [x] A.3 Pydantic 스키마: auth.py `[S]` → `2c3e9a4`
+- [x] A.4 Repository: user_repo.py, session_repo.py `[M]` → `3d85590`
 
 ### Stage B: Backend Auth 로직
-- [ ] A.5 Service: auth_service.py `[L]`
-- [ ] A.6 Router: auth.py `[M]`
-- [ ] A.7 Dependencies: get_current_user, get_current_user_optional `[M]`
+- [x] A.5 Service: auth_service.py `[L]` → `0ea34b7`
+- [x] A.6+A.7 Router + Dependencies `[M]` → `66fc0e1`
 
 ### Stage C: Backend 통합 + 테스트
-- [ ] A.8 main.py 라우터 등록 + pyproject.toml 의존성 `[S]`
-- [ ] A.9 단위 테스트: auth service + auth router `[M]`
-- [ ] A.10 Regression: 기존 tests 통과 확인 `[S]`
+- [x] A.8 main.py 라우터 등록 + pyproject.toml 의존성 `[S]` → `985c093`
+- [x] A.9+A.10 Auth 테스트 16개 + Regression `[M]` → `4e1419f`
 
 ### Stage D: Frontend Auth
-- [ ] A.11 Zustand authStore + auth API + types `[M]`
-- [ ] A.12 LoginPage + SignupPage `[M]`
-- [ ] A.13 ProtectedRoute + client.ts interceptor `[M]`
-- [ ] A.14 Sidebar 사용자 정보 + 로그아웃 `[S]`
-- [ ] A.15 App.tsx 라우팅 업데이트 `[S]`
+- [x] A.11~A.15 Frontend Auth 전체 `[M]` → `fcdeed3`
 
 ### Stage E: E2E 검증 + 문서
-- [ ] A.16 E2E 검증 `[M]`
-- [ ] A.17 dev-docs 갱신 + 커밋 `[S]`
+- [x] A.16 E2E 검증 `[M]` — 프로덕션 확인 완료
+- [x] A.17 dev-docs 갱신 `[S]` → `566bb96`
 
-## Phase B: Chatbot 기본 루프 — ⬜ 미시작 (0/?)
-> 상세 태스크: Phase B dev-docs 생성 시 확정
+## Phase B: Chatbot 기본 루프 — ⬜ 미시작 (0/19)
+> dev-docs: `dev/active/phaseB-chatbot/`
 
-**예상 작업 범위** (플랜 파일 기준):
-- Backend LLM: LangGraph StateGraph, tools, prompts
-- Backend Chat: chat_sessions/messages, chat_service (SSE), router
-- Frontend: chatStore, ChatPanel, MessageBubble, ChatInput, useSSE hook
-- **파일 집계**: 신규 18 / 수정 5 / Migration 1
+### Stage A: Backend LLM 기반
+- [ ] B.1 Settings: google_api_key, gemini_pro_model, gemini_lite_model `[S]`
+- [ ] B.2 LangGraph graph.py: StateGraph (agent→tools→agent 루프) `[L]`
+- [ ] B.3 LangChain tools.py: prices, factors, correlation, signals, backtests `[M]`
+- [ ] B.4 prompts.py: 시스템 프롬프트 `[S]`
+
+### Stage B: Backend Chat 데이터
+- [ ] B.5 DB 모델: ChatSession, ChatMessage + Alembic migration `[M]`
+- [ ] B.6 Pydantic 스키마: chat.py `[S]`
+- [ ] B.7 Repository: chat_repo.py `[M]`
+
+### Stage C: Backend Chat API
+- [ ] B.8 Service: chat_service.py (LangGraph → SSE 오케스트레이션) `[L]`
+- [ ] B.9 Router: chat.py (3 endpoints) `[M]`
+- [ ] B.10 main.py 라우터 등록 + pyproject.toml 의존성 `[S]`
+
+### Stage D: Backend 테스트
+- [ ] B.11 단위 테스트: chat service (LLM mock) + chat router `[M]`
+- [ ] B.12 Regression: 기존 tests + ruff `[S]`
+
+### Stage E: Frontend Chat
+- [ ] B.13 Frontend: types/chat.ts + api/chat.ts `[S]`
+- [ ] B.14 Frontend: hooks/useSSE.ts `[M]`
+- [ ] B.15 Frontend: store/chatStore.ts `[M]`
+- [ ] B.16 Frontend: ChatPanel + MessageBubble + ChatInput `[L]`
+- [ ] B.17 Frontend: Layout에 ChatPanel 통합 `[S]`
+
+### Stage F: E2E 검증 + 문서
+- [ ] B.18 E2E 검증 `[M]`
+- [ ] B.19 dev-docs 갱신 + 커밋 `[S]`
 
 ## Phase C: 분석 시나리오 API — ⬜ 미시작
 > 상세 태스크: Phase C dev-docs 생성 시 확정
@@ -217,13 +236,14 @@
 - **MVP Total**: 79 tasks + 4 hotfix = **83 tasks 완료**
 - **Tests**: 409 passed, 7 skipped, ruff clean
 
-### Post-MVP (계획)
-- **Phase A**: 16 tasks (S:6, M:9, L:1) — 0/16
-- **Phase B**: 미정 (파일 집계: 신규 18 / 수정 5 / Migration 1)
+### Post-MVP (진행 중)
+- **Phase A**: 16 tasks (S:6, M:9, L:1) — 16/16 ✅
+- **Phase B**: 19 tasks (S:7, M:7, L:3) — 0/19
 - **Phase C~F**: 미정 (각 Phase 진입 시 확정)
 - **Post-MVP 전체 영향도 (추정)**: 신규 ~72 / 수정 ~28 / Migration 5
 
 ### Grand Total
 - **MVP**: 83 tasks 완료
-- **Post-MVP Phase A**: 16 tasks 계획 (0/16)
-- **Post-MVP Phase B~F**: 태스크 상세 미확정
+- **Post-MVP Phase A**: 16/16 ✅
+- **Post-MVP Phase B**: 0/19 (다음 착수)
+- **Post-MVP Phase C~F**: 태스크 상세 미확정

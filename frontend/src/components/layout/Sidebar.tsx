@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
 
 const NAV_ITEMS = [
   { to: "/", label: "홈", icon: "📊" },
@@ -10,6 +11,8 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
+  const { user, logout } = useAuthStore();
+
   return (
     <aside className="w-56 bg-gray-900 text-gray-100 flex flex-col min-h-screen">
       <div className="px-4 py-5 border-b border-gray-700">
@@ -35,6 +38,21 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      {user && (
+        <div className="px-4 py-4 border-t border-gray-700">
+          <p className="text-sm font-medium text-gray-200 truncate">
+            {user.nickname || user.email}
+          </p>
+          <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          <button
+            onClick={logout}
+            className="mt-2 w-full text-xs text-gray-400 hover:text-white py-1.5 px-2 rounded hover:bg-gray-800 transition-colors text-left"
+          >
+            로그아웃
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

@@ -1,6 +1,6 @@
 ---
 name: langgraph-dev
-description: LangGraph + Gemini 기반 AI 에이전트 개발 가이드. StateGraph, Tool 정의, SSE 스트리밍, Checkpointer.
+description: LangGraph + OpenAI 기반 AI 에이전트 개발 가이드. StateGraph, Tool 정의, SSE 스트리밍, Checkpointer.
 ---
 
 # LangGraph Development Guidelines
@@ -20,15 +20,15 @@ description: LangGraph + Gemini 기반 AI 에이전트 개발 가이드. StateGr
 ```
 langgraph                # 그래프 엔진
 langchain-core           # Tool, PromptTemplate, Message 타입
-langchain-google-genai   # ChatGoogleGenerativeAI
+langchain-openai         # ChatOpenAI
 ```
 
 ## Model Routing
 
 | 모델 | 용도 |
 |------|------|
-| `gemini-3.1-pro-preview` | 메인 챗봇, 분석 해석, 도구 호출 |
-| `gemini-3.1-flash-lite-preview` | 요청 분류, 온보딩, 단순 응답 |
+| `gpt-5` (llm_pro_model) | 메인 챗봇, 분석 해석, 도구 호출 |
+| `gpt-5-mini` (llm_lite_model) | 요청 분류, 온보딩, 단순 응답 |
 
 ## Directory Structure
 
@@ -46,10 +46,10 @@ api/services/llm/
 ### 1. 모델 초기화
 
 ```python
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
-pro = ChatGoogleGenerativeAI(model="gemini-3.1-pro-preview", google_api_key=settings.google_api_key)
-lite = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=settings.google_api_key)
+pro = ChatOpenAI(model=settings.llm_pro_model, api_key=settings.openai_api_key)
+lite = ChatOpenAI(model=settings.llm_lite_model, api_key=settings.openai_api_key)
 ```
 
 ### 2. Graph 구조 (agent → tools 루프)

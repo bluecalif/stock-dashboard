@@ -1,7 +1,7 @@
 """LangGraph StateGraph: agent → tools → agent 루프."""
 
 from langchain_core.messages import SystemMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode
@@ -12,10 +12,10 @@ from .prompts import SYSTEM_PROMPT
 from .tools import all_tools
 
 
-def _build_model() -> ChatGoogleGenerativeAI:
-    return ChatGoogleGenerativeAI(
-        model=settings.gemini_pro_model,
-        google_api_key=settings.google_api_key,
+def _build_model() -> ChatOpenAI:
+    return ChatOpenAI(
+        model=settings.llm_pro_model,
+        api_key=settings.openai_api_key,
     )
 
 

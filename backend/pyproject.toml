@@ -25,7 +25,7 @@ dependencies = [
     "email-validator",
     "langgraph",
     "langchain-core",
-    "langchain-google-genai",
+    "langchain-openai",
 ]
 
 [project.optional-dependencies]

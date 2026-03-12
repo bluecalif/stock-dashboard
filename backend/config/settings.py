@@ -11,10 +11,10 @@ class Settings(BaseSettings):
     cors_origins: str = ""  # comma-separated extra origins for CORS
     pythonutf8: int = 1
 
-    # LLM (Gemini)
-    google_api_key: str = ""
-    gemini_pro_model: str = "gemini-2.5-pro-preview-05-06"
-    gemini_lite_model: str = "gemini-2.0-flash"
+    # LLM (OpenAI)
+    openai_api_key: str = ""
+    llm_pro_model: str = "gpt-5"
+    llm_lite_model: str = "gpt-5-mini"
 
     # Auth / JWT
     jwt_secret_key: str = ""

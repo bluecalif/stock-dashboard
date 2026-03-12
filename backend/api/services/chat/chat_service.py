@@ -125,10 +125,13 @@ async def stream_chat(
                 yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
 
             elif kind == "on_tool_end":
+                raw_output = event["data"].get("output", "")
+                if hasattr(raw_output, "content"):
+                    raw_output = raw_output.content
                 evt = {
                     "type": "tool_result",
                     "name": event["name"],
-                    "data": event["data"].get("output", ""),
+                    "data": str(raw_output),
                 }
                 yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
 

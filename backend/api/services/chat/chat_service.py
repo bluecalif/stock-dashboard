@@ -77,6 +77,7 @@ async def stream_chat(
     session_id: uuid.UUID,
     user_id: uuid.UUID,
     content: str,
+    deep_mode: bool = False,
 ) -> AsyncGenerator[str, None]:
     """LangGraph 호출 → SSE 이벤트 스트림 생성."""
     # 세션 소유권 검증
@@ -103,7 +104,7 @@ async def stream_chat(
     try:
         async for event in graph.astream_events(
             {"messages": [HumanMessage(content=content)]},
-            config={"configurable": {"thread_id": thread_id}},
+            config={"configurable": {"thread_id": thread_id, "deep_mode": deep_mode}},
             version="v2",
         ):
             kind = event["event"]

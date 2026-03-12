@@ -14,6 +14,8 @@ export default function ChatPanel() {
     messages,
     isStreaming,
     sessions,
+    deepMode,
+    toggleDeepMode,
     loadSessions,
     createSession,
     selectSession,
@@ -52,7 +54,7 @@ export default function ChatPanel() {
       addUserMessage(content);
       setStreaming(true);
 
-      const { response, abort } = sendMessageSSE(sessionId, content, accessToken);
+      const { response, abort } = sendMessageSSE(sessionId, content, accessToken, deepMode);
 
       await startStream(response, abort, {
         onTextDelta: (text) => appendAssistantDelta(text),
@@ -66,6 +68,7 @@ export default function ChatPanel() {
     [
       activeSessionId,
       accessToken,
+      deepMode,
       createSession,
       addUserMessage,
       setStreaming,
@@ -120,7 +123,7 @@ export default function ChatPanel() {
       </div>
 
       {/* Input */}
-      <ChatInput onSend={handleSend} disabled={isStreaming} />
+      <ChatInput onSend={handleSend} disabled={isStreaming} deepMode={deepMode} onToggleDeepMode={toggleDeepMode} />
     </div>
   );
 }

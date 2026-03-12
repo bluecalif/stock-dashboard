@@ -12,16 +12,18 @@ from .prompts import SYSTEM_PROMPT
 from .tools import all_tools
 
 
-def _build_model() -> ChatOpenAI:
+def _build_model(deep_mode: bool = False) -> ChatOpenAI:
+    model_name = settings.llm_pro_model if deep_mode else settings.llm_lite_model
     return ChatOpenAI(
-        model=settings.llm_pro_model,
+        model=model_name,
         api_key=settings.openai_api_key,
     )
 
 
-async def agent_node(state: MessagesState) -> dict:
+async def agent_node(state: MessagesState, config: dict | None = None) -> dict:
     """LLM 호출 (tool binding 포함). 첫 호출 시 시스템 프롬프트 주입."""
-    model = _build_model().bind_tools(all_tools)
+    deep_mode = (config or {}).get("configurable", {}).get("deep_mode", False)
+    model = _build_model(deep_mode).bind_tools(all_tools)
     messages = state["messages"]
     # 시스템 프롬프트가 없으면 맨 앞에 추가
     if not messages or not isinstance(messages[0], SystemMessage):

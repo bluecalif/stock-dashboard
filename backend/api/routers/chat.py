@@ -67,6 +67,10 @@ async def send_message(
     current_user: User = Depends(get_current_user),
 ) -> StreamingResponse:
     event_stream = chat_service.stream_chat(
-        db, session_id=session_id, user_id=current_user.id, content=body.content,
+        db,
+        session_id=session_id,
+        user_id=current_user.id,
+        content=body.content,
+        deep_mode=body.deep_mode,
     )
     return StreamingResponse(event_stream, media_type="text/event-stream")

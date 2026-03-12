@@ -3,9 +3,11 @@ import { useState, useRef, useCallback } from "react";
 interface Props {
   onSend: (content: string) => void;
   disabled: boolean;
+  deepMode: boolean;
+  onToggleDeepMode: () => void;
 }
 
-export default function ChatInput({ onSend, disabled }: Props) {
+export default function ChatInput({ onSend, disabled, deepMode, onToggleDeepMode }: Props) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,6 +30,23 @@ export default function ChatInput({ onSend, disabled }: Props) {
 
   return (
     <div className="border-t border-gray-200 p-3 bg-white">
+      <div className="flex items-center gap-2 mb-2">
+        <button
+          type="button"
+          onClick={onToggleDeepMode}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors
+            ${deepMode
+              ? "bg-purple-100 text-purple-700 border border-purple-300"
+              : "bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200"
+            }`}
+        >
+          <span className={`inline-block w-2 h-2 rounded-full ${deepMode ? "bg-purple-500" : "bg-gray-400"}`} />
+          심층모드
+        </button>
+        <span className="text-xs text-gray-400">
+          {deepMode ? "GPT-5 (정밀 분석)" : "GPT-5 Mini (빠른 응답)"}
+        </span>
+      </div>
       <div className="flex items-end gap-2">
         <textarea
           ref={textareaRef}

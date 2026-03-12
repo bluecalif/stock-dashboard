@@ -26,6 +26,7 @@ export function sendMessageSSE(
   sessionId: string,
   content: string,
   accessToken: string | null,
+  deepMode: boolean = false,
 ): { response: Promise<Response>; abort: () => void } {
   const controller = new AbortController();
   const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -38,7 +39,7 @@ export function sendMessageSSE(
         "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, deep_mode: deepMode }),
       signal: controller.signal,
     },
   );

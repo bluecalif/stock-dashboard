@@ -15,6 +15,7 @@ class CreateSessionRequest(BaseModel):
 
 class SendMessageRequest(BaseModel):
     content: str
+    deep_mode: bool = False
 
 
 # ── Response ─────────────────────────────────────────────────

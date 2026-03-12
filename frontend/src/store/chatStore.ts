@@ -8,9 +8,11 @@ interface ChatState {
   messages: ChatMessage[];
   isStreaming: boolean;
   isPanelOpen: boolean;
+  deepMode: boolean;
 
   // Actions
   togglePanel: () => void;
+  toggleDeepMode: () => void;
   openPanel: () => void;
   closePanel: () => void;
   loadSessions: () => Promise<void>;
@@ -29,8 +31,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isStreaming: false,
   isPanelOpen: false,
+  deepMode: false,
 
   togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
+  toggleDeepMode: () => set((s) => ({ deepMode: !s.deepMode })),
   openPanel: () => set({ isPanelOpen: true }),
   closePanel: () => set({ isPanelOpen: false }),
 

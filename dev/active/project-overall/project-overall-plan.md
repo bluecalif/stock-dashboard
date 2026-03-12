@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-03-11
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 기획 완료
+> Last Updated: 2026-03-12
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
 
 ## 1. Summary (개요)
 
@@ -35,8 +35,8 @@
 - **Phase 6**: CI/CD + Railway + Vercel 배포
 - **Phase 7**: GitHub Actions cron 일일 자동 수집 (6/6 완료)
 - **Phase A Auth**: 16/16 tasks 완료 (JWT 인증 + Frontend Auth)
-- **Phase B Chatbot**: 기획 완료 (19 tasks 계획)
-- **Git**: `master` 브랜치, 426 passed, ruff clean
+- **Phase B Chatbot**: 19/19 tasks 완료 (LangGraph + OpenAI GPT-5, 심층모드)
+- **Git**: `master` 브랜치, 440 passed, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -52,7 +52,7 @@
 | 운영 | 일일 배치, 실패 알림, JSON 로그, 배포 | ✅ 완료 |
 | 자동 수집 | GitHub Actions cron 기반 일일 자동 수집 | ✅ 완료 |
 | **인증** | JWT 인증, 사용자별 데이터 격리 | ✅ Phase A |
-| **챗봇** | LangGraph + Gemini 대화형 분석 | ⬜ Phase B |
+| **챗봇** | LangGraph + OpenAI GPT-5 대화형 분석 + 심층모드 | ✅ Phase B |
 | **분석 시나리오** | 상관 설명, 지표 해석, 전략 비교 API | ⬜ Phase C |
 | **차트 커스텀** | 대화 → 차트 반영, preset 저장, 페이지 재편 | ⬜ Phase D |
 | **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase E |
@@ -130,9 +130,9 @@
 **파일 집계**: 신규 14 / 수정 6 / Migration 1
 **완료**: 16/16 tasks — `49f9928`~`fcdeed3`
 
-#### Phase B: Chatbot 기본 루프 — ⬜ 미시작 (다음 착수) [상세 확정]
+#### Phase B: Chatbot 기본 루프 — ✅ 완료 (19/19) [상세 확정]
 
-**목적**: LangGraph + Gemini 기반 대화형 분석 루프
+**목적**: LangGraph + OpenAI GPT-5 기반 대화형 분석 루프
 
 **Backend — LangGraph 계층**:
 - `api/services/llm/graph.py` — StateGraph (agent→tools→agent 루프, 조건 엣지)
@@ -153,10 +153,12 @@
 - `src/hooks/useSSE.ts` — fetch + ReadableStream SSE 파싱 (POST 지원)
 - `src/api/chat.ts`, `src/types/chat.ts`
 
-**기술 결정**: LangGraph (명시적 그래프, SSE 이벤트 분리, checkpointer), Gemini (비용)
-**패키지**: langgraph, langchain-google-genai, langchain-core
-**설정**: google_api_key, gemini_pro_model, gemini_lite_model
-**파일 집계**: 신규 18 / 수정 5 / Migration 1
+**기술 결정**: LangGraph (명시적 그래프, SSE 이벤트 분리, checkpointer), OpenAI GPT-5 (Gemini 쿼타 초과로 전환)
+**패키지**: langgraph 1.1.1, langchain-openai 1.1.11, langchain-core 1.2.18
+**설정**: openai_api_key, llm_pro_model (gpt-5), llm_lite_model (gpt-5-mini)
+**심층모드**: 기본 GPT-5 Mini, 토글 시 GPT-5 (정밀 분석)
+**파일 집계**: 신규 18 / 수정 8 / Migration 1
+**완료**: 19/19 tasks — `936bc9a`~`2202455`
 
 #### Phase C: 분석 시나리오 API — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 

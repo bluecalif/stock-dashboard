@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-03-11
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 기획 완료
+> Last Updated: 2026-03-12
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
 
 ## 핵심 파일
 
@@ -42,8 +42,8 @@
 | 항목 | 결정 | 근거 |
 |------|------|------|
 | Auth | JWT 자체 구현 (python-jose + bcrypt) | 외부 서비스 의존 없이 제어 가능, passlib 제거 (bcrypt 5.x 호환) |
-| LLM 플랫폼 | **LangGraph** (langgraph + langchain-core + langchain-google-genai) | 명시적 그래프, SSE 이벤트 분리, 내장 checkpointer |
-| LLM 모델 | **Gemini 3.1 Pro** (메인) + **Gemini 3.1 Flash Lite** (분류/온보딩) | 비용 효율 (OpenAI → Claude → Gemini 비교 후) |
+| LLM 플랫폼 | **LangGraph** (langgraph + langchain-core + langchain-openai) | 명시적 그래프, SSE 이벤트 분리, 내장 checkpointer |
+| LLM 모델 | **OpenAI GPT-5** (심층) + **GPT-5 Mini** (기본) | Gemini 쿼타 초과 (429)로 전환, 심층모드 토글 |
 | Chat 프로토콜 | SSE 스트리밍 (FastAPI StreamingResponse) | WebSocket 대비 구현 간편, HTTP 호환 |
 | 상태 관리 | Zustand 추가 (기존 hooks 유지, 공유 상태만 store) | 공유 상태 관리 필요 (auth, chat, chart) |
 | Embedding | Phase E 진입 시 결정 (Gemini embedding 또는 OpenAI) | 아직 벡터 검색 요구 불확실 |
@@ -204,9 +204,9 @@
 - [x] JWT 토큰 Bearer 헤더 전달
 - [x] get_current_user / get_current_user_optional DI 패턴
 - [x] 기존 공개 API optional auth 유지
-- [ ] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, ui_action, done)
+- [x] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, done)
 - [x] Zustand authStore 구현 완료
-- [ ] Zustand chatStore (Phase B)
+- [x] Zustand chatStore (Phase B 완료, deepMode 포함)
 - [ ] Zustand chartStore (Phase D)
 - [ ] LangGraph Tool JSON schema 검증
 - [ ] 사용자 데이터 user_id 기준 격리
@@ -221,5 +221,5 @@
 | CI/CD | GitHub Actions | ✅ 운영 중 |
 | 일일 수집 | GitHub Actions cron | ✅ 운영 중 |
 | 알림 | Discord Webhook | ✅ 운영 중 |
-| LLM API | Google Gemini | 계획 (Phase B) |
+| LLM API | OpenAI GPT-5 / GPT-5 Mini | ✅ 운영 중 |
 | Vector 확장 | pgvector | 계획 (Phase E) |

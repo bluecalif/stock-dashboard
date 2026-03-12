@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-03-11
-> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 기획 (0/19)
+> Last Updated: 2026-03-12
+> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -170,39 +170,39 @@
 - [x] A.16 E2E 검증 `[M]` — 프로덕션 확인 완료
 - [x] A.17 dev-docs 갱신 `[S]` → `566bb96`
 
-## Phase B: Chatbot 기본 루프 — ⬜ 미시작 (0/19)
+## Phase B: Chatbot 기본 루프 — ✅ 완료 (19/19)
 > dev-docs: `dev/active/phaseB-chatbot/`
 
 ### Stage A: Backend LLM 기반
-- [ ] B.1 Settings: google_api_key, gemini_pro_model, gemini_lite_model `[S]`
-- [ ] B.2 LangGraph graph.py: StateGraph (agent→tools→agent 루프) `[L]`
-- [ ] B.3 LangChain tools.py: prices, factors, correlation, signals, backtests `[M]`
-- [ ] B.4 prompts.py: 시스템 프롬프트 `[S]`
+- [x] B.1 Settings: openai_api_key, llm_pro/lite_model `[S]` — `936bc9a`, `807c33f`
+- [x] B.2 LangGraph graph.py: StateGraph + deep_mode `[L]` — `936bc9a`, `807c33f`, `2202455`
+- [x] B.3 LangChain tools.py: 5개 Tool `[M]` — `936bc9a`
+- [x] B.4 prompts.py: 시스템 프롬프트 `[S]` — `936bc9a`
 
 ### Stage B: Backend Chat 데이터
-- [ ] B.5 DB 모델: ChatSession, ChatMessage + Alembic migration `[M]`
-- [ ] B.6 Pydantic 스키마: chat.py `[S]`
-- [ ] B.7 Repository: chat_repo.py `[M]`
+- [x] B.5 DB 모델: ChatSession, ChatMessage + migration `[M]` — `e73096a`
+- [x] B.6 Pydantic 스키마: chat.py (+ deep_mode) `[S]` — `e73096a`, `2202455`
+- [x] B.7 Repository: chat_repo.py `[M]` — `e73096a`
 
 ### Stage C: Backend Chat API
-- [ ] B.8 Service: chat_service.py (LangGraph → SSE 오케스트레이션) `[L]`
-- [ ] B.9 Router: chat.py (3 endpoints) `[M]`
-- [ ] B.10 main.py 라우터 등록 + pyproject.toml 의존성 `[S]`
+- [x] B.8 Service: chat_service.py (SSE + ToolMessage 수정) `[L]` — `fa112e6`, `689dedf`, `2202455`
+- [x] B.9 Router: chat.py (4 endpoints) `[M]` — `fa112e6`
+- [x] B.10 main.py 라우터 등록 + langchain-openai `[S]` — `fa112e6`, `807c33f`
 
 ### Stage D: Backend 테스트
-- [ ] B.11 단위 테스트: chat service (LLM mock) + chat router `[M]`
-- [ ] B.12 Regression: 기존 tests + ruff `[S]`
+- [x] B.11 단위 테스트: chat service + router (14건) `[M]` — `3d8dcd7`
+- [x] B.12 Regression: 440 passed + ruff `[S]` — `3d8dcd7`
 
 ### Stage E: Frontend Chat
-- [ ] B.13 Frontend: types/chat.ts + api/chat.ts `[S]`
-- [ ] B.14 Frontend: hooks/useSSE.ts `[M]`
-- [ ] B.15 Frontend: store/chatStore.ts `[M]`
-- [ ] B.16 Frontend: ChatPanel + MessageBubble + ChatInput `[L]`
-- [ ] B.17 Frontend: Layout에 ChatPanel 통합 `[S]`
+- [x] B.13 Frontend: types/chat.ts + api/chat.ts `[S]` — `5db4127`, `2202455`
+- [x] B.14 Frontend: hooks/useSSE.ts `[M]` — `5db4127`
+- [x] B.15 Frontend: store/chatStore.ts (+ deepMode) `[M]` — `5db4127`, `2202455`
+- [x] B.16 Frontend: ChatPanel + MessageBubble + ChatInput (+ 심층모드) `[L]` — `5db4127`, `2202455`
+- [x] B.17 Frontend: Layout에 ChatPanel 통합 `[S]` — `5db4127`, `2f21d0d`
 
 ### Stage F: E2E 검증 + 문서
-- [ ] B.18 E2E 검증 `[M]`
-- [ ] B.19 dev-docs 갱신 + 커밋 `[S]`
+- [x] B.18 E2E 검증 (Gemini→OpenAI 전환 + 프로덕션) `[M]` — `807c33f`, `689dedf`, `2f21d0d`
+- [x] B.19 dev-docs 갱신 + 심층모드 `[S]` — `2202455`
 
 ## Phase C: 분석 시나리오 API — ⬜ 미시작
 > 상세 태스크: Phase C dev-docs 생성 시 확정
@@ -238,12 +238,12 @@
 
 ### Post-MVP (진행 중)
 - **Phase A**: 16 tasks (S:6, M:9, L:1) — 16/16 ✅
-- **Phase B**: 19 tasks (S:7, M:7, L:3) — 0/19
+- **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
 - **Phase C~F**: 미정 (각 Phase 진입 시 확정)
 - **Post-MVP 전체 영향도 (추정)**: 신규 ~72 / 수정 ~28 / Migration 5
 
 ### Grand Total
 - **MVP**: 83 tasks 완료
 - **Post-MVP Phase A**: 16/16 ✅
-- **Post-MVP Phase B**: 0/19 (다음 착수)
+- **Post-MVP Phase B**: 19/19 ✅
 - **Post-MVP Phase C~F**: 태스크 상세 미확정

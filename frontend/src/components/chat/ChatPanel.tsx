@@ -24,7 +24,7 @@ export default function ChatPanel() {
   } = useChatStore();
 
   const accessToken = useAuthStore((s) => s.accessToken);
-  const { startStream, stopStream } = useSSE();
+  const { startStream } = useSSE();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 패널 열릴 때 세션 목록 로드

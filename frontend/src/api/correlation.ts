@@ -1,5 +1,5 @@
 import apiClient from "./client";
-import type { CorrelationResponse, CorrelationAnalysisResponse } from "../types/api";
+import type { CorrelationResponse, CorrelationAnalysisResponse, SpreadResponse } from "../types/api";
 
 interface CorrelationParams {
   asset_ids?: string;
@@ -28,6 +28,24 @@ export async function fetchCorrelationAnalysis(
 ): Promise<CorrelationAnalysisResponse> {
   const { data } = await apiClient.get<CorrelationAnalysisResponse>(
     "/v1/correlation/analysis",
+    { params },
+  );
+  return data;
+}
+
+interface SpreadParams {
+  asset_a: string;
+  asset_b: string;
+  start_date?: string;
+  end_date?: string;
+  z_threshold?: number;
+}
+
+export async function fetchSpread(
+  params: SpreadParams,
+): Promise<SpreadResponse> {
+  const { data } = await apiClient.get<SpreadResponse>(
+    "/v1/correlation/spread",
     { params },
   );
   return data;

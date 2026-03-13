@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -17,6 +17,7 @@ from api.schemas.chat import (
     SessionResponse,
 )
 from api.services.chat import chat_service
+from api.services.llm.hybrid.templates import get_nudge_questions
 from db.models import User
 
 router = APIRouter(prefix="/v1/chat", tags=["chat"])
@@ -76,3 +77,12 @@ async def send_message(
         page_context=page_ctx,
     )
     return StreamingResponse(event_stream, media_type="text/event-stream")
+
+
+@router.get("/nudge-questions")
+def nudge_questions(
+    page_id: str = Query(default="home", description="현재 페이지 ID"),
+    _current_user: User = Depends(get_current_user),
+) -> dict[str, list[str]]:
+    """Return nudge questions for the current page context."""
+    return {"questions": get_nudge_questions(page_id)}

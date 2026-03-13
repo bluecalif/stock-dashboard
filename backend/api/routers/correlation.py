@@ -11,11 +11,13 @@ from api.dependencies import get_db
 from api.schemas.correlation import (
     CorrelationAnalysisResponse,
     CorrelationResponse,
+    SpreadResponse,
 )
 from api.services.analysis.correlation_analysis import (
     find_correlation_groups,
     find_top_pairs,
 )
+from api.services.analysis.spread_service import compute_spread
 from api.services.correlation_service import compute_correlation
 
 router = APIRouter(prefix="/v1", tags=["correlation"])
@@ -86,4 +88,42 @@ def get_correlation_analysis(
             for p in top_pairs
         ],
         period=corr.period,
+    )
+
+
+@router.get("/correlation/spread", response_model=SpreadResponse)
+def get_spread(
+    asset_a: str = Query(description="자산 A ID (예: KS200)"),
+    asset_b: str = Query(description="자산 B ID (예: 005930)"),
+    start_date: datetime.date | None = Query(default=None, description="시작일"),
+    end_date: datetime.date | None = Query(default=None, description="종료일"),
+    z_threshold: float = Query(default=2.0, ge=0.5, le=5.0, description="Z-score 임계값"),
+    db: Session = Depends(get_db),
+) -> SpreadResponse:
+    """Return spread analysis (z-score + convergence events) between two assets."""
+    try:
+        result = compute_spread(
+            db,
+            asset_a=asset_a,
+            asset_b=asset_b,
+            start_date=start_date,
+            end_date=end_date,
+            z_threshold=z_threshold,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return SpreadResponse(
+        asset_a=result.asset_a,
+        asset_b=result.asset_b,
+        dates=result.dates,
+        spread_values=result.spread_values,
+        z_scores=result.z_scores,
+        mean=result.mean,
+        std=result.std,
+        current_z_score=result.current_z_score,
+        convergence_events=[
+            {"date": e.date, "z_score": e.z_score, "direction": e.direction}
+            for e in result.convergence_events
+        ],
     )

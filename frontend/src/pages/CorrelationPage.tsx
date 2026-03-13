@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchCorrelation, fetchCorrelationAnalysis } from "../api/correlation";
+import { fetchCorrelation, fetchCorrelationAnalysis, fetchSpread } from "../api/correlation";
 import type {
   CorrelationResponse,
   CorrelationAnalysisResponse,
+  SpreadResponse,
   AssetPair,
 } from "../types/api";
 import { useChartActionStore } from "../store/chartActionStore";
 import DateRangePicker from "../components/common/DateRangePicker";
 import CorrelationHeatmap from "../components/charts/CorrelationHeatmap";
 import ScatterPlotChart from "../components/charts/ScatterPlotChart";
+import SpreadChart from "../components/charts/SpreadChart";
 import CorrelationGroupCard from "../components/correlation/CorrelationGroupCard";
 import Loading from "../components/common/Loading";
 import ErrorMessage from "../components/common/ErrorMessage";
@@ -31,6 +33,8 @@ export default function CorrelationPage() {
   const [window, setWindow] = useState(60);
   const [data, setData] = useState<CorrelationResponse | null>(null);
   const [analysis, setAnalysis] = useState<CorrelationAnalysisResponse | null>(null);
+  const [spread, setSpread] = useState<SpreadResponse | null>(null);
+  const [spreadLoading, setSpreadLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,6 +66,24 @@ export default function CorrelationPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Spread 로딩: highlightedPair 변경 시 자동 fetch
+  useEffect(() => {
+    if (!highlightedPair) {
+      setSpread(null);
+      return;
+    }
+    setSpreadLoading(true);
+    fetchSpread({
+      asset_a: highlightedPair.asset_a,
+      asset_b: highlightedPair.asset_b,
+      start_date: startDate,
+      end_date: endDate,
+    })
+      .then(setSpread)
+      .catch(() => setSpread(null))
+      .finally(() => setSpreadLoading(false));
+  }, [highlightedPair, startDate, endDate]);
 
   const handlePairClick = useCallback(
     (pair: AssetPair) => {
@@ -180,6 +202,24 @@ export default function CorrelationPage() {
                     해제
                   </button>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Spread Chart — pair 선택 시 표시 */}
+          {highlightedPair && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                스프레드 분석 (Z-Score)
+              </h3>
+              {spreadLoading ? (
+                <Loading message="스프레드 계산 중..." />
+              ) : spread ? (
+                <SpreadChart spread={spread} />
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-8">
+                  스프레드 데이터를 불러올 수 없습니다.
+                </p>
               )}
             </div>
           )}

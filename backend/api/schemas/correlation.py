@@ -37,3 +37,23 @@ class CorrelationAnalysisResponse(BaseModel):
     groups: list[CorrelationGroupSchema]
     top_pairs: list[AssetPairSchema]
     period: CorrelationPeriod
+
+
+# --- Spread analysis ---
+
+class ConvergenceEventSchema(BaseModel):
+    date: datetime.date
+    z_score: float
+    direction: str  # "convergence" or "divergence"
+
+
+class SpreadResponse(BaseModel):
+    asset_a: str
+    asset_b: str
+    dates: list[datetime.date]
+    spread_values: list[float]
+    z_scores: list[float]
+    mean: float
+    std: float
+    current_z_score: float
+    convergence_events: list[ConvergenceEventSchema]

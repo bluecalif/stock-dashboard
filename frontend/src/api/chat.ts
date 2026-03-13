@@ -57,3 +57,11 @@ export function sendMessageSSE(
 
   return { response, abort: () => controller.abort() };
 }
+
+export async function fetchNudgeQuestions(pageId: string): Promise<string[]> {
+  const res = await apiClient.get<{ questions: string[] }>(
+    "/v1/chat/nudge-questions",
+    { params: { page_id: pageId } },
+  );
+  return res.data.questions;
+}

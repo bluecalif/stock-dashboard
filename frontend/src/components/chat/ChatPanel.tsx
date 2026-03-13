@@ -9,6 +9,7 @@ import type { UIAction } from "../../types/chat";
 import { useSSE } from "../../hooks/useSSE";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
+import NudgeQuestions from "./NudgeQuestions";
 
 export default function ChatPanel() {
   const {
@@ -154,8 +155,14 @@ export default function ChatPanel() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto py-3">
         {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-            질문을 입력하면 데이터를 분석해 드립니다
+          <div className="flex flex-col items-center justify-center h-full gap-4">
+            <p className="text-gray-400 text-sm">
+              질문을 입력하면 데이터를 분석해 드립니다
+            </p>
+            <NudgeQuestions
+              pageId={getPageContext().page_id}
+              onSelect={handleSend}
+            />
           </div>
         )}
         {messages.map((msg) => (

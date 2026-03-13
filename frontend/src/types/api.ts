@@ -134,3 +134,22 @@ export interface CorrelationAnalysisResponse {
   top_pairs: AssetPair[];
   period: CorrelationPeriod;
 }
+
+// --- Spread ---
+export interface ConvergenceEvent {
+  date: string;
+  z_score: number;
+  direction: "convergence" | "divergence";
+}
+
+export interface SpreadResponse {
+  asset_a: string;
+  asset_b: string;
+  dates: string[];
+  spread_values: number[];
+  z_scores: number[];
+  mean: number;
+  std: number;
+  current_z_score: number;
+  convergence_events: ConvergenceEvent[];
+}

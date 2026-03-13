@@ -12,6 +12,7 @@ import CorrelationHeatmap from "../components/charts/CorrelationHeatmap";
 import ScatterPlotChart from "../components/charts/ScatterPlotChart";
 import SpreadChart from "../components/charts/SpreadChart";
 import CorrelationGroupCard from "../components/correlation/CorrelationGroupCard";
+import AssetSelect from "../components/common/AssetSelect";
 import Loading from "../components/common/Loading";
 import ErrorMessage from "../components/common/ErrorMessage";
 
@@ -28,6 +29,7 @@ function today(): string {
 }
 
 export default function CorrelationPage() {
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(today);
   const [window, setWindow] = useState(60);
@@ -41,13 +43,16 @@ export default function CorrelationPage() {
   const highlightedPair = useChartActionStore((s) => s.highlightedPair);
   const setHighlightedPair = useChartActionStore((s) => s.setHighlightedPair);
 
+  const assetIdsParam = selectedAssets.length >= 2 ? selectedAssets.join(",") : undefined;
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const [corrResult, analysisResult] = await Promise.all([
-        fetchCorrelation({ start_date: startDate, end_date: endDate, window }),
+        fetchCorrelation({ asset_ids: assetIdsParam, start_date: startDate, end_date: endDate, window }),
         fetchCorrelationAnalysis({
+          asset_ids: assetIdsParam,
           start_date: startDate,
           end_date: endDate,
           window,
@@ -61,7 +66,7 @@ export default function CorrelationPage() {
     } finally {
       setLoading(false);
     }
-  }, [startDate, endDate, window]);
+  }, [assetIdsParam, startDate, endDate, window]);
 
   useEffect(() => {
     loadData();
@@ -103,6 +108,23 @@ export default function CorrelationPage() {
 
       {/* 필터 영역 */}
       <div className="space-y-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            관심 종목 {selectedAssets.length > 0 && (
+              <span className="text-blue-500">({selectedAssets.length}개 선택)</span>
+            )}
+            {selectedAssets.length === 1 && (
+              <span className="text-amber-500 ml-1">2개 이상 선택하세요</span>
+            )}
+          </label>
+          <AssetSelect
+            value=""
+            onChange={() => {}}
+            multiple
+            selectedIds={selectedAssets}
+            onChangeMultiple={setSelectedAssets}
+          />
+        </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">
             기간

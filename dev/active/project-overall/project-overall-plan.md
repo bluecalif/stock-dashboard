@@ -1,5 +1,5 @@
 # Project Overall Plan
-> Last Updated: 2026-03-12
+> Last Updated: 2026-03-13
 > Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
 
 ## 1. Summary (개요)
@@ -8,7 +8,7 @@
 
 **범위**:
 - **MVP (완료)**: Phase 0~7 — 수집 → 분석 → API → 대시보드 → 배포 → 자동 수집
-- **Post-MVP (계획)**: Phase A~F — 인증 → 챗봇 → 분석 시나리오 → 메모리/벡터 → 차트 커스텀 → 온보딩
+- **Post-MVP (계획)**: Phase A~G — 인증 → 챗봇 → 상관도 → 지표 → 전략 → 메모리/벡터 → 온보딩
 
 **MVP 결과물**:
 - FDR 기반 일봉 수집 파이프라인 ✅
@@ -19,11 +19,12 @@
 - GitHub Actions cron 일일 자동 수집 ✅
 
 **Post-MVP 목표 결과물**:
-- JWT 인증 + 사용자 컨텍스트
-- LangGraph + Gemini 기반 챗봇 (SSE 스트리밍)
-- 상관/지표/전략 분석 시나리오 API
+- JWT 인증 + 사용자 컨텍스트 ✅
+- LangGraph + OpenAI GPT-5 기반 챗봇 (SSE 스트리밍) ✅
+- 상관도 페이지 완성 (분석+하이브리드 응답+그래프 커스텀)
+- 지표 페이지 완성 (성공률+예측력 비교+오버레이 차트)
+- 전략 페이지 완성 (이벤트 스토리텔링+에쿼티 마커+기간 설정)
 - 사용자 메모리 + pgvector 보조 검색
-- 차트 커스터마이징 (대화 ↔ 차트 연동)
 - 온보딩 에이전트
 
 ## 2. Current State (현재 상태)
@@ -53,10 +54,11 @@
 | 자동 수집 | GitHub Actions cron 기반 일일 자동 수집 | ✅ 완료 |
 | **인증** | JWT 인증, 사용자별 데이터 격리 | ✅ Phase A |
 | **챗봇** | LangGraph + OpenAI GPT-5 대화형 분석 + 심층모드 | ✅ Phase B |
-| **분석 시나리오** | 상관 설명, 지표 해석, 전략 비교 API | ⬜ Phase C |
-| **차트 커스텀** | 대화 → 차트 반영, preset 저장, 페이지 재편 | ⬜ Phase D |
-| **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase E |
-| **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase F |
+| **상관도 페이지** | 그룹핑/유사자산, 스프레드, 하이브리드 응답, 관심종목 | ⬜ Phase C |
+| **지표 페이지** | 성공률, 예측력 비교, 오버레이 차트, REST 분석 API | ⬜ Phase D |
+| **전략 페이지** | 이벤트 스토리텔링, 에쿼티 마커, 기간 설정, 라우트 정리 | ⬜ Phase E |
+| **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase F |
+| **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase G |
 
 ## 4. Implementation Phases (구현 단계)
 
@@ -92,15 +94,15 @@
 
 ---
 
-### Post-MVP Phases (Phase A~F) — 계획 완료
+### Post-MVP Phases (Phase A~G) — A/B 완료, C~G 계획
 
 > 참조: `docs/post-mvp-implementation-sketch.md` (제품 요구사항)
-> 플랜: `.claude/plans/snuggly-growing-willow.md` (전체 구현 계획)
+> 통합 계획: `docs/post-mvp-phaseCD-detail.md` (Phase C~E 상세)
 
-**구현 순서**: `A (Auth) → B (Chat) → C (Analysis) → D (Graph Custom) → E (Memory+Vector) → F (Onboarding)`
-**세부 기획 원칙**: Phase A, B는 상세 확정. Phase C~F는 각 Phase 진입 시 `/dev-docs`로 상세 기획 후 구현.
+**구현 순서**: `A (Auth) → B (Chat) → C (상관도) → D (지표) → E (전략) → F (Memory+Vector) → G (Onboarding)`
+**설계 원칙**: 기존 Phase C(분석 시나리오)+D(그래프 커스텀)를 **페이지별로 분리** — 각 페이지를 백엔드+프론트+챗봇까지 완결한 뒤 다음 페이지로 이동.
 
-#### Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 [상세 확정]
+#### Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16) [상세 확정]
 > dev-docs: `dev/active/phaseA-auth/`
 
 **목적**: JWT 인증 + 사용자별 데이터 격리 기반 마련
@@ -160,38 +162,105 @@
 **파일 집계**: 신규 18 / 수정 8 / Migration 1
 **완료**: 19/19 tasks — `936bc9a`~`2202455`
 
-#### Phase C: 분석 시나리오 API — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+#### Phase C: 상관도 페이지 완성 — ⬜ 미시작 (11 Steps) [상세 확정]
+> dev-docs: `dev/active/phaseC-correlation/`
 
-**목적**: 상관/지표/전략 분석을 챗봇 Tool로 제공
-**상세 기획 시점**: Phase B 완료 후, dev-docs로 시나리오/응답 구조 확정
+**목적**: 상관도 분석 서비스 + 스프레드 + 하이브리드 응답 기반 + 프론트 확장 + 관심 종목
+**핵심 신규 기능**: 스프레드 차트 (z-score 밴드), 하이브리드 응답 (정규표현식 분류기+템플릿+LLM fallback), 넛지 질문
 
-**예상 산출물**:
-- 상관도 설명 API (`POST /v1/analysis/correlation/explain`)
-- 지표 계산/해석 API (`POST /v1/analysis/indicators`)
-- 전략 비교 API (`POST /v1/analysis/strategies/compare`)
-- 차트 오버레이/정규화 요청 처리
-- 분석 응답 스키마 + 차트 액션 매핑 규칙
+**Backend 산출물**:
+- `api/services/analysis/correlation_analysis.py` — 그룹핑(Union-Find), 유사자산, top pairs
+- `api/services/analysis/spread_service.py` — 정규화 스프레드 + z-score 수렴/발산 감지
+- `api/services/analysis/interpretation_rules.py` — 상관도/스프레드 해석 상수
+- `api/services/llm/tools.py` 수정 — `analyze_correlation`, `get_spread` Tool 추가
+- `api/services/llm/hybrid/` 디렉토리 — `context.py`, `classifier.py`, `templates.py`, `actions.py`
+- `api/services/llm/graph.py` 수정 — 하이브리드 분류기 통합
+- `api/services/chat/chat_service.py` 수정 — page_context + SSE ui_action 확장
 
-**파일 집계 (추정)**: 신규 ~5 / 수정 ~2 / Migration 0
+**Frontend 산출물**:
+- `src/store/chartActionStore.ts` — Zustand (UI 액션 큐)
+- `src/store/watchlistStore.ts` — Zustand + localStorage (관심 종목)
+- `src/components/charts/ScatterPlotChart.tsx`, `SpreadChart.tsx`
+- `src/components/correlation/CorrelationGroupCard.tsx`
+- `src/components/chat/NudgeQuestions.tsx`
+- `src/components/common/WatchlistToggle.tsx`
+- `src/hooks/useSSE.ts`, `src/types/chat.ts`, `src/api/chat.ts` 수정
+- `src/pages/CorrelationPage.tsx`, `src/components/chat/ChatPanel.tsx` 수정
 
-#### Phase D: 그래프 커스터마이징 통합 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+**설계 결정**:
+- 하이브리드 분류기 = 정규표현식+키워드 (LLM intent classification 안 씀 → 레이턴시 최소화)
+- 분류 실패 시 LangGraph LLM fallback
+- SSE `ui_action` 이벤트로 프론트 차트 제어
 
-**목적**: 대화 → 차트 반영, preset 저장, 페이지 재편
-**상세 기획 시점**: Phase C 완료 후, dev-docs로 config_json 구조/UI 액션 매핑 확정
+**파일 집계**: 신규 ~13 / 수정 ~9 / Migration 0
 
-**예상 산출물**:
-- `chart_presets` DB 테이블
-- Backend: preferences/chart-actions API
-- Frontend: chartStore (Zustand), ChartControls, IndicatorSignalPage
-- chat-to-chart reducer (UI 액션 → 프론트 상태 변경)
-- 페이지 구조 재편: 홈/가격/상관/지표시그널/전략
+#### Phase D: 지표 페이지 완성 — ⬜ 미시작 (11 Steps) [상세 확정]
+> dev-docs: `dev/active/phaseD-indicators/`
 
-**파일 집계 (추정)**: 신규 ~12 / 수정 ~9 / Migration 1
+**목적**: 지표 현재 상태 해석 + 매수/매도 성공률 + 예측력 비교 + REST API + 프론트 통합 페이지
+**핵심 신규 기능**: 지표 매수/매도 성공률 (forward 5일), 지표 간 예측력 비교, 분석 REST 엔드포인트
 
-#### Phase E: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+**Backend 산출물**:
+- `api/services/analysis/indicator_analysis.py` — `INDICATOR_RULES` + `interpret_indicator_state()`
+- `api/services/analysis/signal_accuracy_service.py` — 성공률 계산 (signal=1 → 5일 후 close 비교)
+- `api/services/analysis/indicator_comparison.py` — 3개 전략 예측력 비교
+- `api/schemas/analysis.py` — 분석 요청/응답 Pydantic 스키마
+- `api/routers/analysis_router.py` — `GET /v1/analysis/signal-accuracy`, `GET /v1/analysis/indicator-comparison`
+- `api/services/llm/tools.py` 수정 — `analyze_indicators` Tool 추가
+- `api/services/llm/hybrid/templates.py`, `classifier.py` 수정 — 지표 카테고리 확장
+
+**Frontend 산출물**:
+- `src/pages/IndicatorSignalPage.tsx` — 탭: 지표 현황 / 시그널 타임라인 / 성공률
+- `src/components/charts/IndicatorOverlayChart.tsx` — ComposedChart (가격+지표 오버레이)
+- `src/components/analysis/AccuracyTable.tsx` — 색상코딩 성공률 테이블
+- `src/components/charts/AccuracyBarChart.tsx` — 성공률 막대 차트
+- `src/components/common/IndicatorSettingsPanel.tsx` — 표시/숨기기/정규화 토글
+- `src/api/analysis.ts` — `fetchSignalAccuracy()`, `fetchIndicatorComparison()`
+- `src/App.tsx` 수정 — `/indicators` 라우트 + redirect
+- `src/components/layout/Sidebar.tsx` 수정 — 네비 통합
+
+**설계 결정**:
+- REST 엔드포인트 추가 (성공률/비교는 UI 페이지에서 직접 표시 필요)
+- 기존 FactorPage/SignalPage 파일 유지, 라우트만 `/indicators`로 redirect
+- 넛지 질문: "현재 RSI 상태가 궁금하신가요?", "지표 성공률을 확인해볼까요?"
+
+**파일 집계**: 신규 ~10 / 수정 ~7 / Migration 0
+
+#### Phase E: 전략 페이지 완성 — ⬜ 미시작 (9 Steps) [상세 확정]
+> dev-docs: `dev/active/phaseE-strategy/`
+
+**목적**: 전략 비교 분석 + 이벤트 스토리텔링 + 에쿼티 이벤트 마커 + 기간 설정 + 라우트 최종 정리
+**핵심 신규 기능**: 이벤트 스토리텔링 (하드코딩 템플릿+f-string), on-the-fly 경량 백테스트
+
+**Backend 산출물**:
+- `api/services/analysis/strategy_analysis.py` — on-the-fly 전략 비교 (DB 저장 없음)
+- `api/services/analysis/storytelling_service.py` — `generate_trade_narratives()`, `generate_strategy_story()`
+- `api/routers/analysis_router.py` 수정 — `POST /v1/analysis/strategy-comparison`
+- `api/schemas/analysis.py` 수정 — 전략 비교 요청/응답 스키마
+- `api/services/llm/tools.py` 수정 — `compare_strategies` Tool 추가
+- `api/services/llm/hybrid/templates.py`, `classifier.py` 수정 — 전략 카테고리 확장
+
+**Frontend 산출물**:
+- `src/components/strategy/StrategyDescriptionCard.tsx` — 3개 전략별 설명 (접힘/펼침)
+- `src/components/charts/EquityCurveWithEvents.tsx` — ReferenceDot 매매 포인트
+- `src/components/strategy/TradeNarrativePanel.tsx` — 클릭 시 내러티브 카드
+- `src/api/analysis.ts` 수정 — `fetchStrategyComparison()` 추가
+- `src/pages/StrategyPage.tsx` 수정 — 설명 카드, 이벤트 마커, 6M/1Y/2Y 기간
+- `src/components/layout/Sidebar.tsx` 수정 — 5개 항목 최종 정리
+- `src/App.tsx` 수정 — `/factors`, `/signals` → `/indicators` redirect 확인
+
+**설계 결정**:
+- 스토리텔링 = 하드코딩 템플릿+f-string (추상 점수 금지, 실제 금액/수익률만)
+- on-the-fly 백테스트 (DB 저장 안 함) — DB에 없는 기간 조합도 즉시 비교
+- 전략 설명 하드코딩 (모멘텀="달리는 말에 타는 전략…")
+- 기존 FactorPage.tsx, SignalPage.tsx 파일 유지 (삭제 안 함)
+
+**파일 집계**: 신규 ~7 / 수정 ~7 / Migration 0
+
+#### Phase F: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 
 **사전 확인**: Railway PostgreSQL pgvector 지원 여부
-**상세 기획 시점**: Phase D 완료 후, dev-docs로 메모리 데이터 타입/embedding 대상 확정
+**상세 기획 시점**: Phase E 완료 후, dev-docs로 메모리 데이터 타입/embedding 대상 확정
 
 **예상 산출물**:
 - `user_memories`, `retrieval_chunks`, `analysis_snapshots` DB 테이블
@@ -200,13 +269,13 @@
 - LangGraph retrieval 노드 + 임베딩 인덱싱
 - 패키지: pgvector, langchain-community (pgvector retriever)
 
-**기술 결정**: pgvector (Railway 지원 여부 Phase E 전 확인), Embedding 모델 Phase E 진입 시 결정
+**기술 결정**: pgvector (Railway 지원 여부 Phase F 전 확인), Embedding 모델 Phase F 진입 시 결정
 **파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
 
-#### Phase F: Onboarding + 운영 안정화 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+#### Phase G: Onboarding + 운영 안정화 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 
 **목적**: 사용자 온보딩 + 운영 방어
-**상세 기획 시점**: Phase E 완료 후, dev-docs로 온보딩 메뉴/질문 항목 확정
+**상세 기획 시점**: Phase F 완료 후, dev-docs로 온보딩 메뉴/질문 항목 확정
 
 **예상 산출물**:
 - `onboarding_profiles` DB 테이블
@@ -262,11 +331,11 @@ GitHub Actions cron (KST 18:00) → collector (FDR) → price_daily
 |------|--------|-------------|------------|
 | LLM 잘못된 UI 액션 생성 | 차트 오류 | 중 | 제한된 액션 타입 allowlist + JSON schema 검증 |
 | Gemini API 비용 초과 | 운영비 증가 | 중 | 토큰 사용량 컬럼 미리 설계, Flash Lite 경량 모델 병용 |
-| pgvector Railway 미지원 | 벡터 검색 불가 | 저 | Phase E 전 확인, 대안: 별도 벡터 엔진 |
+| pgvector Railway 미지원 | 벡터 검색 불가 | 저 | Phase F 전 확인, 대안: 별도 벡터 엔진 |
 | Vector 검색이 수치 근거보다 앞설 경우 | 설명 품질 저하 | 중 | SQL 계산 우선, Vector는 보조 근거만 |
 | 전략 비교 기간 민감도 | 오해 유발 | 저 | 6M/1Y/2Y 비교 기본 제공, 계산 기준 명시 |
 | 사용자 메모리 ↔ 공용 분석 혼재 | 개인화 저하 | 저 | memory/retrieval source 분리, 출처 메타데이터 |
-| 프롬프트 인젝션 | 보안 침해 | 중 | Phase F에서 방어 구현 |
+| 프롬프트 인젝션 | 보안 침해 | 중 | Phase G에서 방어 구현 |
 
 ## 7. Dependencies (의존성)
 
@@ -278,11 +347,11 @@ GitHub Actions cron (KST 18:00) → collector (FDR) → price_daily
 - **Vercel**: 프론트엔드 호스팅 ✅
 
 ### 외부 (Post-MVP — 신규)
-- **Google Gemini API**: LLM (Gemini 3.1 Pro + Flash Lite)
+- **OpenAI API**: LLM (GPT-5 + GPT-5 Mini)
 - **pgvector**: PostgreSQL 벡터 검색 확장 (Railway 지원 확인 필요)
-- **langgraph + langchain-core + langchain-google-genai**: LLM 오케스트레이션
+- **langgraph + langchain-core + langchain-openai**: LLM 오케스트레이션
 
 ### 기술
 - Python 3.12.3, Node.js 18+, PostgreSQL 15+ (Railway)
 - venv: `backend/.venv/` (Windows)
-- **신규**: python-jose, bcrypt (Auth), langgraph, langchain-core, langchain-google-genai, Zustand (Frontend)
+- **신규**: python-jose, bcrypt (Auth), langgraph, langchain-core, langchain-openai, Zustand (Frontend)

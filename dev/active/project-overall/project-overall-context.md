@@ -1,5 +1,5 @@
 # Project Overall Context
-> Last Updated: 2026-03-12
+> Last Updated: 2026-03-13
 > Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
 
 ## 핵심 파일
@@ -10,12 +10,16 @@
 | `docs/post-mvp-implementation-sketch.md` | Post-MVP 제품 요구사항 (대화형 분석 워크스페이스) |
 | `docs/session-compact.md` | 현재 진행 상태 |
 | `.claude/plans/snuggly-growing-willow.md` | Post-MVP 전체 구현 계획 |
+| `docs/post-mvp-phaseCD-detail.md` | Phase C~E 통합 상세 계획 (31 Steps) |
 | `CLAUDE.md` | 프로젝트 규칙, 기술 스택, 컨벤션 |
 | `.claude/skills/backend-dev/SKILL.md` | 백엔드 개발 가이드 (Auth 패턴 포함) |
 | `.claude/skills/frontend-dev/SKILL.md` | 프론트엔드 개발 가이드 (Zustand, SSE, ProtectedRoute 포함) |
 | `.claude/skills/langgraph-dev/SKILL.md` | LangGraph + Gemini 에이전트 가이드 |
 | `dev/active/phaseA-auth/` | Phase A (Auth) dev-docs — ✅ 완료 |
 | `dev/active/phaseB-chatbot/` | Phase B (Chatbot) dev-docs (plan/context/tasks/debug) |
+| `dev/active/phaseC-correlation/` | Phase C (상관도 페이지) dev-docs |
+| `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs |
+| `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs |
 
 ## 주요 결정사항
 
@@ -46,11 +50,16 @@
 | LLM 모델 | **OpenAI GPT-5** (심층) + **GPT-5 Mini** (기본) | Gemini 쿼타 초과 (429)로 전환, 심층모드 토글 |
 | Chat 프로토콜 | SSE 스트리밍 (FastAPI StreamingResponse) | WebSocket 대비 구현 간편, HTTP 호환 |
 | 상태 관리 | Zustand 추가 (기존 hooks 유지, 공유 상태만 store) | 공유 상태 관리 필요 (auth, chat, chart) |
-| Embedding | Phase E 진입 시 결정 (Gemini embedding 또는 OpenAI) | 아직 벡터 검색 요구 불확실 |
+| Embedding | Phase F 진입 시 결정 (OpenAI embedding) | 아직 벡터 검색 요구 불확실 |
 | Vector DB | pgvector (Railway 지원 확인 필요) | 기존 Postgres 내 관리, 운영 단순 |
 | 비용 제어 | 초기 제한 없음, 토큰 사용량 컬럼 미리 설계 | 사용량 추적 후 제한 설정 |
 | 기존 API | auth 없이 하위 호환 유지 | 기존 공개 엔드포인트 접근성 유지 |
 | 페이지 재편 | 홈/가격/상관/지표시그널/전략 (팩터+시그널 통합) | 사용자 관점 단순화 |
+| Phase C~E 통합 | 기존 C(분석)+D(그래프커스텀) → 페이지별 분리(C/D/E) | 각 페이지를 백엔드+프론트+챗봇까지 완결 후 다음 이동 |
+| 하이브리드 분류기 | 정규표현식+키워드 (LLM intent 안 씀) | 레이턴시 최소화, 실패 시 LangGraph fallback |
+| 스토리텔링 | 하드코딩 템플릿+f-string | 추상 점수 금지, 실제 금액/수익률만 사용 |
+| on-the-fly 백테스트 | DB 저장 안 함 | DB에 없는 기간 조합도 즉시 비교 가능 |
+| REST 분석 API | 성공률/전략비교용 1개 라우터 추가 | 페이지 렌더링용 REST 병행 (챗봇 중심 유지) |
 
 ## 자산 목록
 
@@ -81,11 +90,11 @@
 10. `user_sessions` — 리프레시 토큰 세션 (Phase A)
 11. `chat_sessions` — 채팅 세션 (Phase B)
 12. `chat_messages` — 채팅 메시지 (Phase B)
-13. `chart_presets` — 차트 프리셋 (Phase D)
-14. `user_memories` — 사용자 메모리 (Phase E)
-15. `retrieval_chunks` — 벡터 임베딩 (Phase E)
-16. `analysis_snapshots` — 분석 스냅샷 (Phase E)
-17. `onboarding_profiles` — 온보딩 프로필 (Phase F)
+13. `chart_presets` — 차트 프리셋 (Phase F 이후)
+14. `user_memories` — 사용자 메모리 (Phase F)
+15. `retrieval_chunks` — 벡터 임베딩 (Phase F)
+16. `analysis_snapshots` — 분석 스냅샷 (Phase F)
+17. `onboarding_profiles` — 온보딩 프로필 (Phase G)
 
 ## API 엔드포인트
 
@@ -132,24 +141,21 @@
 | GET | `/v1/chat/sessions/{session_id}` | 세션 조회 |
 | POST | `/v1/chat/sessions/{session_id}/messages` | 메시지 전송 (SSE) |
 
-#### Analysis API (Phase C)
-| Method | Path | 설명 |
-|--------|------|------|
-| POST | `/v1/analysis/correlation/explain` | 상관도 설명 |
-| POST | `/v1/analysis/indicators` | 지표 해석 |
-| POST | `/v1/analysis/strategies/compare` | 전략 비교 |
+#### Analysis API (Phase D~E)
+| Method | Path | 설명 | Phase |
+|--------|------|------|-------|
+| GET | `/v1/analysis/signal-accuracy` | 지표 매수/매도 성공률 | D |
+| GET | `/v1/analysis/indicator-comparison` | 지표 예측력 비교 | D |
+| POST | `/v1/analysis/strategy-comparison` | 전략 비교 (on-the-fly 백테스트) | E |
 
-#### Preferences / Memory / Onboarding API (Phase D~F)
+#### Memory / Onboarding API (Phase F~G)
 | Method | Path | Phase |
 |--------|------|-------|
-| GET | `/v1/preferences/charts` | D |
-| PUT | `/v1/preferences/charts/{preset_id}` | D |
-| POST | `/v1/chart-actions/preview` | D |
-| GET/POST/DELETE | `/v1/memory` | E |
-| POST | `/v1/retrieval/query` | E |
-| POST | `/v1/onboarding/start` | F |
-| POST | `/v1/onboarding/answers` | F |
-| GET | `/v1/onboarding/profile` | F |
+| GET/POST/DELETE | `/v1/memory` | F |
+| POST | `/v1/retrieval/query` | F |
+| POST | `/v1/onboarding/start` | G |
+| POST | `/v1/onboarding/answers` | G |
+| GET | `/v1/onboarding/profile` | G |
 
 ## 프론트엔드 페이지
 
@@ -164,9 +170,11 @@
 | 6 | 전략 성과 | `/backtests/*` | 에쿼티 커브 + 메트릭스 |
 
 ### Post-MVP 페이지 변경 (계획)
-- 팩터 + 시그널 → **지표 시그널** 통합 (Phase D)
-- **채팅 패널**: 우측 슬라이드 (Phase B)
-- **로그인/회원가입**: 인증 페이지 (Phase A)
+- **로그인/회원가입**: 인증 페이지 (Phase A) ✅
+- **채팅 패널**: 우측 슬라이드 (Phase B) ✅
+- **상관도 페이지 확장**: 그룹핑 카드 + ScatterPlot + SpreadChart + 넛지 질문 + 관심 종목 (Phase C)
+- **지표 시그널 통합 페이지**: 팩터+시그널 통합, 성공률 탭, 오버레이 차트, 설정 패널 (Phase D)
+- **전략 페이지 고도화**: 전략 설명 카드, 이벤트 마커, 내러티브 패널, 기간 설정 (Phase E)
 - 최종 구조: 홈 / 가격 / 상관 / 지표시그널 / 전략 + 채팅 패널
 
 ## 컨벤션 체크리스트
@@ -207,8 +215,11 @@
 - [x] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, done)
 - [x] Zustand authStore 구현 완료
 - [x] Zustand chatStore (Phase B 완료, deepMode 포함)
-- [ ] Zustand chartStore (Phase D)
-- [ ] LangGraph Tool JSON schema 검증
+- [ ] Zustand chartActionStore (Phase C)
+- [ ] Zustand watchlistStore (Phase C)
+- [ ] 하이브리드 분류기 (정규표현식+키워드) (Phase C)
+- [ ] 분석 REST API (Phase D~E)
+- [ ] LangGraph Tool 확장 (5→8개) (Phase C~E)
 - [ ] 사용자 데이터 user_id 기준 격리
 
 ## 배포 인프라
@@ -222,4 +233,4 @@
 | 일일 수집 | GitHub Actions cron | ✅ 운영 중 |
 | 알림 | Discord Webhook | ✅ 운영 중 |
 | LLM API | OpenAI GPT-5 / GPT-5 Mini | ✅ 운영 중 |
-| Vector 확장 | pgvector | 계획 (Phase E) |
+| Vector 확장 | pgvector | 계획 (Phase F) |

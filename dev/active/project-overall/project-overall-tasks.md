@@ -1,5 +1,5 @@
 # Project Overall Tasks
-> Last Updated: 2026-03-12
+> Last Updated: 2026-03-13
 > Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19)
 
 ## Phase 0: 사전 준비 ✅ 완료
@@ -143,8 +143,8 @@
 
 ## Post-MVP Phases (Phase A~F) — 계획
 
-> 구현 순서: A → B → C → D → E → F
-> Phase A, B: 상세 확정. Phase C~F: 진입 시 `/dev-docs`로 상세 기획.
+> 구현 순서: A → B → C → D → E → F → G
+> Phase A, B: 완료. Phase C~E: 상세 확정 (31 Steps). Phase F~G: 진입 시 `/dev-docs`로 상세 기획.
 
 ## Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16)
 > dev-docs: `dev/active/phaseA-auth/`
@@ -204,20 +204,77 @@
 - [x] B.18 E2E 검증 (Gemini→OpenAI 전환 + 프로덕션) `[M]` — `807c33f`, `689dedf`, `2f21d0d`
 - [x] B.19 dev-docs 갱신 + 심층모드 `[S]` — `2202455`
 
-## Phase C: 분석 시나리오 API — ⬜ 미시작
-> 상세 태스크: Phase C dev-docs 생성 시 확정
-> **파일 집계 (추정)**: 신규 ~5 / 수정 ~2
+## Phase C: 상관도 페이지 완성 — ⬜ 미시작 (0/11)
+> dev-docs: `dev/active/phaseC-correlation/`
+> **파일 집계**: 신규 ~13 / 수정 ~9 / Migration 0
 
-## Phase D: 그래프 커스터마이징 — ⬜ 미시작
-> 상세 태스크: Phase D dev-docs 생성 시 확정
-> **파일 집계 (추정)**: 신규 ~12 / 수정 ~9 / Migration 1
+### Stage A: Backend 분석 서비스
+- [ ] C.1 상관도 분석 서비스 — 그룹핑/유사자산 `[M]`
+- [ ] C.2 스프레드 분석 서비스 `[M]`
+- [ ] C.3 해석 규칙 상수 정의 `[S]`
 
-## Phase E: Memory + Retrieval — ⬜ 미시작
-> 상세 태스크: Phase E dev-docs 생성 시 확정
+### Stage B: LangGraph Tool 확장
+- [ ] C.4 LangGraph Tool — `analyze_correlation` `[M]`
+- [ ] C.5 LangGraph Tool — `get_spread` `[M]`
+
+### Stage C: 하이브리드 응답 기반
+- [ ] C.6 하이브리드 응답 기반 구축 (`hybrid/` 디렉토리) `[L]`
+- [ ] C.7 하이브리드를 LangGraph에 통합 `[L]`
+
+### Stage D: Frontend 확장
+- [ ] C.8 SSE 확장 + chartActionStore `[M]`
+- [ ] C.9 상관도 페이지 확장 (그룹핑+Scatter) `[M]`
+- [ ] C.10 SpreadChart + 넛지 질문 UI `[M]`
+- [ ] C.11 관심 종목 설정 `[S]`
+
+## Phase D: 지표 페이지 완성 — ⬜ 미시작 (0/11)
+> dev-docs: `dev/active/phaseD-indicators/`
+> **파일 집계**: 신규 ~10 / 수정 ~7 / Migration 0
+
+### Stage A: Backend 분석 서비스
+- [ ] D.1 지표 분석 서비스 — 현재 상태 해석 `[M]`
+- [ ] D.2 지표 성공률 서비스 ⭐핵심 `[L]`
+- [ ] D.3 지표 간 예측력 비교 `[M]`
+
+### Stage B: REST API + LangGraph
+- [ ] D.4 분석 REST 엔드포인트 `[M]`
+- [ ] D.5 LangGraph Tool — `analyze_indicators` `[M]`
+- [ ] D.6 하이브리드 응답 — 지표 카테고리 확장 `[S]`
+
+### Stage C: Frontend 통합 페이지
+- [ ] D.7 IndicatorSignalPage 통합 `[L]`
+- [ ] D.8 지표 오버레이 차트 `[M]`
+- [ ] D.9 성공률 테이블/차트 `[M]`
+
+### Stage D: Frontend 고도화
+- [ ] D.10 멀티 지표 설정 + 정규화 `[M]`
+- [ ] D.11 chartActionStore 연결 `[S]`
+
+## Phase E: 전략 페이지 완성 — ⬜ 미시작 (0/9)
+> dev-docs: `dev/active/phaseE-strategy/`
+> **파일 집계**: 신규 ~7 / 수정 ~7 / Migration 0
+
+### Stage A: Backend 분석 서비스
+- [ ] E.1 전략 비교 분석 서비스 `[L]`
+- [ ] E.2 이벤트 스토리텔링 서비스 ⭐핵심 `[L]`
+
+### Stage B: LangGraph + REST
+- [ ] E.3 LangGraph Tool — `compare_strategies` `[M]`
+- [ ] E.4 하이브리드 응답 — 전략 카테고리 확장 `[S]`
+- [ ] E.5 전략 비교 REST 엔드포인트 `[M]`
+
+### Stage C: Frontend
+- [ ] E.6 전략 사전 설명 카드 `[S]`
+- [ ] E.7 에쿼티 커브 이벤트 마커 + 내러티브 ⭐핵심 `[L]`
+- [ ] E.8 기간 설정 + 1억원 시드 `[M]`
+- [ ] E.9 라우트 최종 정리 `[S]`
+
+## Phase F: Memory + Retrieval — ⬜ 미시작
+> 상세 태스크: Phase F dev-docs 생성 시 확정
 > **파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
 
-## Phase F: Onboarding + 운영 안정화 — ⬜ 미시작
-> 상세 태스크: Phase F dev-docs 생성 시 확정
+## Phase G: Onboarding + 운영 안정화 — ⬜ 미시작
+> 상세 태스크: Phase G dev-docs 생성 시 확정
 > **파일 집계 (추정)**: 신규 ~10 / 수정 ~3 / Migration 1
 
 ---
@@ -239,11 +296,17 @@
 ### Post-MVP (진행 중)
 - **Phase A**: 16 tasks (S:6, M:9, L:1) — 16/16 ✅
 - **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
-- **Phase C~F**: 미정 (각 Phase 진입 시 확정)
-- **Post-MVP 전체 영향도 (추정)**: 신규 ~72 / 수정 ~28 / Migration 5
+- **Phase C**: 11 tasks (S:2, M:7, L:2) — 0/11 ⬜
+- **Phase D**: 11 tasks (S:2, M:6, L:2, XL:1) — 0/11 ⬜
+- **Phase E**: 9 tasks (S:2, M:3, L:3, XL:1) — 0/9 ⬜
+- **Phase F~G**: 미정 (각 Phase 진입 시 확정)
+- **Post-MVP Phase C~E 파일 영향도**: 신규 ~30 / 수정 ~23 / Migration 0
 
 ### Grand Total
 - **MVP**: 83 tasks 완료
 - **Post-MVP Phase A**: 16/16 ✅
 - **Post-MVP Phase B**: 19/19 ✅
-- **Post-MVP Phase C~F**: 태스크 상세 미확정
+- **Post-MVP Phase C**: 0/11 ⬜ (상관도 페이지)
+- **Post-MVP Phase D**: 0/11 ⬜ (지표 페이지)
+- **Post-MVP Phase E**: 0/9 ⬜ (전략 페이지)
+- **Post-MVP Phase F~G**: 태스크 상세 미확정

@@ -1,6 +1,6 @@
 # Phase C: 상관도 페이지 — Context
 > Last Updated: 2026-03-13
-> Status: Planning
+> Status: In Progress (7/12)
 
 ## 1. 핵심 파일
 
@@ -42,6 +42,13 @@
 | z-score 밴드 ±2σ | 통계적 표준 기준 |
 | ui_action 선택적 처리 | 프론트 무시해도 텍스트만으로 동작 |
 | 넛지 질문 페이지별 하드코딩 | LLM 생성 불필요, 일관성 |
+
+## Changed Files (Step C.7)
+- `backend/api/schemas/chat.py` — `PageContextRequest` 스키마 추가, `SendMessageRequest`에 `page_context` 필드
+- `backend/api/routers/chat.py` — `page_context` → `chat_service.stream_chat()` 전달
+- `backend/api/services/chat/chat_service.py` — 하이브리드 분류기 통합 (`classify_question` → `_fetch_hybrid_data` → 템플릿 응답 / LangGraph fallback), `ui_action` SSE 이벤트, `_chunk_text` 헬퍼
+- `backend/api/services/llm/graph.py` — `_build_system_prompt()` (page_context 반영), `agent_node`에서 page_context 읽기
+- `backend/tests/unit/test_hybrid_integration.py` — 신규 (16 tests: 하이브리드 경로, fallback, 라우터 page_context 전달)
 
 ## 4. 컨벤션 체크리스트
 

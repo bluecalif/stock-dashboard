@@ -1,6 +1,6 @@
 # Phase C: 상관도 페이지 완성
 > Last Updated: 2026-03-13
-> Status: Planning
+> Status: In Progress — C.7 완료, C.8 다음
 
 ## 1. Summary (개요)
 
@@ -11,9 +11,10 @@
 ## 2. Current State (현재 상태)
 
 - Phase B 완료: LangGraph + OpenAI GPT-5 챗봇 (5개 Tool: prices, factors, signals, correlation, backtest)
-- 상관도 페이지: 히트맵만 표시 (기간/윈도우 조절)
-- 챗봇: raw data 조회만 가능, 분석/해석 없음
-- SSE 이벤트: text_delta, tool_call, tool_result, done (ui_action 미구현)
+- ✅ C.1~C.6 완료: 분석 서비스, Tool 2개, 하이브리드 응답 기반
+- ✅ C.7 완료: 하이브리드 → LangGraph 통합 (chat_service 하이브리드 경로 + LLM fallback + ui_action SSE)
+- SSE 이벤트: text_delta, tool_call, tool_result, **ui_action**, done
+- 다음: C.8 SSE 확장 + chartActionStore (Frontend)
 
 ## 3. Target State (목표 상태)
 

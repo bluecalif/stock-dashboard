@@ -1,4 +1,4 @@
-"""Chat service — LangGraph 오케스트레이션 + SSE 이벤트 생성."""
+"""Chat service — LangGraph 오케스트레이션 + 하이브리드 분류기 + SSE 이벤트 생성."""
 
 from __future__ import annotations
 
@@ -13,6 +13,9 @@ from sqlalchemy.orm import Session
 
 from api.repositories import chat_repo
 from api.services.llm.graph import build_graph
+from api.services.llm.hybrid.classifier import classify_question
+from api.services.llm.hybrid.context import PageContext
+from api.services.llm.hybrid.templates import get_template_response
 from db.models import ChatSession
 
 logger = logging.getLogger(__name__)
@@ -71,6 +74,61 @@ def list_sessions(
     return chat_repo.list_sessions_by_user(db, user_id)
 
 
+def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
+    """하이브리드 분류기가 매칭한 카테고리에 대해 Tool 데이터를 가져온다."""
+    from api.services.llm.hybrid.classifier import (
+        CORRELATION_EXPLAIN,
+        SIMILAR_ASSETS,
+        SPREAD_ANALYSIS,
+    )
+
+    try:
+        if category == CORRELATION_EXPLAIN:
+            from api.services.llm.tools import analyze_correlation_tool
+            raw = analyze_correlation_tool.invoke({
+                "asset_ids": page_context.asset_ids or None,
+                "days": page_context.params.get("window", 60),
+            })
+            return json.loads(raw)
+
+        if category == SIMILAR_ASSETS:
+            target = (
+                page_context.asset_ids[0]
+                if page_context.asset_ids
+                else "KS200"
+            )
+            from api.services.llm.tools import analyze_correlation_tool
+            raw = analyze_correlation_tool.invoke({
+                "asset_ids": None,
+                "target_id": target,
+            })
+            data = json.loads(raw)
+            data["target_id"] = target
+            return data
+
+        if category == SPREAD_ANALYSIS:
+            pair = page_context.params.get("selected_pair", [])
+            if len(pair) >= 2:
+                asset_a, asset_b = pair[0], pair[1]
+            elif len(page_context.asset_ids) >= 2:
+                asset_a, asset_b = page_context.asset_ids[0], page_context.asset_ids[1]
+            else:
+                return None  # 페어 정보 없으면 LLM fallback
+            from api.services.llm.tools import get_spread
+            raw = get_spread.invoke({
+                "asset_a": asset_a,
+                "asset_b": asset_b,
+                "days": page_context.params.get("window", 60),
+            })
+            return json.loads(raw)
+
+    except Exception:
+        logger.exception("Hybrid data fetch error for category=%s", category)
+        return None
+
+    return None
+
+
 async def stream_chat(
     db: Session,
     *,
@@ -78,8 +136,9 @@ async def stream_chat(
     user_id: uuid.UUID,
     content: str,
     deep_mode: bool = False,
+    page_context: dict | None = None,
 ) -> AsyncGenerator[str, None]:
-    """LangGraph 호출 → SSE 이벤트 스트림 생성."""
+    """하이브리드 분류기 → 템플릿 응답 / LangGraph fallback → SSE 이벤트 스트림."""
     # 세션 소유권 검증
     session = chat_repo.get_session(db, session_id)
     if not session:
@@ -97,14 +156,53 @@ async def stream_chat(
     chat_repo.create_message(db, session_id=session_id, role="user", content=content)
     db.commit()
 
+    ctx = PageContext.from_dict(page_context)
+    full_response = ""
+
+    # ── 1) 하이브리드 분류기 시도 ──
+    category = classify_question(content, ctx)
+    if category:
+        data = _fetch_hybrid_data(category, ctx)
+        if data:
+            result = get_template_response(category, ctx, data)
+            if result:
+                text, actions = result
+                full_response = text
+
+                # 텍스트 스트리밍 (청크 단위)
+                for chunk in _chunk_text(text, 80):
+                    evt = {"type": "text_delta", "content": chunk}
+                    yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+
+                # UI 액션 전송
+                for action in actions:
+                    evt = {"type": "ui_action", **action.to_dict()}
+                    yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+
+                # DB 저장 + done
+                if full_response:
+                    chat_repo.create_message(
+                        db, session_id=session_id, role="assistant",
+                        content=full_response,
+                    )
+                    db.commit()
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                return
+
+    # ── 2) LangGraph fallback ──
     graph = _get_graph()
     thread_id = str(session_id)
-    full_response = ""
 
     try:
         async for event in graph.astream_events(
             {"messages": [HumanMessage(content=content)]},
-            config={"configurable": {"thread_id": thread_id, "deep_mode": deep_mode}},
+            config={
+                "configurable": {
+                    "thread_id": thread_id,
+                    "deep_mode": deep_mode,
+                    "page_context": page_context,
+                },
+            },
             version="v2",
         ):
             kind = event["event"]
@@ -149,3 +247,8 @@ async def stream_chat(
         db.commit()
 
     yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+
+def _chunk_text(text: str, size: int) -> list[str]:
+    """텍스트를 size 글자 단위로 분할 (SSE 스트리밍 시뮬레이션)."""
+    return [text[i:i + size] for i in range(0, len(text), size)]

@@ -1,6 +1,6 @@
 # Phase C: 상관도 페이지 — Tasks
 > Last Updated: 2026-03-13
-> Status: 6/12 완료 (50%)
+> Status: 7/12 완료 (58%)
 
 ## Stage A: Backend 분석 서비스
 - [x] C.1 상관도 분석 서비스 — 그룹핑/유사자산 `[M]`
@@ -13,7 +13,7 @@
 
 ## Stage C: 하이브리드 응답 기반
 - [x] C.6 하이브리드 응답 기반 구축 (`hybrid/` 디렉토리) `[L]`
-- [ ] C.7 하이브리드를 LangGraph에 통합 `[L]`
+- [x] C.7 하이브리드를 LangGraph에 통합 `[L]`
 
 ## Stage D: Frontend 확장
 - [ ] C.8 SSE 확장 + chartActionStore `[M]`

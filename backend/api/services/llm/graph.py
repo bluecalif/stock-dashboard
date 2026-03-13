@@ -20,14 +20,43 @@ def _build_model(deep_mode: bool = False) -> ChatOpenAI:
     )
 
 
+def _build_system_prompt(page_context: dict | None = None) -> str:
+    """시스템 프롬프트에 page_context 정보를 추가."""
+    if not page_context:
+        return SYSTEM_PROMPT
+
+    page_id = page_context.get("page_id", "home")
+    asset_ids = page_context.get("asset_ids", [])
+    params = page_context.get("params", {})
+
+    ctx_lines = [
+        SYSTEM_PROMPT,
+        "",
+        f"[현재 페이지: {page_id}]",
+    ]
+    if asset_ids:
+        ctx_lines.append(f"[선택된 자산: {', '.join(asset_ids)}]")
+    if params:
+        ctx_lines.append(f"[페이지 파라미터: {params}]")
+    ctx_lines.append(
+        "사용자가 보고 있는 페이지 맥락에 맞게 답변하세요. "
+        "해당 페이지의 Tool을 적극 활용하세요."
+    )
+    return "\n".join(ctx_lines)
+
+
 async def agent_node(state: MessagesState, config: dict | None = None) -> dict:
     """LLM 호출 (tool binding 포함). 첫 호출 시 시스템 프롬프트 주입."""
-    deep_mode = (config or {}).get("configurable", {}).get("deep_mode", False)
+    configurable = (config or {}).get("configurable", {})
+    deep_mode = configurable.get("deep_mode", False)
+    page_context = configurable.get("page_context")
+
     model = _build_model(deep_mode).bind_tools(all_tools)
     messages = state["messages"]
     # 시스템 프롬프트가 없으면 맨 앞에 추가
     if not messages or not isinstance(messages[0], SystemMessage):
-        messages = [SystemMessage(content=SYSTEM_PROMPT)] + list(messages)
+        prompt = _build_system_prompt(page_context)
+        messages = [SystemMessage(content=prompt)] + list(messages)
     response = await model.ainvoke(messages)
     return {"messages": [response]}
 

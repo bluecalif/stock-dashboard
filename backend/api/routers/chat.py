@@ -66,11 +66,13 @@ async def send_message(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> StreamingResponse:
+    page_ctx = body.page_context.model_dump() if body.page_context else None
     event_stream = chat_service.stream_chat(
         db,
         session_id=session_id,
         user_id=current_user.id,
         content=body.content,
         deep_mode=body.deep_mode,
+        page_context=page_ctx,
     )
     return StreamingResponse(event_stream, media_type="text/event-stream")

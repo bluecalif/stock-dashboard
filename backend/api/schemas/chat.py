@@ -13,9 +13,16 @@ class CreateSessionRequest(BaseModel):
     title: str | None = None
 
 
+class PageContextRequest(BaseModel):
+    page_id: str = "home"
+    asset_ids: list[str] = []
+    params: dict = {}
+
+
 class SendMessageRequest(BaseModel):
     content: str
     deep_mode: bool = False
+    page_context: PageContextRequest | None = None
 
 
 # ── Response ─────────────────────────────────────────────────

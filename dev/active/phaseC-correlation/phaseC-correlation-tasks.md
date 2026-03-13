@@ -1,11 +1,11 @@
 # Phase C: 상관도 페이지 — Tasks
 > Last Updated: 2026-03-13
-> Status: 1/11 완료 (9%)
+> Status: 3/12 완료 (25%)
 
 ## Stage A: Backend 분석 서비스
 - [x] C.1 상관도 분석 서비스 — 그룹핑/유사자산 `[M]`
-- [ ] C.2 스프레드 분석 서비스 `[M]`
-- [ ] C.3 해석 규칙 상수 정의 `[S]`
+- [x] C.2 스프레드 분석 서비스 `[M]`
+- [x] C.3 해석 규칙 상수 정의 `[S]`
 
 ## Stage B: LangGraph Tool 확장
 - [ ] C.4 LangGraph Tool — `analyze_correlation` `[M]`

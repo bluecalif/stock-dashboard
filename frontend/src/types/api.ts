@@ -116,3 +116,21 @@ export interface CorrelationResponse {
   matrix: number[][];
   period: CorrelationPeriod;
 }
+
+export interface CorrelationGroup {
+  group_id: number;
+  asset_ids: string[];
+  avg_correlation: number;
+}
+
+export interface AssetPair {
+  asset_a: string;
+  asset_b: string;
+  correlation: number;
+}
+
+export interface CorrelationAnalysisResponse {
+  groups: CorrelationGroup[];
+  top_pairs: AssetPair[];
+  period: CorrelationPeriod;
+}

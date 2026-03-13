@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchCorrelation } from "../api/correlation";
-import type { CorrelationResponse } from "../types/api";
+import { fetchCorrelation, fetchCorrelationAnalysis } from "../api/correlation";
+import type {
+  CorrelationResponse,
+  CorrelationAnalysisResponse,
+  AssetPair,
+} from "../types/api";
+import { useChartActionStore } from "../store/chartActionStore";
 import DateRangePicker from "../components/common/DateRangePicker";
 import CorrelationHeatmap from "../components/charts/CorrelationHeatmap";
+import ScatterPlotChart from "../components/charts/ScatterPlotChart";
+import CorrelationGroupCard from "../components/correlation/CorrelationGroupCard";
 import Loading from "../components/common/Loading";
 import ErrorMessage from "../components/common/ErrorMessage";
 
@@ -23,19 +30,28 @@ export default function CorrelationPage() {
   const [endDate, setEndDate] = useState(today);
   const [window, setWindow] = useState(60);
   const [data, setData] = useState<CorrelationResponse | null>(null);
+  const [analysis, setAnalysis] = useState<CorrelationAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadCorrelation = useCallback(async () => {
+  const highlightedPair = useChartActionStore((s) => s.highlightedPair);
+  const setHighlightedPair = useChartActionStore((s) => s.setHighlightedPair);
+
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchCorrelation({
-        start_date: startDate,
-        end_date: endDate,
-        window,
-      });
-      setData(result);
+      const [corrResult, analysisResult] = await Promise.all([
+        fetchCorrelation({ start_date: startDate, end_date: endDate, window }),
+        fetchCorrelationAnalysis({
+          start_date: startDate,
+          end_date: endDate,
+          window,
+          top_n: 10,
+        }),
+      ]);
+      setData(corrResult);
+      setAnalysis(analysisResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "상관행렬 로딩 실패");
     } finally {
@@ -44,15 +60,22 @@ export default function CorrelationPage() {
   }, [startDate, endDate, window]);
 
   useEffect(() => {
-    loadCorrelation();
-  }, [loadCorrelation]);
+    loadData();
+  }, [loadData]);
+
+  const handlePairClick = useCallback(
+    (pair: AssetPair) => {
+      setHighlightedPair({ asset_a: pair.asset_a, asset_b: pair.asset_b });
+    },
+    [setHighlightedPair],
+  );
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">상관 히트맵</h2>
+        <h2 className="text-2xl font-bold text-gray-900">상관도 분석</h2>
         <p className="text-gray-500 mt-1 text-sm">
-          자산 간 수익률 상관행렬 · 기간/윈도우 조절 가능
+          자산 간 수익률 상관행렬 · 그룹핑 · 상관 쌍 분포
         </p>
       </div>
 
@@ -91,25 +114,77 @@ export default function CorrelationPage() {
         </div>
       </div>
 
-      {/* 히트맵 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        {loading ? (
-          <Loading message="상관행렬 계산 중..." />
-        ) : error ? (
-          <ErrorMessage message={error} onRetry={loadCorrelation} />
-        ) : data ? (
-          <>
-            <div className="text-xs text-gray-400 mb-3">
-              기간: {data.period.start} ~ {data.period.end} · 윈도우:{" "}
-              {data.period.window}일 · 자산 {data.asset_ids.length}개
+      {loading ? (
+        <Loading message="상관행렬 계산 중..." />
+      ) : error ? (
+        <ErrorMessage message={error} onRetry={loadData} />
+      ) : (
+        <>
+          {/* 그룹핑 카드 */}
+          {analysis && analysis.groups.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                유사 자산 그룹
+              </h3>
+              <CorrelationGroupCard
+                groups={analysis.groups}
+                onGroupClick={(g) => {
+                  if (g.asset_ids.length >= 2) {
+                    setHighlightedPair({
+                      asset_a: g.asset_ids[0],
+                      asset_b: g.asset_ids[1],
+                    });
+                  }
+                }}
+              />
             </div>
-            <CorrelationHeatmap
-              assetIds={data.asset_ids}
-              matrix={data.matrix}
-            />
-          </>
-        ) : null}
-      </div>
+          )}
+
+          {/* 히트맵 */}
+          {data && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                상관행렬 히트맵
+              </h3>
+              <div className="text-xs text-gray-400 mb-3">
+                기간: {data.period.start} ~ {data.period.end} · 윈도우:{" "}
+                {data.period.window}일 · 자산 {data.asset_ids.length}개
+              </div>
+              <CorrelationHeatmap
+                assetIds={data.asset_ids}
+                matrix={data.matrix}
+              />
+            </div>
+          )}
+
+          {/* Scatter Plot */}
+          {analysis && analysis.top_pairs.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                상관계수 분포 (Top {analysis.top_pairs.length} 쌍)
+              </h3>
+              <ScatterPlotChart
+                pairs={analysis.top_pairs}
+                highlightPair={highlightedPair}
+                onPairClick={handlePairClick}
+              />
+              {highlightedPair && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-amber-600 font-medium">
+                    선택: {highlightedPair.asset_a} ↔ {highlightedPair.asset_b}
+                  </span>
+                  <button
+                    onClick={() => setHighlightedPair(null)}
+                    className="text-xs text-gray-400 hover:text-gray-600"
+                  >
+                    해제
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

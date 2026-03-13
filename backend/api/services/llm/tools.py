@@ -8,6 +8,14 @@ from datetime import date
 from langchain_core.tools import tool
 
 from api.repositories import backtest_repo, factor_repo, price_repo, signal_repo
+from api.services.analysis.correlation_analysis import (
+    analyze_correlation as _analyze_corr,
+)
+from api.services.analysis.interpretation_rules import (
+    interpret_correlation,
+    interpret_spread_zscore,
+)
+from api.services.analysis.spread_service import compute_spread
 from api.services.correlation_service import compute_correlation
 from db.session import SessionLocal
 
@@ -120,4 +128,115 @@ def list_backtests(strategy_id: str | None = None, asset_id: str | None = None) 
         db.close()
 
 
-all_tools = [get_prices, get_factors, get_correlation, get_signals, list_backtests]
+@tool
+def analyze_correlation_tool(
+    asset_ids: list[str] | None = None,
+    days: int = 60,
+    threshold: float = 0.7,
+    target_id: str | None = None,
+) -> str:
+    """상관도 심층 분석: 자산 그룹핑(Union-Find), 상관도 높은 쌍 TOP-5, 유사자산 추천.
+    threshold: 그룹핑 기준 상관계수 (기본 0.7).
+    target_id: 유사자산 추천 대상 (예: KS200)."""
+    db = next(_get_db())
+    try:
+        corr = compute_correlation(db, asset_ids=asset_ids, window=days)
+        result = _analyze_corr(
+            corr.matrix,
+            corr.asset_ids,
+            threshold=threshold,
+            top_n=5,
+            target_id=target_id,
+            similar_n=3,
+        )
+        groups = [
+            {
+                "group_id": g.group_id,
+                "asset_ids": g.asset_ids,
+                "avg_correlation": g.avg_correlation,
+                "interpretation": interpret_correlation(g.avg_correlation).label,
+            }
+            for g in result.groups
+        ]
+        top_pairs = [
+            {
+                "asset_a": p.asset_a,
+                "asset_b": p.asset_b,
+                "correlation": p.correlation,
+                "interpretation": interpret_correlation(p.correlation).label,
+            }
+            for p in result.top_pairs
+        ]
+        similar = [
+            {
+                "asset_id": s.asset_id,
+                "correlation": s.correlation,
+                "interpretation": interpret_correlation(s.correlation).label,
+            }
+            for s in result.similar
+        ]
+        return json.dumps(
+            {
+                "groups": groups,
+                "top_pairs": top_pairs,
+                "similar": similar,
+                "period": {
+                    "start": corr.period.start.isoformat(),
+                    "end": corr.period.end.isoformat(),
+                    "window": corr.period.window,
+                },
+            },
+            ensure_ascii=False,
+        )
+    finally:
+        db.close()
+
+
+@tool
+def get_spread(asset_a: str, asset_b: str, days: int = 60) -> str:
+    """두 자산 간 스프레드 분석: 정규화 가격 비율 + z-score + 수렴/발산 이벤트.
+    asset_a, asset_b: 자산 ID (예: KS200, 005930). days: 분석 기간."""
+    db = next(_get_db())
+    try:
+        from datetime import timedelta
+
+        end = date.today()
+        start = end - timedelta(days=days)
+        result = compute_spread(db, asset_a, asset_b, start_date=start, end_date=end)
+
+        z_interp = interpret_spread_zscore(result.current_z_score)
+        events = [
+            {
+                "date": e.date.isoformat(),
+                "z_score": e.z_score,
+                "direction": e.direction,
+            }
+            for e in result.convergence_events
+        ]
+        return json.dumps(
+            {
+                "asset_a": result.asset_a,
+                "asset_b": result.asset_b,
+                "current_z_score": result.current_z_score,
+                "z_score_interpretation": z_interp.label,
+                "z_score_description": z_interp.description,
+                "mean": result.mean,
+                "std": result.std,
+                "data_points": len(result.dates),
+                "convergence_events": events[-10:],  # 최근 10개만
+            },
+            ensure_ascii=False,
+        )
+    finally:
+        db.close()
+
+
+all_tools = [
+    get_prices,
+    get_factors,
+    get_correlation,
+    get_signals,
+    list_backtests,
+    analyze_correlation_tool,
+    get_spread,
+]

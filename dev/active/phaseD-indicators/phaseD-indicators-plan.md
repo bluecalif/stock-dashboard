@@ -93,12 +93,19 @@
 
 ### Stage E: 통합 검증 (D.12)
 12. **D.12** Phase D 통합 검증
-    - Backend: `pytest` 전체 통과 + `ruff check` clean
+    - Backend: `ruff check .` clean + `pytest` 전체 통과
     - Frontend: `tsc --noEmit` 0 errors + `vite build` 성공
-    - 브라우저 E2E: IndicatorSignalPage 렌더링, 탭 전환, 오버레이 차트, 성공률 테이블, 멀티 지표 설정, chartActionStore 연동 확인
-    - REST API: `/v1/analysis/signal-accuracy`, `/v1/analysis/indicator-comparison` 정상 응답
-    - 챗봇: 지표 관련 질문 → 하이브리드 응답 + Tool 호출 정상 동작
-    - Railway/Vercel 배포 확인 (선택)
+    - **프로덕션 배포 (필수)**: `git push` → Railway/Vercel 자동 배포 확인
+    - **프로덕션 브라우저 E2E 체크리스트 (필수)**:
+      1. IndicatorSignalPage 렌더링 (탭 3개: 지표 현황 / 시그널 / 성공률)
+      2. 탭 전환 동작 확인
+      3. 오버레이 차트: 가격 + 지표 라인 표시
+      4. 성공률 테이블: 색상코딩 (60%+ 녹색, 40%- 적색)
+      5. 멀티 지표 설정 패널 동작
+      6. chartActionStore 연동 (챗봇 → 지표 자동 선택)
+      7. 챗봇 넛지 질문 (indicators 페이지 전용)
+      8. 챗봇 하이브리드 응답 (지표 질문 → 템플릿 응답)
+    - REST API 프로덕션 확인: `/v1/analysis/signal-accuracy`, `/v1/analysis/indicator-comparison`
 
 ## 5. Task Breakdown
 

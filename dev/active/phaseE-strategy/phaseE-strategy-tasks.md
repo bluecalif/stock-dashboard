@@ -18,7 +18,11 @@
 - [ ] E.9 라우트 최종 정리 `[S]`
 
 ## Stage D: 통합 검증
-- [ ] E.10 Phase E 통합 검증 — Backend 테스트 + Frontend 빌드 + 브라우저 E2E 확인 `[M]`
+- [ ] E.10 Phase E 통합 검증 `[M]`
+  - Backend: ruff + pytest 전체 통과
+  - Frontend: tsc + vite build 성공
+  - 프로덕션 배포: git push → Railway/Vercel 배포 확인
+  - 프로덕션 브라우저 E2E: 전략 페이지 렌더링, 설명 카드, 에쿼티 이벤트 마커, 내러티브 패널, 기간 설정, 라우트 정리, 챗봇 연동
 
 ## Summary
 - **Total**: 10 tasks (S:3, M:3, L:3)

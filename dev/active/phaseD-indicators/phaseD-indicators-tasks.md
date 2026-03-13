@@ -22,7 +22,11 @@
 - [ ] D.11 chartActionStore 연결 `[S]`
 
 ## Stage E: 통합 검증
-- [ ] D.12 Phase D 통합 검증 — Backend 테스트 + Frontend 빌드 + 브라우저 E2E 확인 `[M]`
+- [ ] D.12 Phase D 통합 검증 `[M]`
+  - Backend: ruff + pytest 전체 통과
+  - Frontend: tsc + vite build 성공
+  - 프로덕션 배포: git push → Railway/Vercel 배포 확인
+  - 프로덕션 브라우저 E2E: 지표 페이지 렌더링, 탭 전환, 오버레이 차트, 성공률 테이블, 챗봇 넛지/하이브리드 응답
 
 ## Summary
 - **Total**: 12 tasks (S:2, M:7, L:2, XL:1)

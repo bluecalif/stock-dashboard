@@ -80,13 +80,19 @@
 
 ### Stage D: 통합 검증 (E.10)
 10. **E.10** Phase E 통합 검증
-    - Backend: `pytest` 전체 통과 + `ruff check` clean
+    - Backend: `ruff check .` clean + `pytest` 전체 통과
     - Frontend: `tsc --noEmit` 0 errors + `vite build` 성공
-    - 브라우저 E2E: 전략 페이지 렌더링, 전략 설명 카드, 에쿼티 이벤트 마커, 내러티브 패널, 기간 설정, 1억원 시드 포맷
-    - REST API: `POST /v1/analysis/strategy-comparison` 정상 응답
-    - 챗봇: 전략 관련 질문 → 하이브리드 응답 + Tool 호출 정상 동작
-    - 라우트: 5개 항목 네비게이션, redirect 정상 동작
-    - Railway/Vercel 배포 확인 (선택)
+    - **프로덕션 배포 (필수)**: `git push` → Railway/Vercel 자동 배포 확인
+    - **프로덕션 브라우저 E2E 체크리스트 (필수)**:
+      1. 전략 페이지 렌더링
+      2. 전략 사전 설명 카드 (접힘/펼침)
+      3. 에쿼티 커브 이벤트 마커 (ReferenceDot 표시)
+      4. 내러티브 패널 (마커 클릭 → 상세 내러티브)
+      5. 기간 설정 (6M/1Y/2Y) + 1억원 시드 포맷
+      6. 라우트 최종 정리: 5개 항목 네비게이션 + redirect 동작
+      7. 챗봇 넛지 질문 (strategy 페이지 전용)
+      8. 챗봇 하이브리드 응답 (전략 질문 → 템플릿 응답 + Tool)
+    - REST API 프로덕션 확인: `POST /v1/analysis/strategy-comparison`
 
 ## 5. Task Breakdown
 

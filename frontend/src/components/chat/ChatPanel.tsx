@@ -1,7 +1,11 @@
 import { useEffect, useRef, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
+import { useChartActionStore } from "../../store/chartActionStore";
 import { sendMessageSSE } from "../../api/chat";
+import type { PageContext } from "../../api/chat";
+import type { UIAction } from "../../types/chat";
 import { useSSE } from "../../hooks/useSSE";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
@@ -26,8 +30,40 @@ export default function ChatPanel() {
   } = useChatStore();
 
   const accessToken = useAuthStore((s) => s.accessToken);
+  const { push: pushAction, setHighlightedPair, setFilter } = useChartActionStore();
   const { startStream } = useSSE();
+  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /** 현재 페이지 경로에서 page_id 추출 */
+  const getPageContext = useCallback((): PageContext => {
+    const path = location.pathname.replace(/^\//, "") || "home";
+    return { page_id: path, asset_ids: [], params: {} };
+  }, [location.pathname]);
+
+  /** SSE ui_action 이벤트 처리 */
+  const handleUIAction = useCallback(
+    (action: UIAction) => {
+      switch (action.action) {
+        case "highlight_pair":
+          setHighlightedPair({
+            asset_a: action.payload.asset_a as string,
+            asset_b: action.payload.asset_b as string,
+          });
+          break;
+        case "set_filter":
+          setFilter(
+            action.payload.key as string,
+            action.payload.value as string | string[],
+          );
+          break;
+        default:
+          pushAction(action);
+          break;
+      }
+    },
+    [pushAction, setHighlightedPair, setFilter],
+  );
 
   // 패널 열릴 때 세션 목록 로드
   useEffect(() => {
@@ -54,10 +90,14 @@ export default function ChatPanel() {
       addUserMessage(content);
       setStreaming(true);
 
-      const { response, abort } = sendMessageSSE(sessionId, content, accessToken, deepMode);
+      const pageContext = getPageContext();
+      const { response, abort } = sendMessageSSE(
+        sessionId, content, accessToken, deepMode, pageContext,
+      );
 
       await startStream(response, abort, {
         onTextDelta: (text) => appendAssistantDelta(text),
+        onUIAction: handleUIAction,
         onDone: () => finalizeAssistant(),
         onError: (msg) => {
           appendAssistantDelta(`\n\n⚠️ 오류: ${msg}`);
@@ -75,6 +115,8 @@ export default function ChatPanel() {
       startStream,
       appendAssistantDelta,
       finalizeAssistant,
+      getPageContext,
+      handleUIAction,
     ],
   );
 

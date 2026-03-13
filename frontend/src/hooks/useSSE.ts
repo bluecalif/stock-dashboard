@@ -1,10 +1,11 @@
 import { useCallback, useRef } from "react";
-import type { SSEEvent } from "../types/chat";
+import type { SSEEvent, UIAction } from "../types/chat";
 
 interface UseSSECallbacks {
   onTextDelta?: (content: string) => void;
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, data: unknown) => void;
+  onUIAction?: (action: UIAction) => void;
   onDone?: () => void;
   onError?: (message: string) => void;
 }
@@ -65,6 +66,14 @@ export function useSSE() {
                   break;
                 case "tool_result":
                   callbacks.onToolResult?.(event.name || "", event.data);
+                  break;
+                case "ui_action":
+                  if (event.action) {
+                    callbacks.onUIAction?.({
+                      action: event.action as UIAction["action"],
+                      payload: event.payload || {},
+                    });
+                  }
                   break;
                 case "done":
                   callbacks.onDone?.();

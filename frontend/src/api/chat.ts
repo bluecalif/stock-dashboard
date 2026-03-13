@@ -22,11 +22,18 @@ export async function getSession(sessionId: string): Promise<SessionDetailRespon
  * SSE 메시지 전송 — fetch + ReadableStream (POST 지원).
  * EventSource는 GET만 지원하므로 사용하지 않음.
  */
+export interface PageContext {
+  page_id: string;
+  asset_ids: string[];
+  params: Record<string, unknown>;
+}
+
 export function sendMessageSSE(
   sessionId: string,
   content: string,
   accessToken: string | null,
   deepMode: boolean = false,
+  pageContext?: PageContext,
 ): { response: Promise<Response>; abort: () => void } {
   const controller = new AbortController();
   const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -39,7 +46,11 @@ export function sendMessageSSE(
         "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify({ content, deep_mode: deepMode }),
+      body: JSON.stringify({
+        content,
+        deep_mode: deepMode,
+        page_context: pageContext ?? null,
+      }),
       signal: controller.signal,
     },
   );

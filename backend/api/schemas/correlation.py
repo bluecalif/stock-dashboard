@@ -49,6 +49,11 @@ class ConvergenceEventSchema(BaseModel):
     direction: str  # "convergence" or "divergence"
 
 
+class NormalizedPrices(BaseModel):
+    asset_a: list[float]
+    asset_b: list[float]
+
+
 class SpreadResponse(BaseModel):
     asset_a: str
     asset_b: str
@@ -60,3 +65,4 @@ class SpreadResponse(BaseModel):
     current_z_score: float
     convergence_events: list[ConvergenceEventSchema]
     asset_names: dict[str, str] = {}
+    normalized_prices: NormalizedPrices | None = None

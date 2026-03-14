@@ -135,4 +135,8 @@ def get_spread(
             for e in result.convergence_events
         ],
         asset_names=name_map,
+        normalized_prices={
+            "asset_a": result.norm_a_values,
+            "asset_b": result.norm_b_values,
+        },
     )

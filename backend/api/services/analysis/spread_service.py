@@ -33,6 +33,8 @@ class SpreadResult:
     std: float
     current_z_score: float
     convergence_events: list[ConvergenceEvent] = field(default_factory=list)
+    norm_a_values: list[float] = field(default_factory=list)
+    norm_b_values: list[float] = field(default_factory=list)
 
 
 def _build_close_series(
@@ -129,4 +131,6 @@ def compute_spread(
         std=round(std, 6),
         current_z_score=round(current_z, 4),
         convergence_events=events,
+        norm_a_values=[round(v * 100, 4) for v in norm_a.tolist()],
+        norm_b_values=[round(v * 100, 4) for v in norm_b.tolist()],
     )

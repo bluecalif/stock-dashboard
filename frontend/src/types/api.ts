@@ -144,6 +144,11 @@ export interface ConvergenceEvent {
   direction: "convergence" | "divergence";
 }
 
+export interface NormalizedPrices {
+  asset_a: number[];
+  asset_b: number[];
+}
+
 export interface SpreadResponse {
   asset_a: string;
   asset_b: string;
@@ -155,4 +160,5 @@ export interface SpreadResponse {
   current_z_score: number;
   convergence_events: ConvergenceEvent[];
   asset_names: Record<string, string>;
+  normalized_prices: NormalizedPrices | null;
 }

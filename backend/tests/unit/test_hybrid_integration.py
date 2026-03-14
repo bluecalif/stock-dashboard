@@ -161,6 +161,7 @@ class TestStreamChatHybrid:
             user_id=uid,
             content="상관관계 설명해줘",
             page_context=page_ctx,
+            is_nudge=True,
         )
         async for event in gen:
             events.append(event)
@@ -226,25 +227,13 @@ class TestStreamChatHybrid:
     async def test_hybrid_data_fail_falls_back(
         self, mock_repo, mock_graph, mock_classify, mock_fetch, mock_db,
     ):
-        """분류 성공했지만 데이터 fetch 실패 → LangGraph fallback."""
+        """넛지 분류 성공했지만 데이터 fetch 실패 → 에러 메시지 fallback."""
         uid = uuid.uuid4()
         fake = _make_session(user_id=uid)
         mock_repo.get_session.return_value = fake
 
         mock_classify.return_value = "correlation_explain"
         mock_fetch.return_value = None  # fetch 실패
-
-        mock_event = {
-            "event": "on_chat_model_stream",
-            "data": {"chunk": MagicMock(content="fallback")},
-        }
-
-        async def fake_stream(*args, **kwargs):
-            yield mock_event
-
-        graph_instance = MagicMock()
-        graph_instance.astream_events = fake_stream
-        mock_graph.return_value = graph_instance
 
         events = []
         gen = stream_chat(
@@ -253,12 +242,13 @@ class TestStreamChatHybrid:
             user_id=uid,
             content="상관관계 설명해줘",
             page_context={"page_id": "correlation"},
+            is_nudge=True,
         )
         async for event in gen:
             events.append(event)
 
-        # status(analyzing) + status(fetching) + status(thinking) + text_delta + done
-        assert len(events) == 5
+        # status(analyzing) + status(fetching) + text_delta(에러 메시지) + done
+        assert len(events) == 4
 
     @patch("api.services.chat.chat_service.chat_repo")
     async def test_no_page_context_defaults_home(self, mock_repo, mock_db):
@@ -288,6 +278,7 @@ class TestStreamChatHybrid:
                     user_id=uid,
                     content="hello",
                     page_context=None,
+                    is_nudge=True,
                 )
                 async for event in gen:
                     events.append(event)

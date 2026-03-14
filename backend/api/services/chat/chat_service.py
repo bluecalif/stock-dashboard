@@ -169,7 +169,11 @@ async def stream_chat(
     # ── 1) 하이브리드 분류기 시도 ──
     yield _status_event("analyzing", "질문 분석 중...")
 
-    category = classify_question(content, ctx)
+    # is_nudge=True → regex 분류 시도, is_nudge=False → 바로 LLM fallback
+    if is_nudge:
+        category = classify_question(content, ctx)
+    else:
+        category = None
 
     # is_nudge인데 분류 실패 시 → 페이지별 기본 카테고리 적용
     if not category and is_nudge:

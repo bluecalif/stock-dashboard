@@ -3,6 +3,7 @@ import type { CorrelationGroup } from "../../types/api";
 interface Props {
   groups: CorrelationGroup[];
   onGroupClick?: (group: CorrelationGroup) => void;
+  nameMap?: Record<string, string>;
 }
 
 const GROUP_COLORS = [
@@ -20,7 +21,7 @@ function strengthLabel(avg: number): string {
   return "약한 상관";
 }
 
-export default function CorrelationGroupCard({ groups, onGroupClick }: Props) {
+export default function CorrelationGroupCard({ groups, onGroupClick, nameMap = {} }: Props) {
   if (groups.length === 0) {
     return (
       <p className="text-gray-400 text-sm text-center py-4">
@@ -52,8 +53,9 @@ export default function CorrelationGroupCard({ groups, onGroupClick }: Props) {
               <span
                 key={id}
                 className="inline-block bg-white rounded px-2 py-0.5 text-xs font-medium text-gray-700 border border-gray-200"
+                title={id}
               >
-                {id}
+                {nameMap[id] || id}
               </span>
             ))}
           </div>

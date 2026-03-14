@@ -45,6 +45,9 @@ export default function CorrelationPage() {
 
   const assetIdsParam = selectedAssets.length >= 2 ? selectedAssets.join(",") : undefined;
 
+  // asset_names 매핑 (correlation/analysis API 응답에서 추출)
+  const nameMap = data?.asset_names ?? analysis?.asset_names ?? {};
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -172,6 +175,7 @@ export default function CorrelationPage() {
               </h3>
               <CorrelationGroupCard
                 groups={analysis.groups}
+                nameMap={nameMap}
                 onGroupClick={(g) => {
                   if (g.asset_ids.length >= 2) {
                     setHighlightedPair({
@@ -190,6 +194,9 @@ export default function CorrelationPage() {
               <h3 className="text-sm font-semibold text-gray-700 mb-2">
                 상관행렬 히트맵
               </h3>
+              <p className="text-xs text-gray-400 mb-1">
+                자산 간 수익률 상관계수 (-1 ~ +1). 색이 진할수록 강한 상관.
+              </p>
               <div className="text-xs text-gray-400 mb-3">
                 기간: {data.period.start} ~ {data.period.end} · 윈도우:{" "}
                 {data.period.window}일 · 자산 {data.asset_ids.length}개
@@ -197,6 +204,7 @@ export default function CorrelationPage() {
               <CorrelationHeatmap
                 assetIds={data.asset_ids}
                 matrix={data.matrix}
+                nameMap={nameMap}
               />
             </div>
           )}
@@ -205,17 +213,21 @@ export default function CorrelationPage() {
           {analysis && analysis.top_pairs.length > 0 && (
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                상관계수 분포 (Top {analysis.top_pairs.length} 쌍)
+                상관 쌍 분포 (Top {analysis.top_pairs.length} 쌍)
               </h3>
+              <p className="text-xs text-gray-400 mb-3">
+                선택한 두 자산의 일별 수익률 상관 강도. 점 클릭 시 스프레드 분석.
+              </p>
               <ScatterPlotChart
                 pairs={analysis.top_pairs}
                 highlightPair={highlightedPair}
                 onPairClick={handlePairClick}
+                nameMap={nameMap}
               />
               {highlightedPair && (
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-xs text-amber-600 font-medium">
-                    선택: {highlightedPair.asset_a} ↔ {highlightedPair.asset_b}
+                    선택: {nameMap[highlightedPair.asset_a] || highlightedPair.asset_a} ↔ {nameMap[highlightedPair.asset_b] || highlightedPair.asset_b}
                   </span>
                   <button
                     onClick={() => setHighlightedPair(null)}
@@ -234,6 +246,9 @@ export default function CorrelationPage() {
               <h3 className="text-sm font-semibold text-gray-700 mb-2">
                 스프레드 분석 (Z-Score)
               </h3>
+              <p className="text-xs text-gray-400 mb-3">
+                두 자산의 정규화 가격 비교 + 괴리(Z-Score) 감지. ±2σ 이탈 시 수렴/발산 이벤트.
+              </p>
               {spreadLoading ? (
                 <Loading message="스프레드 계산 중..." />
               ) : spread ? (

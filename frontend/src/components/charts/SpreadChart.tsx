@@ -27,6 +27,7 @@ function zScoreColor(z: number): string {
 }
 
 export default function SpreadChart({ spread }: Props) {
+  const dn = (id: string) => spread.asset_names?.[id] || id;
   const data: ChartPoint[] = spread.dates.map((d, i) => ({
     date: d,
     z_score: spread.z_scores[i],
@@ -55,7 +56,7 @@ export default function SpreadChart({ spread }: Props) {
       {/* Status badge */}
       <div className="flex items-center gap-3 mb-3">
         <span className="text-sm font-medium text-gray-700">
-          {spread.asset_a} ↔ {spread.asset_b}
+          {dn(spread.asset_a)} ↔ {dn(spread.asset_b)}
         </span>
         <span
           className="text-xs font-semibold px-2 py-0.5 rounded"

@@ -115,6 +115,7 @@ export interface CorrelationResponse {
   asset_ids: string[];
   matrix: number[][];
   period: CorrelationPeriod;
+  asset_names: Record<string, string>;
 }
 
 export interface CorrelationGroup {
@@ -133,6 +134,7 @@ export interface CorrelationAnalysisResponse {
   groups: CorrelationGroup[];
   top_pairs: AssetPair[];
   period: CorrelationPeriod;
+  asset_names: Record<string, string>;
 }
 
 // --- Spread ---
@@ -152,4 +154,5 @@ export interface SpreadResponse {
   std: number;
   current_z_score: number;
   convergence_events: ConvergenceEvent[];
+  asset_names: Record<string, string>;
 }

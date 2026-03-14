@@ -14,6 +14,7 @@ interface Props {
   pairs: AssetPair[];
   highlightPair?: { asset_a: string; asset_b: string } | null;
   onPairClick?: (pair: AssetPair) => void;
+  nameMap?: Record<string, string>;
 }
 
 interface ScatterPoint {
@@ -36,7 +37,9 @@ export default function ScatterPlotChart({
   pairs,
   highlightPair,
   onPairClick,
+  nameMap = {},
 }: Props) {
+  const dn = (id: string) => nameMap[id] || id;
   if (pairs.length === 0) {
     return (
       <p className="text-gray-400 text-sm text-center py-8">
@@ -48,7 +51,7 @@ export default function ScatterPlotChart({
   const data: ScatterPoint[] = pairs.map((p, idx) => ({
     x: idx + 1,
     y: p.correlation,
-    label: `${p.asset_a}↔${p.asset_b}`,
+    label: `${dn(p.asset_a)}↔${dn(p.asset_b)}`,
     pair: p,
   }));
 

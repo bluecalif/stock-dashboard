@@ -3,6 +3,7 @@ import { useState } from "react";
 interface Props {
   assetIds: string[];
   matrix: number[][];
+  nameMap?: Record<string, string>;
 }
 
 /** -1(파랑) ~ 0(흰) ~ +1(빨강) 색상 보간 */
@@ -28,7 +29,8 @@ function textColor(value: number): string {
   return Math.abs(value) > 0.6 ? "#fff" : "#1f2937";
 }
 
-export default function CorrelationHeatmap({ assetIds, matrix }: Props) {
+export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {} }: Props) {
+  const displayName = (id: string) => nameMap[id] || id;
   const [hovered, setHovered] = useState<{ row: number; col: number } | null>(
     null,
   );
@@ -54,8 +56,9 @@ export default function CorrelationHeatmap({ assetIds, matrix }: Props) {
             key={id}
             className="text-xs font-medium text-gray-600 text-center truncate"
             style={{ width: cellSize, flexShrink: 0 }}
+            title={`${displayName(id)} (${id})`}
           >
-            {id}
+            {displayName(id)}
           </div>
         ))}
       </div>
@@ -67,8 +70,9 @@ export default function CorrelationHeatmap({ assetIds, matrix }: Props) {
           <div
             className="text-xs font-medium text-gray-600 text-right pr-2 truncate"
             style={{ width: labelWidth, flexShrink: 0 }}
+            title={`${displayName(assetIds[i])} (${assetIds[i]})`}
           >
-            {assetIds[i]}
+            {displayName(assetIds[i])}
           </div>
 
           {/* 셀 */}
@@ -98,7 +102,7 @@ export default function CorrelationHeatmap({ assetIds, matrix }: Props) {
                 {/* 호버 툴팁 */}
                 {isHovered && (
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-20 pointer-events-none">
-                    {assetIds[i]} × {assetIds[j]}: {value.toFixed(4)}
+                    {displayName(assetIds[i])} × {displayName(assetIds[j])}: {value.toFixed(4)}
                   </div>
                 )}
               </div>

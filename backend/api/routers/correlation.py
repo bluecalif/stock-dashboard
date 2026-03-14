@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from api.dependencies import get_db
+from api.repositories import asset_repo
 from api.schemas.correlation import (
     CorrelationAnalysisResponse,
     CorrelationResponse,
@@ -42,7 +43,7 @@ def get_correlation(
 ) -> CorrelationResponse:
     """Return correlation matrix of asset returns."""
     try:
-        return compute_correlation(
+        result = compute_correlation(
             db,
             asset_ids=_parse_asset_ids(asset_ids),
             start_date=start_date,
@@ -51,6 +52,9 @@ def get_correlation(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    result.asset_names = asset_repo.get_name_map(db, result.asset_ids)
+    return result
 
 
 @router.get("/correlation/analysis", response_model=CorrelationAnalysisResponse)
@@ -77,6 +81,7 @@ def get_correlation_analysis(
 
     groups = find_correlation_groups(corr.matrix, corr.asset_ids, threshold)
     top_pairs = find_top_pairs(corr.matrix, corr.asset_ids, top_n)
+    name_map = asset_repo.get_name_map(db, corr.asset_ids)
 
     return CorrelationAnalysisResponse(
         groups=[
@@ -88,6 +93,7 @@ def get_correlation_analysis(
             for p in top_pairs
         ],
         period=corr.period,
+        asset_names=name_map,
     )
 
 
@@ -113,6 +119,8 @@ def get_spread(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+    name_map = asset_repo.get_name_map(db, [asset_a, asset_b])
+
     return SpreadResponse(
         asset_a=result.asset_a,
         asset_b=result.asset_b,
@@ -126,4 +134,5 @@ def get_spread(
             {"date": e.date, "z_score": e.z_score, "direction": e.direction}
             for e in result.convergence_events
         ],
+        asset_names=name_map,
     )

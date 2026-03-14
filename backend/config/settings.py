@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
+    # LangSmith (optional — set via .env, no code changes needed)
+    langchain_tracing_v2: str = ""
+    langchain_api_key: str = ""
+    langchain_project: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

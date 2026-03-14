@@ -17,6 +17,7 @@ class CorrelationResponse(BaseModel):
     asset_ids: list[str]
     matrix: list[list[float]]
     period: CorrelationPeriod
+    asset_names: dict[str, str] = {}
 
 
 # --- Analysis (grouping / top pairs) ---
@@ -37,6 +38,7 @@ class CorrelationAnalysisResponse(BaseModel):
     groups: list[CorrelationGroupSchema]
     top_pairs: list[AssetPairSchema]
     period: CorrelationPeriod
+    asset_names: dict[str, str] = {}
 
 
 # --- Spread analysis ---
@@ -57,3 +59,4 @@ class SpreadResponse(BaseModel):
     std: float
     current_z_score: float
     convergence_events: list[ConvergenceEventSchema]
+    asset_names: dict[str, str] = {}

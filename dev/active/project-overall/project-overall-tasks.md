@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-03-13
-> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19)
+> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19), Phase C 완료 (12/12)
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -204,28 +204,52 @@
 - [x] B.18 E2E 검증 (Gemini→OpenAI 전환 + 프로덕션) `[M]` — `807c33f`, `689dedf`, `2f21d0d`
 - [x] B.19 dev-docs 갱신 + 심층모드 `[S]` — `2202455`
 
-## Phase C: 상관도 페이지 완성 — ⬜ 미시작 (0/11)
+## Phase C: 상관도 페이지 완성 — ✅ 완료 (12/12)
 > dev-docs: `dev/active/phaseC-correlation/`
 > **파일 집계**: 신규 ~13 / 수정 ~9 / Migration 0
 
 ### Stage A: Backend 분석 서비스
-- [ ] C.1 상관도 분석 서비스 — 그룹핑/유사자산 `[M]`
-- [ ] C.2 스프레드 분석 서비스 `[M]`
-- [ ] C.3 해석 규칙 상수 정의 `[S]`
+- [x] C.1 상관도 분석 서비스 — 그룹핑/유사자산 `[M]` → `3cf57f7`
+- [x] C.2 스프레드 분석 서비스 `[M]` → `21e0b52`
+- [x] C.3 해석 규칙 상수 정의 `[S]` → `21e0b52`
 
 ### Stage B: LangGraph Tool 확장
-- [ ] C.4 LangGraph Tool — `analyze_correlation` `[M]`
-- [ ] C.5 LangGraph Tool — `get_spread` `[M]`
+- [x] C.4 LangGraph Tool — `analyze_correlation` `[M]` → `e1d9e40`
+- [x] C.5 LangGraph Tool — `get_spread` `[M]` → `e1d9e40`
 
 ### Stage C: 하이브리드 응답 기반
-- [ ] C.6 하이브리드 응답 기반 구축 (`hybrid/` 디렉토리) `[L]`
-- [ ] C.7 하이브리드를 LangGraph에 통합 `[L]`
+- [x] C.6 하이브리드 응답 기반 구축 (`hybrid/` 디렉토리) `[L]` → `2caf0d4`
+- [x] C.7 하이브리드를 LangGraph에 통합 `[L]` → `4e2c15c`
 
 ### Stage D: Frontend 확장
-- [ ] C.8 SSE 확장 + chartActionStore `[M]`
-- [ ] C.9 상관도 페이지 확장 (그룹핑+Scatter) `[M]`
-- [ ] C.10 SpreadChart + 넛지 질문 UI `[M]`
-- [ ] C.11 관심 종목 설정 `[S]`
+- [x] C.8 SSE 확장 + chartActionStore `[M]` → `09fe91e`
+- [x] C.9 상관도 페이지 확장 (그룹핑+Scatter) `[M]` → `edf759e`
+- [x] C.10 SpreadChart + 넛지 질문 UI `[M]` → `17c4742`
+- [x] C.11 관심 종목 설정 `[S]` → `17c16a7`
+
+### Stage E: 통합 검증
+- [x] C.12 Phase C 통합 검증 `[M]` → `f03188a`
+
+## Phase C-rev: 상관도 피드백 반영 — ✅ 완료 (7/7)
+> dev-docs: `dev/active/phaseC-revision/`
+> **파일 집계**: 수정 Backend 8 / Frontend 10
+
+### Stage A: 데이터 기반
+- [x] CR.1 종목명 매핑 + 그래프 설명 `[M]` → `c89db7c`
+
+### Stage B: 히트맵 인터랙션 통합
+- [x] CR.2 상관계수 분포 삭제 `[S]` → `2c3f541`
+- [x] CR.3 히트맵 셀 클릭 → Scatter+Spread 연동 + 그룹 페어 선택 `[L]` → `2c3f541`
+
+### Stage C: 스프레드 차트 개선
+- [x] CR.4 정규화 가격 오버레이 + Z-score 하단 2-패널 `[L]` → `a179168`
+
+### Stage D: 채팅 UX 개선
+- [x] CR.5 채팅 대기 UX (타이핑 인디케이터 + status 이벤트) `[M]` → `ac30443`
+- [x] CR.6 넛지 질문 템플릿 응답 보장 (is_nudge 플래그) `[M]` → `ac30443`
+
+### Stage E: 통합 검증
+- [x] CR.7 Phase C-rev 통합 검증 + 프로덕션 배포 `[M]`
 
 ## Phase D: 지표 페이지 완성 — ⬜ 미시작 (0/11)
 > dev-docs: `dev/active/phaseD-indicators/`
@@ -296,7 +320,8 @@
 ### Post-MVP (진행 중)
 - **Phase A**: 16 tasks (S:6, M:9, L:1) — 16/16 ✅
 - **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
-- **Phase C**: 11 tasks (S:2, M:7, L:2) — 0/11 ⬜
+- **Phase C**: 12 tasks (S:2, M:8, L:2) — 12/12 ✅
+- **Phase C-rev**: 7 tasks (S:1, M:4, L:2) — 7/7 ✅
 - **Phase D**: 11 tasks (S:2, M:6, L:2, XL:1) — 0/11 ⬜
 - **Phase E**: 9 tasks (S:2, M:3, L:3, XL:1) — 0/9 ⬜
 - **Phase F~G**: 미정 (각 Phase 진입 시 확정)
@@ -306,7 +331,8 @@
 - **MVP**: 83 tasks 완료
 - **Post-MVP Phase A**: 16/16 ✅
 - **Post-MVP Phase B**: 19/19 ✅
-- **Post-MVP Phase C**: 0/11 ⬜ (상관도 페이지)
+- **Post-MVP Phase C**: 12/12 ✅ (상관도 페이지)
+- **Post-MVP Phase C-rev**: 7/7 ✅ (피드백 반영)
 - **Post-MVP Phase D**: 0/11 ⬜ (지표 페이지)
 - **Post-MVP Phase E**: 0/9 ⬜ (전략 페이지)
 - **Post-MVP Phase F~G**: 태스크 상세 미확정

@@ -1,6 +1,6 @@
 # Project Overall Plan
 > Last Updated: 2026-03-13
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료, Phase C 완료
 
 ## 1. Summary (개요)
 
@@ -37,7 +37,8 @@
 - **Phase 7**: GitHub Actions cron 일일 자동 수집 (6/6 완료)
 - **Phase A Auth**: 16/16 tasks 완료 (JWT 인증 + Frontend Auth)
 - **Phase B Chatbot**: 19/19 tasks 완료 (LangGraph + OpenAI GPT-5, 심층모드)
-- **Git**: `master` 브랜치, 440 passed, ruff clean
+- **Phase C 상관도**: 12/12 Steps 완료 (상관도 페이지 완성)
+- **Git**: `master` 브랜치, 561 passed, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -54,7 +55,8 @@
 | 자동 수집 | GitHub Actions cron 기반 일일 자동 수집 | ✅ 완료 |
 | **인증** | JWT 인증, 사용자별 데이터 격리 | ✅ Phase A |
 | **챗봇** | LangGraph + OpenAI GPT-5 대화형 분석 + 심층모드 | ✅ Phase B |
-| **상관도 페이지** | 그룹핑/유사자산, 스프레드, 하이브리드 응답, 관심종목 | ⬜ Phase C |
+| **상관도 페이지** | 그룹핑/유사자산, 스프레드, 하이브리드 응답, 관심종목 | ✅ Phase C |
+| **상관도 피드백** | 종목명 표시, 히트맵 연동, 가격 오버레이, 채팅 UX | ✅ Phase C-rev |
 | **지표 페이지** | 성공률, 예측력 비교, 오버레이 차트, REST 분석 API | ⬜ Phase D |
 | **전략 페이지** | 이벤트 스토리텔링, 에쿼티 마커, 기간 설정, 라우트 정리 | ⬜ Phase E |
 | **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase F |
@@ -162,7 +164,7 @@
 **파일 집계**: 신규 18 / 수정 8 / Migration 1
 **완료**: 19/19 tasks — `936bc9a`~`2202455`
 
-#### Phase C: 상관도 페이지 완성 — ⬜ 미시작 (11 Steps) [상세 확정]
+#### Phase C: 상관도 페이지 완성 — ✅ 완료 (12/12 Steps)
 > dev-docs: `dev/active/phaseC-correlation/`
 
 **목적**: 상관도 분석 서비스 + 스프레드 + 하이브리드 응답 기반 + 프론트 확장 + 관심 종목
@@ -193,6 +195,25 @@
 - SSE `ui_action` 이벤트로 프론트 차트 제어
 
 **파일 집계**: 신규 ~13 / 수정 ~9 / Migration 0
+**완료**: 12/12 Steps — `3cf57f7`~`f03188a`
+
+#### Phase C-rev: 상관도 페이지 피드백 반영 — ✅ 완료 (7/7 Tasks)
+> dev-docs: `dev/active/phaseC-revision/`
+> Source: `docs/post-mvp-feedback.md` (프로덕션 브라우저 리뷰)
+
+**목적**: Phase C 프로덕션 리뷰에서 발견된 UX 이슈 7건 수정
+**핵심 변경**: 종목명 표시, 히트맵 인터랙션 통합, 가격 오버레이 차트, 채팅 대기 UX, 넛지 템플릿 보장
+
+**수정 항목**:
+1. 종목 코드 → 종목명 표시 + 그래프별 설명 텍스트
+2. 상관계수 분포 차트 삭제
+3. 히트맵 셀 클릭 → Scatter+Spread 연동 (3종목 그룹 페어 선택 포함)
+4. 스프레드: 정규화 가격 오버레이(상단) + Z-score 밴드(하단) 2-패널
+5. 채팅: 스트림 시작 전 타이핑 인디케이터 + status SSE 이벤트
+6. 넛지 질문: is_nudge 플래그 → 템플릿 응답 보장 (LLM 호출 제거)
+7. LangSmith 트레이싱 (환경변수 설정 완료)
+
+**파일 집계**: 수정 Backend ~6 / Frontend ~10 / 신규 0
 
 #### Phase D: 지표 페이지 완성 — ⬜ 미시작 (11 Steps) [상세 확정]
 > dev-docs: `dev/active/phaseD-indicators/`

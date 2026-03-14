@@ -160,6 +160,13 @@ export default function ChatPanel() {
         </div>
       )}
 
+      {/* Nudge chips — 항상 표시 */}
+      <NudgeQuestions
+        pageId={getPageContext().page_id}
+        onSelect={(q) => handleSend(q, true)}
+        disabled={isStreaming}
+      />
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto py-3">
         {messages.length === 0 && (
@@ -167,10 +174,6 @@ export default function ChatPanel() {
             <p className="text-gray-400 text-sm">
               질문을 입력하면 데이터를 분석해 드립니다
             </p>
-            <NudgeQuestions
-              pageId={getPageContext().page_id}
-              onSelect={(q) => handleSend(q, true)}
-            />
           </div>
         )}
         {messages.map((msg) => (

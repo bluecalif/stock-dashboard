@@ -86,7 +86,39 @@ def _get_name_map(asset_ids: list[str]) -> dict[str, str]:
         db.close()
 
 
-def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
+def _resolve_name_to_id() -> dict[str, str]:
+    """종목명 → asset_id 역매핑 (넛지 질문에서 종목 추출용)."""
+    from api.repositories import asset_repo
+    from db.session import SessionLocal
+
+    db = SessionLocal()
+    try:
+        assets = asset_repo.get_all(db, is_active=True)
+        mapping: dict[str, str] = {}
+        for a in assets:
+            mapping[a.name] = a.asset_id
+            mapping[a.asset_id] = a.asset_id
+        return mapping
+    finally:
+        db.close()
+
+
+def _extract_pair_from_text(text: str) -> tuple[str, str] | None:
+    """질문 텍스트에서 두 종목을 추출하여 (asset_a, asset_b) 반환."""
+    name_to_id = _resolve_name_to_id()
+    found = []
+    # 긴 이름 먼저 매칭 (SK하이닉스 vs SK)
+    for name in sorted(name_to_id, key=len, reverse=True):
+        if name in text and name_to_id[name] not in found:
+            found.append(name_to_id[name])
+            if len(found) == 2:
+                return (found[0], found[1])
+    return None
+
+
+def _fetch_hybrid_data(
+    category: str, page_context: PageContext, question: str = "",
+) -> dict | None:
     """하이브리드 분류기가 매칭한 카테고리에 대해 Tool 데이터를 가져온다."""
     from api.services.llm.hybrid.classifier import (
         CORRELATION_EXPLAIN,
@@ -139,7 +171,12 @@ def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
             elif len(page_context.asset_ids) >= 2:
                 asset_a, asset_b = page_context.asset_ids[0], page_context.asset_ids[1]
             else:
-                return None  # 페어 정보 없으면 LLM fallback
+                # 질문 텍스트에서 종목 추출 시도
+                extracted = _extract_pair_from_text(question)
+                if extracted:
+                    asset_a, asset_b = extracted
+                else:
+                    return None  # 페어 정보 없으면 LLM fallback
             from api.services.llm.tools import get_spread
             raw = get_spread.invoke({
                 "asset_a": asset_a,
@@ -218,7 +255,7 @@ async def stream_chat(
 
     if category:
         yield _status_event("fetching", "데이터 조회 중...")
-        data = _fetch_hybrid_data(category, ctx)
+        data = _fetch_hybrid_data(category, ctx, question=content)
         if data:
             result = get_template_response(category, ctx, data)
             if result:

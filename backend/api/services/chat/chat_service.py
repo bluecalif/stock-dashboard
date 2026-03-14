@@ -74,6 +74,18 @@ def list_sessions(
     return chat_repo.list_sessions_by_user(db, user_id)
 
 
+def _get_name_map(asset_ids: list[str]) -> dict[str, str]:
+    """종목명 매핑 조회 (템플릿 응답용)."""
+    from api.repositories import asset_repo
+    from db.session import SessionLocal
+
+    db = SessionLocal()
+    try:
+        return asset_repo.get_name_map(db, asset_ids)
+    finally:
+        db.close()
+
+
 def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
     """하이브리드 분류기가 매칭한 카테고리에 대해 Tool 데이터를 가져온다."""
     from api.services.llm.hybrid.classifier import (
@@ -89,7 +101,16 @@ def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
                 "asset_ids": page_context.asset_ids or None,
                 "days": page_context.params.get("window", 60),
             })
-            return json.loads(raw)
+            data = json.loads(raw)
+            # 종목명 매핑 추가
+            all_ids = set()
+            for g in data.get("groups", []):
+                all_ids.update(g.get("asset_ids", []))
+            for p in data.get("top_pairs", []):
+                all_ids.update([p["asset_a"], p["asset_b"]])
+            if all_ids:
+                data["name_map"] = _get_name_map(list(all_ids))
+            return data
 
         if category == SIMILAR_ASSETS:
             target = (
@@ -104,6 +125,11 @@ def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
             })
             data = json.loads(raw)
             data["target_id"] = target
+            # 종목명 매핑 추가
+            all_ids = {target}
+            for s in data.get("similar", []):
+                all_ids.add(s["asset_id"])
+            data["name_map"] = _get_name_map(list(all_ids))
             return data
 
         if category == SPREAD_ANALYSIS:
@@ -120,7 +146,9 @@ def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
                 "asset_b": asset_b,
                 "days": page_context.params.get("window", 60),
             })
-            return json.loads(raw)
+            data = json.loads(raw)
+            data["name_map"] = _get_name_map([asset_a, asset_b])
+            return data
 
     except Exception:
         logger.exception("Hybrid data fetch error for category=%s", category)

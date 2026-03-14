@@ -3,6 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +22,9 @@ from api.routers import (
     signals,
 )
 from config.settings import settings
+
+# OS environ에 .env 로드 — LangSmith 등 라이브러리가 os.getenv()로 직접 참조
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 

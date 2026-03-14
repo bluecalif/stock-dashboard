@@ -33,6 +33,28 @@ TRADE_STORY = "trade_story"
 # ---------------------------------------------------------------------------
 
 _CORRELATION_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # similar_assets — 구체적 패턴을 먼저 매칭 (순서 중요)
+    (re.compile(
+        r"(비슷|유사|닮|같은).*(자산|종목|움직|패턴)",
+        re.IGNORECASE,
+    ), SIMILAR_ASSETS),
+    (re.compile(
+        r"(자산|종목).*(비슷|유사|닮|같은)",
+        re.IGNORECASE,
+    ), SIMILAR_ASSETS),
+    (re.compile(
+        r"상관.*(높|낮).*(자산|종목)",
+        re.IGNORECASE,
+    ), SIMILAR_ASSETS),
+    (re.compile(
+        r"(분산|포트폴리오|조합|배분).*(투자|적합|추천)",
+        re.IGNORECASE,
+    ), SIMILAR_ASSETS),
+    (re.compile(
+        r"(그룹|묶|분류|클러스터)",
+        re.IGNORECASE,
+    ), SIMILAR_ASSETS),
+
     # correlation_explain
     (re.compile(
         r"상관.*(관계|계수|의미|뜻|높|낮|강|약|설명|왜|이유)",
@@ -46,20 +68,6 @@ _CORRELATION_PATTERNS: list[tuple[re.Pattern, str]] = [
         r"(동조|연동|커플링|디커플링)",
         re.IGNORECASE,
     ), CORRELATION_EXPLAIN),
-
-    # similar_assets
-    (re.compile(
-        r"(비슷|유사|닮|같은).*(자산|종목|움직|패턴)",
-        re.IGNORECASE,
-    ), SIMILAR_ASSETS),
-    (re.compile(
-        r"(자산|종목).*(비슷|유사|닮|같은)",
-        re.IGNORECASE,
-    ), SIMILAR_ASSETS),
-    (re.compile(
-        r"(그룹|묶|분류|클러스터)",
-        re.IGNORECASE,
-    ), SIMILAR_ASSETS),
 
     # spread_analysis
     (re.compile(

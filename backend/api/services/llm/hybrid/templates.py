@@ -24,15 +24,17 @@ def _correlation_explain_template(
     """상관도 설명 템플릿."""
     groups = data.get("groups", [])
     top_pairs = data.get("top_pairs", [])
+    nm = data.get("name_map", {})
+    dn = lambda x: nm.get(x, x)  # noqa: E731
 
     lines = ["## 상관도 분석 결과\n"]
 
     if groups:
         lines.append("### 자산 그룹")
         for g in groups:
-            ids = ", ".join(g["asset_ids"])
+            names = ", ".join(dn(a) for a in g["asset_ids"])
             lines.append(
-                f"- **그룹 {g['group_id']}**: {ids} "
+                f"- **그룹 {g['group_id']}**: {names} "
                 f"(평균 상관계수 {g['avg_correlation']:.2f} — {g['interpretation']})"
             )
         lines.append("")
@@ -41,7 +43,7 @@ def _correlation_explain_template(
         lines.append("### 상관도 높은 쌍 TOP-5")
         for p in top_pairs[:5]:
             lines.append(
-                f"- {p['asset_a']} ↔ {p['asset_b']}: "
+                f"- {dn(p['asset_a'])} ↔ {dn(p['asset_b'])}: "
                 f"**{p['correlation']:.2f}** ({p['interpretation']})"
             )
 
@@ -60,13 +62,15 @@ def _similar_assets_template(
     """유사자산 추천 템플릿."""
     similar = data.get("similar", [])
     target = data.get("target_id", "")
+    nm = data.get("name_map", {})
+    dn = lambda x: nm.get(x, x)  # noqa: E731
 
-    lines = [f"## {target}와 유사한 자산\n"]
+    lines = [f"## {dn(target)}와 유사한 자산\n"]
 
     if similar:
         for i, s in enumerate(similar, 1):
             lines.append(
-                f"{i}. **{s['asset_id']}** — "
+                f"{i}. **{dn(s['asset_id'])}** — "
                 f"상관계수 {s['correlation']:.2f} ({s['interpretation']})"
             )
     else:
@@ -86,13 +90,15 @@ def _spread_analysis_template(
     """스프레드 분석 템플릿."""
     asset_a = data.get("asset_a", "?")
     asset_b = data.get("asset_b", "?")
+    nm = data.get("name_map", {})
+    dn = lambda x: nm.get(x, x)  # noqa: E731
     z = data.get("current_z_score", 0)
     z_interp = data.get("z_score_interpretation", "")
     z_desc = data.get("z_score_description", "")
     events = data.get("convergence_events", [])
 
     lines = [
-        f"## {asset_a} ↔ {asset_b} 스프레드 분석\n",
+        f"## {dn(asset_a)} ↔ {dn(asset_b)} 스프레드 분석\n",
         f"**현재 Z-Score**: {z:.2f} — {z_interp}",
         f"> {z_desc}\n",
     ]
@@ -100,7 +106,7 @@ def _spread_analysis_template(
     if events:
         lines.append("### 최근 수렴/발산 이벤트")
         for e in events[-5:]:
-            direction = "🔄 수렴" if e["direction"] == "convergence" else "↗️ 발산"
+            direction = "수렴" if e["direction"] == "convergence" else "발산"
             lines.append(f"- {e['date']}: {direction} (z={e['z_score']:.2f})")
 
     actions = [highlight_pair(asset_a, asset_b)]

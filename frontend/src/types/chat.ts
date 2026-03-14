@@ -21,11 +21,11 @@ export interface SessionDetailResponse extends ChatSession {
 }
 
 export interface SSEEvent {
-  type: "text_delta" | "tool_call" | "tool_result" | "ui_action" | "done" | "error";
+  type: "text_delta" | "tool_call" | "tool_result" | "ui_action" | "status" | "done" | "error";
   content?: string;
   name?: string;
   args?: Record<string, unknown>;
-  data?: unknown;
+  data?: { step?: string; message?: string } & Record<string, unknown>;
   action?: string;
   payload?: Record<string, unknown>;
 }

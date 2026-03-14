@@ -129,6 +129,12 @@ def _fetch_hybrid_data(category: str, page_context: PageContext) -> dict | None:
     return None
 
 
+def _status_event(step: str, message: str) -> str:
+    """status SSE 이벤트 생성."""
+    evt = {"type": "status", "data": {"step": step, "message": message}}
+    return f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+
+
 async def stream_chat(
     db: Session,
     *,
@@ -137,6 +143,7 @@ async def stream_chat(
     content: str,
     deep_mode: bool = False,
     page_context: dict | None = None,
+    is_nudge: bool = False,
 ) -> AsyncGenerator[str, None]:
     """하이브리드 분류기 → 템플릿 응답 / LangGraph fallback → SSE 이벤트 스트림."""
     # 세션 소유권 검증
@@ -160,8 +167,25 @@ async def stream_chat(
     full_response = ""
 
     # ── 1) 하이브리드 분류기 시도 ──
+    yield _status_event("analyzing", "질문 분석 중...")
+
     category = classify_question(content, ctx)
+
+    # is_nudge인데 분류 실패 시 → 페이지별 기본 카테고리 적용
+    if not category and is_nudge:
+        from api.services.llm.hybrid.classifier import (
+            CORRELATION_EXPLAIN,
+            SIMILAR_ASSETS,
+        )
+        _page_defaults = {
+            "correlation": SIMILAR_ASSETS,
+            "indicators": CORRELATION_EXPLAIN,
+            "strategy": CORRELATION_EXPLAIN,
+        }
+        category = _page_defaults.get(ctx.page_id, SIMILAR_ASSETS)
+
     if category:
+        yield _status_event("fetching", "데이터 조회 중...")
         data = _fetch_hybrid_data(category, ctx)
         if data:
             result = get_template_response(category, ctx, data)
@@ -189,7 +213,20 @@ async def stream_chat(
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 return
 
+    # is_nudge인데 여기까지 왔으면 데이터 fetch 실패 → LLM 방지
+    if is_nudge:
+        fallback_text = "죄송합니다. 데이터를 조회하지 못했습니다. 잠시 후 다시 시도해주세요."
+        evt = {"type": "text_delta", "content": fallback_text}
+        yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+        chat_repo.create_message(
+            db, session_id=session_id, role="assistant", content=fallback_text,
+        )
+        db.commit()
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        return
+
     # ── 2) LangGraph fallback ──
+    yield _status_event("thinking", "AI가 생각하고 있어요...")
     graph = _get_graph()
     thread_id = str(session_id)
 

@@ -23,6 +23,7 @@ class SendMessageRequest(BaseModel):
     content: str
     deep_mode: bool = False
     page_context: PageContextRequest | None = None
+    is_nudge: bool = False
 
 
 # ── Response ─────────────────────────────────────────────────

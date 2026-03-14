@@ -75,6 +75,7 @@ async def send_message(
         content=body.content,
         deep_mode=body.deep_mode,
         page_context=page_ctx,
+        is_nudge=body.is_nudge,
     )
     return StreamingResponse(event_stream, media_type="text/event-stream")
 

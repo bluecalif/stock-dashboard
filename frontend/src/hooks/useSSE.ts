@@ -6,6 +6,7 @@ interface UseSSECallbacks {
   onToolCall?: (name: string, args: Record<string, unknown>) => void;
   onToolResult?: (name: string, data: unknown) => void;
   onUIAction?: (action: UIAction) => void;
+  onStatus?: (step: string, message: string) => void;
   onDone?: () => void;
   onError?: (message: string) => void;
 }
@@ -75,6 +76,11 @@ export function useSSE() {
                     });
                   }
                   break;
+                case "status": {
+                  const d = event.data as { step?: string; message?: string } | undefined;
+                  callbacks.onStatus?.(d?.step || "", d?.message || "");
+                  break;
+                }
                 case "done":
                   callbacks.onDone?.();
                   break;

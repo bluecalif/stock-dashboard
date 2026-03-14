@@ -214,8 +214,10 @@ class TestStreamChatHybrid:
         async for event in gen:
             events.append(event)
 
-        assert len(events) == 2  # text_delta + done
-        assert '"text_delta"' in events[0]
+        # status(analyzing) + status(thinking) + text_delta + done
+        assert len(events) == 4
+        assert '"status"' in events[0]
+        assert '"text_delta"' in events[2]
 
     @patch("api.services.chat.chat_service._fetch_hybrid_data")
     @patch("api.services.chat.chat_service.classify_question")
@@ -255,7 +257,8 @@ class TestStreamChatHybrid:
         async for event in gen:
             events.append(event)
 
-        assert len(events) == 2  # text_delta + done
+        # status(analyzing) + status(fetching) + status(thinking) + text_delta + done
+        assert len(events) == 5
 
     @patch("api.services.chat.chat_service.chat_repo")
     async def test_no_page_context_defaults_home(self, mock_repo, mock_db):

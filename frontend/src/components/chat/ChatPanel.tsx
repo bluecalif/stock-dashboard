@@ -20,11 +20,13 @@ export default function ChatPanel() {
     isStreaming,
     sessions,
     deepMode,
+    statusMessage,
     toggleDeepMode,
     loadSessions,
     createSession,
     selectSession,
     setStreaming,
+    setStatusMessage,
     addUserMessage,
     appendAssistantDelta,
     finalizeAssistant,
@@ -79,7 +81,7 @@ export default function ChatPanel() {
   }, [messages]);
 
   const handleSend = useCallback(
-    async (content: string) => {
+    async (content: string, isNudge: boolean = false) => {
       let sessionId = activeSessionId;
 
       // 세션 없으면 자동 생성
@@ -90,14 +92,19 @@ export default function ChatPanel() {
 
       addUserMessage(content);
       setStreaming(true);
+      setStatusMessage(null);
 
       const pageContext = getPageContext();
       const { response, abort } = sendMessageSSE(
-        sessionId, content, accessToken, deepMode, pageContext,
+        sessionId, content, accessToken, deepMode, pageContext, isNudge,
       );
 
       await startStream(response, abort, {
-        onTextDelta: (text) => appendAssistantDelta(text),
+        onTextDelta: (text) => {
+          setStatusMessage(null);
+          appendAssistantDelta(text);
+        },
+        onStatus: (_step, message) => setStatusMessage(message),
         onUIAction: handleUIAction,
         onDone: () => finalizeAssistant(),
         onError: (msg) => {
@@ -113,6 +120,7 @@ export default function ChatPanel() {
       createSession,
       addUserMessage,
       setStreaming,
+      setStatusMessage,
       startStream,
       appendAssistantDelta,
       finalizeAssistant,
@@ -161,13 +169,25 @@ export default function ChatPanel() {
             </p>
             <NudgeQuestions
               pageId={getPageContext().page_id}
-              onSelect={handleSend}
+              onSelect={(q) => handleSend(q, true)}
             />
           </div>
         )}
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
+        {isStreaming && statusMessage && (
+          <div className="flex justify-start px-4 py-1">
+            <div className="bg-gray-50 text-gray-500 text-xs rounded-2xl px-4 py-2 flex items-center gap-2">
+              <span className="inline-flex gap-0.5">
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </span>
+              {statusMessage}
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 

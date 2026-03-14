@@ -34,6 +34,7 @@ export function sendMessageSSE(
   accessToken: string | null,
   deepMode: boolean = false,
   pageContext?: PageContext,
+  isNudge: boolean = false,
 ): { response: Promise<Response>; abort: () => void } {
   const controller = new AbortController();
   const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
@@ -50,6 +51,7 @@ export function sendMessageSSE(
         content,
         deep_mode: deepMode,
         page_context: pageContext ?? null,
+        is_nudge: isNudge,
       }),
       signal: controller.signal,
     },

@@ -9,6 +9,7 @@ interface ChatState {
   isStreaming: boolean;
   isPanelOpen: boolean;
   deepMode: boolean;
+  statusMessage: string | null;
 
   // Actions
   togglePanel: () => void;
@@ -19,6 +20,7 @@ interface ChatState {
   createSession: (title?: string) => Promise<ChatSession>;
   selectSession: (sessionId: string) => Promise<void>;
   setStreaming: (v: boolean) => void;
+  setStatusMessage: (msg: string | null) => void;
   addUserMessage: (content: string) => void;
   appendAssistantDelta: (content: string) => void;
   finalizeAssistant: () => void;
@@ -32,6 +34,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isStreaming: false,
   isPanelOpen: false,
   deepMode: false,
+  statusMessage: null,
 
   togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
   toggleDeepMode: () => set((s) => ({ deepMode: !s.deepMode })),
@@ -60,6 +63,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   setStreaming: (v) => set({ isStreaming: v }),
+  setStatusMessage: (msg) => set({ statusMessage: msg }),
 
   addUserMessage: (content: string) => {
     const msg: ChatMessage = {
@@ -102,7 +106,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const msgs = s.messages.map((m) =>
         m.id === "__streaming__" ? { ...m, id: crypto.randomUUID() } : m,
       );
-      return { messages: msgs, isStreaming: false };
+      return { messages: msgs, isStreaming: false, statusMessage: null };
     });
   },
 

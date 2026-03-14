@@ -4,6 +4,7 @@ interface Props {
   assetIds: string[];
   matrix: number[][];
   nameMap?: Record<string, string>;
+  onCellClick?: (assetA: string, assetB: string) => void;
 }
 
 /** -1(파랑) ~ 0(흰) ~ +1(빨강) 색상 보간 */
@@ -29,7 +30,7 @@ function textColor(value: number): string {
   return Math.abs(value) > 0.6 ? "#fff" : "#1f2937";
 }
 
-export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {} }: Props) {
+export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {}, onCellClick }: Props) {
   const displayName = (id: string) => nameMap[id] || id;
   const [hovered, setHovered] = useState<{ row: number; col: number } | null>(
     null,
@@ -79,6 +80,7 @@ export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {} }: P
           {row.map((value, j) => {
             const isHovered =
               hovered !== null && hovered.row === i && hovered.col === j;
+            const isClickable = i !== j && !!onCellClick;
             return (
               <div
                 key={`${i}-${j}`}
@@ -91,9 +93,13 @@ export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {} }: P
                   color: textColor(value),
                   transform: isHovered ? "scale(1.08)" : undefined,
                   zIndex: isHovered ? 10 : undefined,
+                  cursor: isClickable ? "pointer" : undefined,
                 }}
                 onMouseEnter={() => setHovered({ row: i, col: j })}
                 onMouseLeave={() => setHovered(null)}
+                onClick={() => {
+                  if (isClickable) onCellClick!(assetIds[i], assetIds[j]);
+                }}
               >
                 <span className="text-xs font-mono font-semibold">
                   {value.toFixed(2)}

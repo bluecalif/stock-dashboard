@@ -4,12 +4,10 @@ import type {
   CorrelationResponse,
   CorrelationAnalysisResponse,
   SpreadResponse,
-  AssetPair,
 } from "../types/api";
 import { useChartActionStore } from "../store/chartActionStore";
 import DateRangePicker from "../components/common/DateRangePicker";
 import CorrelationHeatmap from "../components/charts/CorrelationHeatmap";
-import ScatterPlotChart from "../components/charts/ScatterPlotChart";
 import SpreadChart from "../components/charts/SpreadChart";
 import CorrelationGroupCard from "../components/correlation/CorrelationGroupCard";
 import AssetSelect from "../components/common/AssetSelect";
@@ -93,19 +91,12 @@ export default function CorrelationPage() {
       .finally(() => setSpreadLoading(false));
   }, [highlightedPair, startDate, endDate]);
 
-  const handlePairClick = useCallback(
-    (pair: AssetPair) => {
-      setHighlightedPair({ asset_a: pair.asset_a, asset_b: pair.asset_b });
-    },
-    [setHighlightedPair],
-  );
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">상관도 분석</h2>
         <p className="text-gray-500 mt-1 text-sm">
-          자산 간 수익률 상관행렬 · 그룹핑 · 상관 쌍 분포
+          자산 간 수익률 상관행렬 · 그룹핑 · 스프레드 분석
         </p>
       </div>
 
@@ -177,13 +168,14 @@ export default function CorrelationPage() {
                 groups={analysis.groups}
                 nameMap={nameMap}
                 onGroupClick={(g) => {
-                  if (g.asset_ids.length >= 2) {
+                  if (g.asset_ids.length === 2) {
                     setHighlightedPair({
                       asset_a: g.asset_ids[0],
                       asset_b: g.asset_ids[1],
                     });
                   }
                 }}
+                onPairSelect={(a, b) => setHighlightedPair({ asset_a: a, asset_b: b })}
               />
             </div>
           )}
@@ -205,24 +197,7 @@ export default function CorrelationPage() {
                 assetIds={data.asset_ids}
                 matrix={data.matrix}
                 nameMap={nameMap}
-              />
-            </div>
-          )}
-
-          {/* Scatter Plot */}
-          {analysis && analysis.top_pairs.length > 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                상관 쌍 분포 (Top {analysis.top_pairs.length} 쌍)
-              </h3>
-              <p className="text-xs text-gray-400 mb-3">
-                선택한 두 자산의 일별 수익률 상관 강도. 점 클릭 시 스프레드 분석.
-              </p>
-              <ScatterPlotChart
-                pairs={analysis.top_pairs}
-                highlightPair={highlightedPair}
-                onPairClick={handlePairClick}
-                nameMap={nameMap}
+                onCellClick={(a, b) => setHighlightedPair({ asset_a: a, asset_b: b })}
               />
               {highlightedPair && (
                 <div className="mt-2 flex items-center gap-2">

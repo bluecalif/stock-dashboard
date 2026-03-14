@@ -10,6 +10,7 @@ import {
   Legend,
 } from "recharts";
 import type { SpreadResponse } from "../../types/api";
+import ReturnScatterChart from "./ReturnScatterChart";
 
 interface Props {
   spread: SpreadResponse;
@@ -85,7 +86,23 @@ export default function SpreadChart({ spread }: Props) {
         </span>
       </div>
 
-      {/* 상단: 정규화 가격 오버레이 */}
+      {/* 1) 수익률 산점도 */}
+      {np && (
+        <div className="mb-4">
+          <h4 className="text-xs font-semibold text-gray-500 mb-1">
+            일별 수익률 산점도
+          </h4>
+          <ReturnScatterChart
+            normedA={np.asset_a}
+            normedB={np.asset_b}
+            dates={spread.dates}
+            nameA={dn(spread.asset_a)}
+            nameB={dn(spread.asset_b)}
+          />
+        </div>
+      )}
+
+      {/* 2) 정규화 가격 오버레이 */}
       {priceData && (
         <div className="mb-4">
           <h4 className="text-xs font-semibold text-gray-500 mb-1">

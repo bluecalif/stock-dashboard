@@ -29,4 +29,4 @@ def get_factors(
         query = query.filter(FactorDaily.date >= start_date)
     if end_date:
         query = query.filter(FactorDaily.date <= end_date)
-    return query.order_by(FactorDaily.date.desc()).offset(offset).limit(limit).all()
+    return query.order_by(FactorDaily.date.asc()).offset(offset).limit(limit).all()

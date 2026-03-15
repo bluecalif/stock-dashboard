@@ -29,7 +29,7 @@ def get_signals(
         query = query.filter(SignalDaily.date >= start_date)
     if end_date:
         query = query.filter(SignalDaily.date <= end_date)
-    return query.order_by(SignalDaily.date.desc()).offset(offset).limit(limit).all()
+    return query.order_by(SignalDaily.date.asc()).offset(offset).limit(limit).all()
 
 
 def get_latest_signal(

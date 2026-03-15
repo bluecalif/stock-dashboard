@@ -10,10 +10,10 @@ class TestGetPrices:
         result = price_repo.get_prices(db, "KS200")
         assert len(result) == 5
 
-    def test_order_desc(self, db, seed_prices):
+    def test_order_asc(self, db, seed_prices):
         result = price_repo.get_prices(db, "KS200")
         dates = [r.date for r in result]
-        assert dates == sorted(dates, reverse=True)
+        assert dates == sorted(dates)
 
     def test_date_filter_start(self, db, seed_prices):
         result = price_repo.get_prices(db, "KS200", start_date=datetime.date(2026, 1, 8))

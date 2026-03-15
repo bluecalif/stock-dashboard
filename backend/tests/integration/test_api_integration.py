@@ -175,8 +175,8 @@ class TestPricesIntegration:
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 10
-        # Ordered DESC by date
-        assert data[0]["date"] >= data[-1]["date"]
+        # Ordered ASC by date
+        assert data[0]["date"] <= data[-1]["date"]
 
     def test_date_filter(self, db_session, client):
         """Date range filter works through real DB."""

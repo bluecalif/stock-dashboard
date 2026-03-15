@@ -29,7 +29,7 @@ def get_prices(
     """Return price records for an asset with date filter and pagination."""
     query = db.query(PriceDaily).filter(PriceDaily.asset_id == asset_id)
     query = _apply_date_filter(query, start_date, end_date)
-    return query.order_by(PriceDaily.date.desc()).offset(offset).limit(limit).all()
+    return query.order_by(PriceDaily.date.asc()).offset(offset).limit(limit).all()
 
 
 def get_latest_price(db: Session, asset_id: str) -> PriceDaily | None:

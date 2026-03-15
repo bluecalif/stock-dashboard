@@ -39,6 +39,11 @@
 | 기존 FactorPage/SignalPage 유지 | 삭제 위험 방지, 라우트만 redirect |
 | 탭 UI (3탭) | 지표 현황 + 시그널 + 성공률 자연스러운 분리 |
 | 오버레이 차트 별도 YAxis | 가격과 지표 스케일 다름 |
+| **지표 확정 (2026-03-15)** | RSI + MACD만 성공률 계산. ATR/vol_20은 경고 전용 |
+| **제외 지표** | ROC, vol_zscore_20, ret_*, SMA, EMA — 단독 해석 불가 또는 중복 |
+| **macd_signal 신규 추가** | MACD 골든/데드크로스 감지 위해 EMA(9) 필요 → factors.py 수정 |
+| **ATR/Price ratio** | DB 저장 없이 API 응답 시 atr_14/close 계산 |
+| **고변동성 = sell 경고** | "시장 진입 금지" 수준의 경고 신호. 성공률 계산 제외 |
 
 ## 4. 컨벤션 체크리스트
 

@@ -111,6 +111,21 @@ class TestComputeMacd:
         expected = ema["ema_12"] - ema["ema_26"]
         pd.testing.assert_series_equal(macd["macd"], expected, check_names=False)
 
+    def test_macd_signal_output(self, ohlcv):
+        result = compute_macd(ohlcv)
+        assert "macd_signal" in result.columns
+
+    def test_macd_signal_is_ema9_of_macd(self, ohlcv):
+        result = compute_macd(ohlcv)
+        expected_signal = result["macd"].ewm(span=9, adjust=False).mean()
+        pd.testing.assert_series_equal(
+            result["macd_signal"], expected_signal, check_names=False,
+        )
+
+    def test_macd_signal_not_all_nan(self, ohlcv):
+        result = compute_macd(ohlcv)
+        assert result["macd_signal"].notna().sum() > 0
+
 
 # --- ROC ---
 

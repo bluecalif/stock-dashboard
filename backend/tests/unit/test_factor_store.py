@@ -164,7 +164,7 @@ class TestStoreFactorsForAsset:
 
         assert result.status == "success"
         assert result.row_count == 1000
-        assert result.factor_count == 15
+        assert result.factor_count == 16
         assert result.errors == []
         assert result.elapsed_ms > 0
         mock_session.commit.assert_called_once()

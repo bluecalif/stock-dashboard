@@ -54,12 +54,17 @@ def compute_ema(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_macd(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute MACD: ema_12 - ema_26."""
+    """Compute MACD and signal line.
+
+    MACD = EMA(12) - EMA(26)
+    macd_signal = EMA(9) of MACD  (standard signal line)
+    """
     close = df["close"]
     ema_12 = close.ewm(span=12, adjust=False).mean()
     ema_26 = close.ewm(span=26, adjust=False).mean()
     result = pd.DataFrame(index=df.index)
     result["macd"] = ema_12 - ema_26
+    result["macd_signal"] = result["macd"].ewm(span=9, adjust=False).mean()
     return result
 
 
@@ -168,7 +173,7 @@ ALL_FACTOR_FUNCS = [
 ALL_FACTOR_NAMES = [
     "ret_1d", "ret_5d", "ret_20d", "ret_63d",
     "sma_20", "sma_60", "sma_120",
-    "ema_12", "ema_26", "macd",
+    "ema_12", "ema_26", "macd", "macd_signal",
     "roc", "rsi_14",
     "vol_20", "atr_14",
     "vol_zscore_20",

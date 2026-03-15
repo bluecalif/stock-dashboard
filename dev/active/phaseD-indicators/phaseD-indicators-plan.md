@@ -1,6 +1,6 @@
 # Phase D: 지표 페이지 완성
-> Last Updated: 2026-03-13
-> Status: Planning
+> Last Updated: 2026-03-15
+> Status: In Progress (D.1 완료)
 
 ## 1. Summary (개요)
 
@@ -10,11 +10,15 @@
 
 ## 2. Current State (현재 상태)
 
-- Phase C 완료 전제: 하이브리드 응답 기반 (`hybrid/`), chartActionStore, SSE ui_action 구축됨
+- **Phase C + C-rev + C-rev2 완료** (`ba30728` — 2026-03-14):
+  - 하이브리드 응답 기반 (`hybrid/`), chartActionStore, watchlistStore, SSE ui_action 구축
+  - 넛지 질문 is_nudge 플래그 분류, 템플릿 응답 보장
+  - LangSmith 트레이싱 활성화 (Railway 환경변수 설정 완료)
 - 팩터/시그널 페이지: 별도 존재 (FactorPage, SignalPage)
 - 팩터 데이터: factor_daily 55K+ rows, 15개 팩터
 - 시그널 데이터: signal_daily 15K+ rows, 3개 전략
 - 성공률/예측력 분석 없음
+- **테스트**: 606 tests passed, 7 skipped, ruff clean
 
 ## 3. Target State (목표 상태)
 
@@ -29,16 +33,58 @@
 ## 4. Implementation Stages
 
 ### Stage A: Backend 분석 서비스 (D.1~D.3)
-1. **D.1** 지표 분석 서비스 — `indicator_analysis.py`
-   - `INDICATOR_RULES` 상수 dict
-   - `interpret_indicator_state(factor_name, value) → IndicatorState`
-   - RSI, MACD, SMA 해석 규칙
-   - 테스트: `test_indicator_analysis.py`
+1. **D.1** 지표 분석 서비스 — `indicator_analysis.py` + `factors.py` 수정
+   - **확정 지표 (2026-03-15 사용자 검토 완료)**:
+     - RSI (rsi_14): 과매수/과매도, 경계 70/30 — ✅ 성공률 포함
+     - MACD histogram (macd - macd_signal): 골든/데드크로스 — ✅ 성공률 포함
+     - ATR/Price ratio (atr_14/close): 고변동성 경고 전용 — ❌ 성공률 제외
+     - vol_20: 고변동성 경고 전용 — ❌ 성공률 제외
+   - **제외 확정**: ROC, vol_zscore_20, ret_*, SMA, EMA (단독 해석 불가)
+   - **신규**: `macd_signal` 팩터 — EMA(9) of MACD → `factors.py`에 추가
+   - **함수**:
+     - `interpret_indicator_state(factor_name, value) → IndicatorState` — RSI/ATR/vol_20 단일값 해석
+     - `interpret_macd_histogram(macd, macd_signal) → IndicatorState` — MACD 두 값 비교
+     - `interpret_multiple(factor_values) → list[IndicatorState]`
+   - **상수**: `SUCCESS_RATE_FACTORS = ["rsi_14", "macd"]` — D.2 성공률 계산 대상
+   - ATR/Price ratio는 DB 저장 없이 API 응답 시 계산 (`atr_14 / close`)
+   - 테스트: `test_indicator_analysis.py`, `test_factors.py` (macd_signal 추가)
+
+   **RSI 해석 기준**:
+   | 범위 | level | signal |
+   |------|-------|--------|
+   | ≥ 80 | extreme_overbought | sell |
+   | 70~80 | overbought | sell |
+   | 60~70 | bullish | neutral |
+   | 40~60 | neutral | neutral |
+   | 30~40 | bearish | neutral |
+   | 20~30 | oversold | buy |
+   | < 20 | extreme_oversold | buy |
+
+   **MACD histogram 해석 기준**:
+   | 조건 | level | signal |
+   |------|-------|--------|
+   | histogram > 0 | bullish_cross | buy |
+   | histogram < 0 | bearish_cross | sell |
+
+   **ATR/Price 해석 기준 (경고 전용)**:
+   | 범위 | level | signal |
+   |------|-------|--------|
+   | > 3% | high_vol_warning | sell |
+   | 1~3% | normal_vol | neutral |
+   | < 1% | low_vol | neutral |
+
+   **vol_20 해석 기준 (경고 전용)**:
+   | 범위 | level | signal |
+   |------|-------|--------|
+   | > 0.5 | very_high_vol_warning | sell |
+   | 0.3~0.5 | high_vol_warning | sell |
+   | < 0.3 | normal_vol | neutral |
 
 2. **D.2** 지표 성공률 서비스 ⭐ — `signal_accuracy_service.py`
    - `compute_signal_accuracy(db, asset_id, strategy_id, forward_days=5) → SignalAccuracyResult`
    - SignalAccuracyResult: buy_success_rate, sell_success_rate, avg_return_after_buy/sell, per_signal_details
    - 로직: signal=1 발생 시점에서 forward_days일 후 close > 시점 close → 성공
+   - **대상**: `SUCCESS_RATE_FACTORS`에 정의된 RSI, MACD 기반 전략만
    - 재활용: `signal_repo.get_signals()`, `price_repo.get_prices()`
    - 테스트: `test_signal_accuracy.py`
 

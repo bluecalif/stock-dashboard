@@ -1,6 +1,6 @@
 # Phase D: 지표 페이지 — Context
-> Last Updated: 2026-03-13
-> Status: Planning
+> Last Updated: 2026-03-15
+> Status: In Progress (D.2 완료)
 
 ## 1. 핵심 파일
 
@@ -44,6 +44,14 @@
 | **macd_signal 신규 추가** | MACD 골든/데드크로스 감지 위해 EMA(9) 필요 → factors.py 수정 |
 | **ATR/Price ratio** | DB 저장 없이 API 응답 시 atr_14/close 계산 |
 | **고변동성 = sell 경고** | "시장 진입 금지" 수준의 경고 신호. 성공률 계산 제외 |
+
+## Changed Files (Step D.2)
+- `backend/api/services/analysis/signal_accuracy_service.py` — 신규 생성
+  - `compute_signal_accuracy()`: signal→forward return→성공률 계산
+  - `compute_accuracy_all_strategies()`: 복수 전략 일괄 계산 (D.3 재활용)
+  - `SignalAccuracyResult`, `SignalDetail` 데이터클래스
+  - `MIN_SIGNAL_COUNT = 5` 임계값
+- `backend/tests/unit/test_signal_accuracy.py` — 신규 생성 (10 tests)
 
 ## 4. 컨벤션 체크리스트
 

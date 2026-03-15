@@ -1,6 +1,6 @@
 # Phase D: 지표 페이지 완성
 > Last Updated: 2026-03-15
-> Status: In Progress (D.1 완료)
+> Status: In Progress (D.2 완료)
 
 ## 1. Summary (개요)
 
@@ -17,8 +17,9 @@
 - 팩터/시그널 페이지: 별도 존재 (FactorPage, SignalPage)
 - 팩터 데이터: factor_daily 55K+ rows, 15개 팩터
 - 시그널 데이터: signal_daily 15K+ rows, 3개 전략
-- 성공률/예측력 분석 없음
-- **테스트**: 606 tests passed, 7 skipped, ruff clean
+- **D.1 완료**: `indicator_analysis.py` — RSI/MACD/ATR/vol_20 해석 (`d0392b6`)
+- **D.2 완료**: `signal_accuracy_service.py` — 매수/매도 성공률 계산
+- **테스트**: 616 tests passed, 7 skipped, ruff clean
 
 ## 3. Target State (목표 상태)
 

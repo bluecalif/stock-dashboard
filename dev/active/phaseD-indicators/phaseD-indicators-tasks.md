@@ -1,10 +1,10 @@
 # Phase D: 지표 페이지 — Tasks
 > Last Updated: 2026-03-15
-> Status: 1/12 완료
+> Status: 2/12 완료
 
 ## Stage A: Backend 분석 서비스
 - [x] D.1 지표 분석 서비스 — 현재 상태 해석 + macd_signal 추가 `[M]`
-- [ ] D.2 지표 성공률 서비스 ⭐핵심 `[L]`
+- [x] D.2 지표 성공률 서비스 ⭐핵심 `[L]`
 - [ ] D.3 지표 간 예측력 비교 `[M]`
 
 ## Stage B: REST API + LangGraph
@@ -20,13 +20,6 @@
 ## Stage D: Frontend 고도화
 - [ ] D.10 멀티 지표 설정 + 정규화 `[M]`
 - [ ] D.11 chartActionStore 연결 `[S]`
-
-## Stage E: 통합 검증
-- [ ] D.12 Phase D 통합 검증 `[M]`
-  - Backend: ruff + pytest 전체 통과
-  - Frontend: tsc + vite build 성공
-  - 프로덕션 배포: git push → Railway/Vercel 배포 확인
-  - 프로덕션 브라우저 E2E: 지표 페이지 렌더링, 탭 전환, 오버레이 차트, 성공률 테이블, 챗봇 넛지/하이브리드 응답
 
 ## Stage E: 통합 검증
 - [ ] D.12 Phase D 통합 검증 `[M]`

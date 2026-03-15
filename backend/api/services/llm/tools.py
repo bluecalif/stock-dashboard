@@ -11,10 +11,16 @@ from api.repositories import backtest_repo, factor_repo, price_repo, signal_repo
 from api.services.analysis.correlation_analysis import (
     analyze_correlation as _analyze_corr,
 )
+from api.services.analysis.indicator_analysis import (
+    FACTOR_DISPLAY_NAMES,
+    interpret_multiple,
+)
+from api.services.analysis.indicator_comparison import compare_indicator_accuracy
 from api.services.analysis.interpretation_rules import (
     interpret_correlation,
     interpret_spread_zscore,
 )
+from api.services.analysis.signal_accuracy_service import compute_signal_accuracy
 from api.services.analysis.spread_service import compute_spread
 from api.services.correlation_service import compute_correlation
 from db.session import SessionLocal
@@ -231,6 +237,99 @@ def get_spread(asset_a: str, asset_b: str, days: int = 60) -> str:
         db.close()
 
 
+@tool
+def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
+    """자산의 지표 분석 종합: 현재 상태 해석(RSI/MACD/ATR/vol) + 매수매도 성공률 + 전략 예측력 비교.
+    asset_id: KS200, 005930, 000660, SOXL, BTC/KRW, GC=F, SI=F.
+    forward_days: 성공률 평가 기간 (기본 5일)."""
+    db = next(_get_db())
+    try:
+        # 1. 현재 지표 상태 해석 — 최신 팩터 값 조회
+        factor_names = ["rsi_14", "macd", "macd_signal", "vol_20", "atr_14"]
+        latest: dict[str, float] = {}
+        for fname in factor_names:
+            rows = factor_repo.get_factors(
+                db, asset_id=asset_id, factor_name=fname, limit=1,
+            )
+            if rows:
+                latest[fname] = float(rows[0].value)
+
+        # 최신 close 가격 (ATR/Price ratio 계산용)
+        price_rows = price_repo.get_prices(db, asset_id, limit=1)
+        close = float(price_rows[0].close) if price_rows else None
+
+        # 단일값 해석용 dict
+        single_values: dict[str, float] = {}
+        if "rsi_14" in latest:
+            single_values["rsi_14"] = latest["rsi_14"]
+        if "vol_20" in latest:
+            single_values["vol_20"] = latest["vol_20"]
+        if "atr_14" in latest and close and close > 0:
+            single_values["atr_pct"] = latest["atr_14"] / close
+
+        states = interpret_multiple(
+            single_values,
+            macd=latest.get("macd"),
+            macd_signal=latest.get("macd_signal"),
+        )
+
+        indicator_states = [
+            {
+                "factor": FACTOR_DISPLAY_NAMES.get(s.factor_name, s.factor_name),
+                "value": round(s.value, 4),
+                "label": s.label,
+                "signal": s.signal,
+                "description": s.description,
+            }
+            for s in states
+        ]
+
+        # 2. 매수/매도 성공률 (3개 전략)
+        strategy_ids = ["momentum", "trend", "mean_reversion"]
+        accuracy_results = []
+        for sid in strategy_ids:
+            r = compute_signal_accuracy(
+                db, asset_id, sid, forward_days=forward_days,
+            )
+            accuracy_results.append({
+                "strategy_id": sid,
+                "buy_success_rate": r.buy_success_rate,
+                "sell_success_rate": r.sell_success_rate,
+                "avg_return_after_buy": r.avg_return_after_buy,
+                "avg_return_after_sell": r.avg_return_after_sell,
+                "evaluated_signals": r.evaluated_signals,
+                "insufficient_data": r.insufficient_data,
+            })
+
+        # 3. 전략 예측력 비교 (순위)
+        comparison = compare_indicator_accuracy(
+            db, asset_id, strategy_ids, forward_days=forward_days,
+        )
+        ranking = [
+            {
+                "rank": c.rank,
+                "strategy_id": c.strategy_id,
+                "buy_success_rate": c.buy_success_rate,
+                "sell_success_rate": c.sell_success_rate,
+                "insufficient_data": c.insufficient_data,
+            }
+            for c in comparison
+        ]
+
+        return json.dumps(
+            {
+                "asset_id": asset_id,
+                "forward_days": forward_days,
+                "indicator_states": indicator_states,
+                "signal_accuracy": accuracy_results,
+                "strategy_ranking": ranking,
+            },
+            ensure_ascii=False,
+        )
+    finally:
+        db.close()
+
+
 all_tools = [
     get_prices,
     get_factors,
@@ -239,4 +338,5 @@ all_tools = [
     list_backtests,
     analyze_correlation_tool,
     get_spread,
+    analyze_indicators,
 ]

@@ -10,6 +10,9 @@ from api.services.llm.hybrid.actions import (
 )
 from api.services.llm.hybrid.classifier import (
     CORRELATION_EXPLAIN,
+    INDICATOR_COMPARE,
+    INDICATOR_EXPLAIN,
+    SIGNAL_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
     classify_question,
@@ -96,6 +99,46 @@ class TestClassifyCorrelation:
         """Non-correlation page → no match for correlation patterns."""
         ctx = PageContext(page_id="prices")
         assert classify_question("상관관계가 뭔가요?", ctx) is None
+
+
+# ---------------------------------------------------------------------------
+# classify_question — indicators page
+# ---------------------------------------------------------------------------
+
+class TestClassifyIndicators:
+    @pytest.fixture
+    def ind_ctx(self):
+        return PageContext(page_id="indicators")
+
+    @pytest.mark.parametrize("question", [
+        "현재 RSI 상태가 궁금해요",
+        "MACD가 지금 어떤 상태인가요?",
+        "지표 현재 수준을 보여주세요",
+        "과매수인가요?",
+        "골든크로스인지 확인해주세요",
+    ])
+    def test_indicator_explain(self, ind_ctx, question):
+        assert classify_question(question, ind_ctx) == INDICATOR_EXPLAIN
+
+    @pytest.mark.parametrize("question", [
+        "매수 신호 성공률은 어떤가요?",
+        "성공률을 확인해볼까요?",
+        "시그널 적중률이 궁금해요",
+    ])
+    def test_signal_accuracy(self, ind_ctx, question):
+        assert classify_question(question, ind_ctx) == SIGNAL_ACCURACY
+
+    @pytest.mark.parametrize("question", [
+        "어떤 전략의 예측력이 가장 높나요?",
+        "전략 비교해주세요",
+        "예측력 순위를 보여주세요",
+    ])
+    def test_indicator_compare(self, ind_ctx, question):
+        assert classify_question(question, ind_ctx) == INDICATOR_COMPARE
+
+    def test_non_indicator_page_returns_none(self):
+        ctx = PageContext(page_id="prices")
+        assert classify_question("RSI 상태 궁금해요", ctx) is None
 
 
 # ---------------------------------------------------------------------------
@@ -188,6 +231,81 @@ class TestTemplates:
         text, actions = result
         assert "스프레드" in text
         assert "2.30" in text
+
+    def test_indicator_explain_template(self):
+        ctx = PageContext(page_id="indicators")
+        data = {
+            "asset_id": "005930",
+            "name_map": {"005930": "삼성전자"},
+            "indicator_states": [
+                {
+                    "factor": "RSI (14일)",
+                    "value": 75.5,
+                    "label": "과매수",
+                    "signal": "sell",
+                    "description": "RSI가 70 이상으로 과매수 구간입니다.",
+                },
+            ],
+        }
+        result = get_template_response(INDICATOR_EXPLAIN, ctx, data)
+        assert result is not None
+        text, actions = result
+        assert "삼성전자" in text
+        assert "과매수" in text
+        assert len(actions) >= 1
+
+    def test_signal_accuracy_template(self):
+        ctx = PageContext(page_id="indicators")
+        data = {
+            "asset_id": "005930",
+            "name_map": {"005930": "삼성전자"},
+            "forward_days": 5,
+            "signal_accuracy": [
+                {
+                    "strategy_id": "momentum",
+                    "buy_success_rate": 0.65,
+                    "sell_success_rate": 0.55,
+                    "avg_return_after_buy": 0.012,
+                    "avg_return_after_sell": -0.008,
+                    "evaluated_signals": 20,
+                    "insufficient_data": False,
+                },
+            ],
+        }
+        result = get_template_response(SIGNAL_ACCURACY, ctx, data)
+        assert result is not None
+        text, _ = result
+        assert "성공률" in text
+        assert "65.0%" in text
+
+    def test_indicator_compare_template(self):
+        ctx = PageContext(page_id="indicators")
+        data = {
+            "asset_id": "005930",
+            "name_map": {"005930": "삼성전자"},
+            "forward_days": 5,
+            "strategy_ranking": [
+                {
+                    "rank": 1,
+                    "strategy_id": "trend",
+                    "buy_success_rate": 0.75,
+                    "sell_success_rate": 0.7,
+                    "insufficient_data": False,
+                },
+                {
+                    "rank": 2,
+                    "strategy_id": "momentum",
+                    "buy_success_rate": 0.6,
+                    "sell_success_rate": None,
+                    "insufficient_data": False,
+                },
+            ],
+        }
+        result = get_template_response(INDICATOR_COMPARE, ctx, data)
+        assert result is not None
+        text, _ = result
+        assert "순위" in text
+        assert "75.0%" in text
 
     def test_unknown_category_returns_none(self):
         ctx = PageContext(page_id="correlation")

@@ -122,11 +122,32 @@ def _fetch_hybrid_data(
     """하이브리드 분류기가 매칭한 카테고리에 대해 Tool 데이터를 가져온다."""
     from api.services.llm.hybrid.classifier import (
         CORRELATION_EXPLAIN,
+        INDICATOR_COMPARE,
+        INDICATOR_EXPLAIN,
+        SIGNAL_ACCURACY,
         SIMILAR_ASSETS,
         SPREAD_ANALYSIS,
     )
 
     try:
+        # ── Indicator page categories ──
+        if category in (INDICATOR_EXPLAIN, SIGNAL_ACCURACY, INDICATOR_COMPARE):
+            asset_id = (
+                page_context.asset_ids[0]
+                if page_context.asset_ids
+                else "KS200"
+            )
+            forward_days = page_context.params.get("forward_days", 5)
+            from api.services.llm.tools import analyze_indicators
+            raw = analyze_indicators.invoke({
+                "asset_id": asset_id,
+                "forward_days": forward_days,
+            })
+            data = json.loads(raw)
+            data["name_map"] = _get_name_map([asset_id])
+            return data
+
+        # ── Correlation page categories ──
         if category == CORRELATION_EXPLAIN:
             from api.services.llm.tools import analyze_correlation_tool
             raw = analyze_correlation_tool.invoke({
@@ -243,13 +264,13 @@ async def stream_chat(
     # is_nudge인데 분류 실패 시 → 페이지별 기본 카테고리 적용
     if not category and is_nudge:
         from api.services.llm.hybrid.classifier import (
-            CORRELATION_EXPLAIN,
+            INDICATOR_EXPLAIN,
             SIMILAR_ASSETS,
         )
         _page_defaults = {
             "correlation": SIMILAR_ASSETS,
-            "indicators": CORRELATION_EXPLAIN,
-            "strategy": CORRELATION_EXPLAIN,
+            "indicators": INDICATOR_EXPLAIN,
+            "strategy": SIMILAR_ASSETS,
         }
         category = _page_defaults.get(ctx.page_id, SIMILAR_ASSETS)
 

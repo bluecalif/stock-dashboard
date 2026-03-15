@@ -84,10 +84,55 @@ _CORRELATION_PATTERNS: list[tuple[re.Pattern, str]] = [
     ), SPREAD_ANALYSIS),
 ]
 
+# Indicator page patterns — 구체적 패턴 먼저 (순서 중요)
+_INDICATOR_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # indicator_compare — 가장 구체적
+    (re.compile(
+        r"(비교|순위|어떤|어느).*(전략|지표|예측|높|낮|좋|나은)",
+        re.IGNORECASE,
+    ), INDICATOR_COMPARE),
+    (re.compile(
+        r"(전략|지표).*(비교|순위|랭킹)",
+        re.IGNORECASE,
+    ), INDICATOR_COMPARE),
+    (re.compile(
+        r"(예측력|정확도|승률).*(비교|순위|높|낮)",
+        re.IGNORECASE,
+    ), INDICATOR_COMPARE),
+
+    # signal_accuracy — 성공률 관련
+    (re.compile(
+        r"(성공률|적중률|정중률|승률)",
+        re.IGNORECASE,
+    ), SIGNAL_ACCURACY),
+    (re.compile(
+        r"(매수|매도).*(신호|시그널).*(성공|정확|맞)",
+        re.IGNORECASE,
+    ), SIGNAL_ACCURACY),
+    (re.compile(
+        r"(신호|시그널).*(성공|적중|정확)",
+        re.IGNORECASE,
+    ), SIGNAL_ACCURACY),
+
+    # indicator_explain — 가장 넓은 매칭
+    (re.compile(
+        r"(RSI|MACD|변동성|ATR|지표).*(상태|뜻|의미|설명|얼마|현재|수준|보여)",
+        re.IGNORECASE,
+    ), INDICATOR_EXPLAIN),
+    (re.compile(
+        r"(과매수|과매도|골든크로스|데드크로스)",
+        re.IGNORECASE,
+    ), INDICATOR_EXPLAIN),
+    (re.compile(
+        r"(현재|지금).*(RSI|MACD|지표)",
+        re.IGNORECASE,
+    ), INDICATOR_EXPLAIN),
+]
+
 # Map page_id → pattern list
 _PAGE_PATTERNS: dict[str, list[tuple[re.Pattern, str]]] = {
     "correlation": _CORRELATION_PATTERNS,
-    # "indicators": _INDICATOR_PATTERNS,  # Phase D에서 추가
+    "indicators": _INDICATOR_PATTERNS,
     # "strategy": _STRATEGY_PATTERNS,     # Phase E에서 추가
 }
 

@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-03-13
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료
+> Last Updated: 2026-03-15
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료, Phase C + C-rev + C-rev2 완료
 
 ## 핵심 파일
 
@@ -215,9 +215,9 @@
 - [x] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, done)
 - [x] Zustand authStore 구현 완료
 - [x] Zustand chatStore (Phase B 완료, deepMode 포함)
-- [ ] Zustand chartActionStore (Phase C)
-- [ ] Zustand watchlistStore (Phase C)
-- [ ] 하이브리드 분류기 (정규표현식+키워드) (Phase C)
+- [x] Zustand chartActionStore (Phase C) ✅
+- [x] Zustand watchlistStore (Phase C) ✅
+- [x] 하이브리드 분류기 (정규표현식+키워드) (Phase C) ✅
 - [ ] 분석 REST API (Phase D~E)
 - [ ] LangGraph Tool 확장 (5→8개) (Phase C~E)
 - [ ] 사용자 데이터 user_id 기준 격리

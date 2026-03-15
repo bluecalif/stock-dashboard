@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-03-13
-> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19), Phase C 완료 (12/12)
+> Last Updated: 2026-03-15
+> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19), Phase C + C-rev + C-rev2 완료
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -251,7 +251,7 @@
 ### Stage E: 통합 검증
 - [x] CR.7 Phase C-rev 통합 검증 + 프로덕션 배포 `[M]`
 
-## Phase D: 지표 페이지 완성 — ⬜ 미시작 (0/11)
+## Phase D: 지표 페이지 완성 — ⬜ 미시작 (0/12)
 > dev-docs: `dev/active/phaseD-indicators/`
 > **파일 집계**: 신규 ~10 / 수정 ~7 / Migration 0
 
@@ -273,6 +273,9 @@
 ### Stage D: Frontend 고도화
 - [ ] D.10 멀티 지표 설정 + 정규화 `[M]`
 - [ ] D.11 chartActionStore 연결 `[S]`
+
+### Stage E: 통합 검증
+- [ ] D.12 Phase D 통합 검증 `[M]`
 
 ## Phase E: 전략 페이지 완성 — ⬜ 미시작 (0/9)
 > dev-docs: `dev/active/phaseE-strategy/`
@@ -322,7 +325,7 @@
 - **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
 - **Phase C**: 12 tasks (S:2, M:8, L:2) — 12/12 ✅
 - **Phase C-rev**: 7 tasks (S:1, M:4, L:2) — 7/7 ✅
-- **Phase D**: 11 tasks (S:2, M:6, L:2, XL:1) — 0/11 ⬜
+- **Phase D**: 12 tasks (S:2, M:7, L:2, XL:1) — 0/12 ⬜
 - **Phase E**: 9 tasks (S:2, M:3, L:3, XL:1) — 0/9 ⬜
 - **Phase F~G**: 미정 (각 Phase 진입 시 확정)
 - **Post-MVP Phase C~E 파일 영향도**: 신규 ~30 / 수정 ~23 / Migration 0
@@ -333,6 +336,6 @@
 - **Post-MVP Phase B**: 19/19 ✅
 - **Post-MVP Phase C**: 12/12 ✅ (상관도 페이지)
 - **Post-MVP Phase C-rev**: 7/7 ✅ (피드백 반영)
-- **Post-MVP Phase D**: 0/11 ⬜ (지표 페이지)
+- **Post-MVP Phase D**: 0/12 ⬜ (지표 페이지)
 - **Post-MVP Phase E**: 0/9 ⬜ (전략 페이지)
 - **Post-MVP Phase F~G**: 태스크 상세 미확정

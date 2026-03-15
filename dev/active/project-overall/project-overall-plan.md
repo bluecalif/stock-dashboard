@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-03-13
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료, Phase C 완료
+> Last Updated: 2026-03-15
+> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료, Phase C + C-rev + C-rev2 완료
 
 ## 1. Summary (개요)
 
@@ -38,6 +38,7 @@
 - **Phase A Auth**: 16/16 tasks 완료 (JWT 인증 + Frontend Auth)
 - **Phase B Chatbot**: 19/19 tasks 완료 (LangGraph + OpenAI GPT-5, 심층모드)
 - **Phase C 상관도**: 12/12 Steps 완료 (상관도 페이지 완성)
+- **Phase C-rev2**: 완료 — 넛지 질문 품질 개선, LangSmith 트레이싱, 3-패널 SpreadChart (`ba30728`)
 - **Git**: `master` 브랜치, 561 passed, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
@@ -215,7 +216,7 @@
 
 **파일 집계**: 수정 Backend ~6 / Frontend ~10 / 신규 0
 
-#### Phase D: 지표 페이지 완성 — ⬜ 미시작 (11 Steps) [상세 확정]
+#### Phase D: 지표 페이지 완성 — ⬜ 미시작 (12 Tasks) [상세 확정]
 > dev-docs: `dev/active/phaseD-indicators/`
 
 **목적**: 지표 현재 상태 해석 + 매수/매도 성공률 + 예측력 비교 + REST API + 프론트 통합 페이지

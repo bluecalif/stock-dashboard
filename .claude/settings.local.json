@@ -139,7 +139,8 @@
       "Bash(alembic revision:*)",
       "Bash(alembic upgrade:*)",
       "Bash(pip install:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "WebFetch(domain:backend-production-e5bc.up.railway.app)"
     ]
   }
 }

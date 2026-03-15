@@ -185,6 +185,30 @@ export interface IndicatorComparisonResponse {
   total_strategies: number;
 }
 
+// --- Indicator Signals (DR.1) ---
+export interface IndicatorSignalItem {
+  date: string;
+  signal: number; // 1 (buy), -1 (sell), 0 (warning)
+  label: string;
+  value: number;
+  entry_price: number;
+}
+
+export interface IndicatorSignalListResponse {
+  asset_id: string;
+  indicator_id: string;
+  signals: IndicatorSignalItem[];
+  total_signals: number;
+}
+
+// --- Indicator Comparison V2 (DR.3) ---
+export interface IndicatorComparisonResponseV2 {
+  asset_id: string;
+  forward_days: number;
+  indicators: IndicatorComparisonRow[];
+  total_indicators: number;
+}
+
 export interface SpreadResponse {
   asset_a: string;
   asset_b: string;

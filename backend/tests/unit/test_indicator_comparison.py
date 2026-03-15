@@ -6,9 +6,11 @@ import pytest
 from sqlalchemy.orm import Session
 
 from api.services.analysis.indicator_comparison import (
+    DEFAULT_INDICATOR_IDS,
     DEFAULT_STRATEGY_IDS,
     IndicatorComparisonRow,
     compare_indicator_accuracy,
+    compare_indicators,
 )
 from api.services.analysis.signal_accuracy_service import SignalAccuracyResult
 
@@ -200,3 +202,63 @@ class TestCompareIndicatorAccuracy:
 
         assert rows[0].strategy_id == "momentum"
         assert rows[1].strategy_id == "trend"
+
+
+# ---------------------------------------------------------------------------
+# DR.3: compare_indicators tests
+# ---------------------------------------------------------------------------
+
+class TestCompareIndicators:
+    @patch("api.services.analysis.indicator_comparison.compute_indicator_accuracy")
+    def test_ranks_rsi_vs_macd(self, mock_compute, mock_db):
+        """Indicators ranked by average success rate."""
+        mock_compute.side_effect = [
+            _make_accuracy("rsi_14", buy_rate=0.6, sell_rate=0.5),
+            _make_accuracy("macd", buy_rate=0.7, sell_rate=0.65),
+        ]
+
+        rows = compare_indicators(mock_db, "005930")
+
+        assert len(rows) == 2
+        assert rows[0].strategy_id == "macd"
+        assert rows[0].rank == 1
+        assert rows[1].strategy_id == "rsi_14"
+        assert rows[1].rank == 2
+
+    @patch("api.services.analysis.indicator_comparison.compute_indicator_accuracy")
+    def test_default_indicator_ids(self, mock_compute, mock_db):
+        """None indicator_ids → uses DEFAULT_INDICATOR_IDS."""
+        mock_compute.side_effect = [
+            _make_accuracy(iid) for iid in DEFAULT_INDICATOR_IDS
+        ]
+
+        compare_indicators(mock_db, "005930")
+
+        assert mock_compute.call_count == len(DEFAULT_INDICATOR_IDS)
+
+    @patch("api.services.analysis.indicator_comparison.compute_indicator_accuracy")
+    def test_custom_forward_days(self, mock_compute, mock_db):
+        """forward_days passed through."""
+        mock_compute.side_effect = [
+            _make_accuracy("rsi_14"),
+            _make_accuracy("macd"),
+        ]
+
+        compare_indicators(mock_db, "005930", forward_days=10)
+
+        for call in mock_compute.call_args_list:
+            assert call.kwargs["forward_days"] == 10
+
+    @patch("api.services.analysis.indicator_comparison.compute_indicator_accuracy")
+    def test_insufficient_data_ranks_last(self, mock_compute, mock_db):
+        """Insufficient indicator ranks below sufficient one."""
+        mock_compute.side_effect = [
+            _make_accuracy("rsi_14", insufficient=True),
+            _make_accuracy("macd", buy_rate=0.6, sell_rate=0.5),
+        ]
+
+        rows = compare_indicators(mock_db, "005930")
+
+        assert rows[0].strategy_id == "macd"
+        assert rows[1].strategy_id == "rsi_14"
+        assert rows[1].insufficient_data is True

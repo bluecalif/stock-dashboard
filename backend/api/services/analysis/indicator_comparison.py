@@ -1,7 +1,7 @@
-"""Indicator comparison service — rank strategies by prediction accuracy.
+"""Indicator comparison service — rank strategies/indicators by prediction accuracy.
 
 D.3: Compare buy/sell success rates across strategies and rank them.
-Reuses D.2's compute_accuracy_all_strategies().
+DR.3: Compare individual indicators (RSI vs MACD) by accuracy.
 """
 
 from __future__ import annotations
@@ -13,9 +13,11 @@ from sqlalchemy.orm import Session
 from api.services.analysis.signal_accuracy_service import (
     SignalAccuracyResult,
     compute_accuracy_all_strategies,
+    compute_indicator_accuracy,
 )
 
 DEFAULT_STRATEGY_IDS = ["momentum", "trend", "mean_reversion"]
+DEFAULT_INDICATOR_IDS = ["rsi_14", "macd"]
 
 
 @dataclass
@@ -78,6 +80,58 @@ def compare_indicator_accuracy(
     return [
         IndicatorComparisonRow(
             strategy_id=r.strategy_id,
+            rank=i + 1,
+            buy_success_rate=r.buy_success_rate,
+            sell_success_rate=r.sell_success_rate,
+            avg_return_after_buy=r.avg_return_after_buy,
+            avg_return_after_sell=r.avg_return_after_sell,
+            evaluated_signals=r.evaluated_signals,
+            insufficient_data=r.insufficient_data,
+        )
+        for i, r in enumerate(sorted_results)
+    ]
+
+
+# ---------------------------------------------------------------------------
+# DR.3: Indicator-based comparison (RSI vs MACD)
+# ---------------------------------------------------------------------------
+
+def compare_indicators(
+    db: Session,
+    asset_id: str,
+    indicator_ids: list[str] | None = None,
+    *,
+    forward_days: int = 5,
+) -> list[IndicatorComparisonRow]:
+    """Compare prediction accuracy across individual indicators.
+
+    Uses on-the-fly indicator signals (DR.1) instead of signal_daily.
+    ATR is excluded by default (no buy/sell signals).
+
+    Args:
+        db: SQLAlchemy session.
+        asset_id: Target asset (e.g. "005930").
+        indicator_ids: Indicators to compare. Defaults to ["rsi_14", "macd"].
+        forward_days: Look-ahead period for return calculation.
+
+    Returns:
+        List of IndicatorComparisonRow sorted by rank (1 = best).
+    """
+    if indicator_ids is None:
+        indicator_ids = DEFAULT_INDICATOR_IDS
+
+    results = [
+        compute_indicator_accuracy(
+            db, asset_id, iid, forward_days=forward_days,
+        )
+        for iid in indicator_ids
+    ]
+
+    sorted_results = sorted(results, key=_sort_key, reverse=True)
+
+    return [
+        IndicatorComparisonRow(
+            strategy_id=r.strategy_id,  # contains indicator_id
             rank=i + 1,
             buy_success_rate=r.buy_success_rate,
             sell_success_rate=r.sell_success_rate,

@@ -1,7 +1,7 @@
 """Tests for signal_accuracy_service — buy/sell success rate computation."""
 
 from datetime import date
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ from api.services.analysis.signal_accuracy_service import (
     MIN_SIGNAL_COUNT,
     SignalAccuracyResult,
     compute_accuracy_all_strategies,
+    compute_indicator_accuracy,
     compute_signal_accuracy,
 )
 
@@ -278,3 +279,94 @@ class TestComputeAccuracyAllStrategies:
         assert results[0].strategy_id == "momentum"
         assert results[1].strategy_id == "trend"
         assert results[2].strategy_id == "mean_reversion"
+
+
+# ---------------------------------------------------------------------------
+# DR.2: compute_indicator_accuracy tests
+# ---------------------------------------------------------------------------
+
+class TestComputeIndicatorAccuracy:
+    @patch("api.services.analysis.signal_accuracy_service.generate_indicator_signals")
+    def test_no_signals_returns_insufficient(self, mock_gen, mock_db):
+        """No indicator signals → insufficient_data=True."""
+        mock_gen.return_value = []
+
+        result = compute_indicator_accuracy(mock_db, "005930", "rsi_14")
+
+        assert result.total_signals == 0
+        assert result.insufficient_data is True
+        assert result.strategy_id == "rsi_14"
+
+    @patch("api.services.analysis.signal_accuracy_service.generate_indicator_signals")
+    def test_warning_signals_excluded(self, mock_gen, mock_db):
+        """ATR warning signals (signal=0) → filtered out, insufficient."""
+        from api.services.analysis.indicator_signal_service import IndicatorSignal
+        mock_gen.return_value = [
+            IndicatorSignal(
+                date=date(2026, 1, 5), indicator_id="atr_vol",
+                signal=0, label="고변동성 경고", value=0.04, entry_price=100,
+            ),
+        ]
+
+        result = compute_indicator_accuracy(mock_db, "005930", "atr_vol")
+
+        assert result.total_signals == 0
+        assert result.insufficient_data is True
+
+    @patch("api.services.analysis.signal_accuracy_service.generate_indicator_signals")
+    def test_buy_signals_with_rising_prices(self, mock_gen, mock_db):
+        """Buy signals + rising prices → high success rate."""
+        from api.services.analysis.indicator_signal_service import IndicatorSignal
+
+        # 10 buy signals
+        sigs = []
+        for i in range(10):
+            sigs.append(IndicatorSignal(
+                date=date(2026, 1, 1 + i), indicator_id="rsi_14",
+                signal=1, label="RSI 과매도 진입", value=28.0,
+                entry_price=100.0 + i * 2.0,
+            ))
+        mock_gen.return_value = sigs
+
+        # Mock price query — 20 days of rising prices
+        price_rows = [
+            (date(2026, 1, 1 + i), 100.0 + i * 2.0) for i in range(20)
+        ]
+        price_chain = MagicMock()
+        price_chain.filter.return_value = price_chain
+        price_chain.order_by.return_value = price_chain
+        price_chain.all.return_value = price_rows
+        mock_db.query.return_value = price_chain
+
+        result = compute_indicator_accuracy(
+            mock_db, "005930", "rsi_14", forward_days=5, include_details=True,
+        )
+
+        assert result.strategy_id == "rsi_14"
+        assert result.buy_count == 10
+        assert result.buy_success_rate == 1.0
+        assert result.insufficient_data is False
+        assert len(result.details) > 0
+
+    @patch("api.services.analysis.signal_accuracy_service.generate_indicator_signals")
+    def test_no_price_data(self, mock_gen, mock_db):
+        """Signals exist but no price data → insufficient."""
+        from api.services.analysis.indicator_signal_service import IndicatorSignal
+        mock_gen.return_value = [
+            IndicatorSignal(
+                date=date(2026, 1, 5), indicator_id="macd",
+                signal=1, label="MACD 골든크로스", value=0.5, entry_price=100,
+            ),
+        ]
+
+        price_chain = MagicMock()
+        price_chain.filter.return_value = price_chain
+        price_chain.order_by.return_value = price_chain
+        price_chain.all.return_value = []
+        mock_db.query.return_value = price_chain
+
+        result = compute_indicator_accuracy(mock_db, "005930", "macd")
+
+        assert result.total_signals == 1
+        assert result.evaluated_signals == 0
+        assert result.insufficient_data is True

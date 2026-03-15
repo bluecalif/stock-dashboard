@@ -54,3 +54,39 @@ class IndicatorComparisonListResponse(BaseModel):
     forward_days: int
     strategies: list[IndicatorComparisonResponse]
     total_strategies: int = Field(description="비교 전략 수")
+
+
+# ---------------------------------------------------------------------------
+# DR.1: Indicator Signals
+# ---------------------------------------------------------------------------
+
+class IndicatorSignalItem(BaseModel):
+    """지표 시그널 항목."""
+
+    date: str
+    signal: int = Field(description="1 (buy), -1 (sell), 0 (warning)")
+    label: str
+    value: float
+    entry_price: float
+
+
+class IndicatorSignalListResponse(BaseModel):
+    """지표 시그널 목록 응답."""
+
+    asset_id: str
+    indicator_id: str
+    signals: list[IndicatorSignalItem]
+    total_signals: int
+
+
+# ---------------------------------------------------------------------------
+# DR.3: Indicator Comparison (RSI vs MACD)
+# ---------------------------------------------------------------------------
+
+class IndicatorComparisonListResponseV2(BaseModel):
+    """지표 비교 응답 (RSI vs MACD)."""
+
+    asset_id: str
+    forward_days: int
+    indicators: list[IndicatorComparisonResponse]
+    total_indicators: int = Field(description="비교 지표 수")

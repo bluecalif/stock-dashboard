@@ -7,10 +7,12 @@ import {
   ResponsiveContainer,
   Legend,
   ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 import type {
   PriceDailyResponse,
   FactorDailyResponse,
+  IndicatorSignalItem,
 } from "../../types/api";
 import { getFactorLabel } from "./FactorChart";
 import type { NormalizeMode } from "../common/IndicatorSettingsPanel";
@@ -25,6 +27,10 @@ interface Props {
   assetId: string;
   selectedFactors: string[];
   normalizeMode?: NormalizeMode;
+  /** DR.6: signal dates for vertical reference lines */
+  signalDates?: IndicatorSignalItem[];
+  /** DR.9: indicator ID to apply special rendering */
+  indicatorId?: string;
 }
 
 interface ChartPoint {
@@ -52,6 +58,12 @@ const RSI_REFS = [
   { y: 30, color: "#3b82f6", label: "30" },
 ];
 
+const SIGNAL_COLORS: Record<number, string> = {
+  1: "#16a34a",  // buy — green
+  [-1]: "#dc2626", // sell — red
+  0: "#d97706",  // warning — amber
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -62,20 +74,27 @@ function formatPrice(value: number): string {
   return value.toFixed(2);
 }
 
-/** Min-max 정규화 → 0~100 */
-function minMaxNormalize(values: number[]): number[] {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+/** Min-max normalize → 0~100 (DR.8: filter out undefined) */
+function minMaxNormalize(values: (number | undefined)[]): (number | undefined)[] {
+  const valid = values.filter((v): v is number => v !== undefined);
+  if (valid.length === 0) return values.map(() => undefined);
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
   const range = max - min || 1;
-  return values.map((v) => ((v - min) / range) * 100);
+  return values.map((v) => (v !== undefined ? ((v - min) / range) * 100 : undefined));
 }
 
-/** % 변화: 시작점 대비 변화율 */
-function pctChange(values: number[]): number[] {
-  const base = values[0] || 1;
-  return values.map((v) => ((v - base) / Math.abs(base)) * 100);
+/** % change from start (DR.8: filter out undefined) */
+function pctChange(values: (number | undefined)[]): (number | undefined)[] {
+  const firstValid = values.find((v): v is number => v !== undefined);
+  if (firstValid === undefined) return values.map(() => undefined);
+  const base = firstValid || 1;
+  return values.map((v) =>
+    v !== undefined ? ((v - base) / Math.abs(base)) * 100 : undefined,
+  );
 }
 
+/** DR.8: Merge raw data — exclude points where close is missing */
 function mergeRawData(
   prices: PriceDailyResponse[],
   factors: Map<string, FactorDailyResponse[]>,
@@ -86,6 +105,7 @@ function mergeRawData(
 
   for (const p of prices) {
     if (p.asset_id !== assetId) continue;
+    if (p.close == null) continue; // DR.8: skip null/0 prices
     dateMap.set(p.date, { date: p.date, close: p.close });
   }
 
@@ -96,9 +116,8 @@ function mergeRawData(
       const existing = dateMap.get(r.date);
       if (existing) {
         existing[factorName] = r.value;
-      } else {
-        dateMap.set(r.date, { date: r.date, [factorName]: r.value });
       }
+      // DR.8: Don't create entries for dates without price data
     }
   }
 
@@ -116,12 +135,13 @@ function applyTransform(
 
   const transform = mode === "normalized" ? minMaxNormalize : pctChange;
 
-  const priceValues = raw.map((p) => (p.close as number) ?? 0);
+  // DR.8: use undefined instead of 0 for missing values
+  const priceValues = raw.map((p) => p.close);
   const priceTransformed = transform(priceValues);
 
-  const factorTransformed = new Map<string, number[]>();
+  const factorTransformed = new Map<string, (number | undefined)[]>();
   for (const f of selectedFactors) {
-    const vals = raw.map((p) => (p[f] as number) ?? 0);
+    const vals = raw.map((p) => p[f] as number | undefined);
     factorTransformed.set(f, transform(vals));
   }
 
@@ -135,6 +155,28 @@ function applyTransform(
   });
 }
 
+/** DR.9: Compute ATR high-volatility zones for ReferenceArea */
+function computeAtrZones(
+  signals: IndicatorSignalItem[],
+): Array<{ x1: string; x2: string }> {
+  const zones: Array<{ x1: string; x2: string }> = [];
+  let zoneStart: string | null = null;
+
+  for (const sig of signals) {
+    if (sig.label.includes("진입")) {
+      zoneStart = sig.date;
+    } else if (sig.label.includes("복귀") && zoneStart) {
+      zones.push({ x1: zoneStart, x2: sig.date });
+      zoneStart = null;
+    }
+  }
+  // If still in a zone at the end, extend to last signal
+  if (zoneStart && signals.length > 0) {
+    zones.push({ x1: zoneStart, x2: signals[signals.length - 1].date });
+  }
+  return zones;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -145,6 +187,8 @@ export default function IndicatorOverlayChart({
   assetId,
   selectedFactors,
   normalizeMode = "raw",
+  signalDates,
+  indicatorId,
 }: Props) {
   if (prices.length === 0) {
     return (
@@ -159,6 +203,16 @@ export default function IndicatorOverlayChart({
   const isTransformed = normalizeMode !== "raw";
   const hasRSI = selectedFactors.includes("rsi_14");
   const showDualAxis = !isTransformed && selectedFactors.length > 0;
+
+  // DR.9: ATR zones
+  const isAtr = indicatorId === "atr_vol";
+  const atrZones = isAtr && signalDates ? computeAtrZones(signalDates) : [];
+
+  // DR.6: Buy/sell signal lines (non-ATR)
+  const signalLines =
+    signalDates && !isAtr
+      ? signalDates.filter((s) => s.signal !== 0)
+      : [];
 
   const yLabel =
     normalizeMode === "normalized"
@@ -258,6 +312,38 @@ export default function IndicatorOverlayChart({
             strokeDasharray="4 4"
           />
         )}
+
+        {/* DR.9: ATR high-volatility zones */}
+        {atrZones.map((zone, i) => (
+          <ReferenceArea
+            key={`atr-zone-${i}`}
+            yAxisId="price"
+            x1={zone.x1}
+            x2={zone.x2}
+            fill="#dc2626"
+            fillOpacity={0.08}
+            stroke="#dc2626"
+            strokeOpacity={0.2}
+          />
+        ))}
+
+        {/* DR.6: Signal vertical reference lines */}
+        {signalLines.map((sig, i) => (
+          <ReferenceLine
+            key={`sig-${i}`}
+            yAxisId="price"
+            x={sig.date}
+            stroke={SIGNAL_COLORS[sig.signal] ?? "#9ca3af"}
+            strokeDasharray="4 4"
+            strokeWidth={1.5}
+            label={{
+              value: sig.signal === 1 ? "B" : "S",
+              position: "top",
+              fontSize: 10,
+              fill: SIGNAL_COLORS[sig.signal] ?? "#9ca3af",
+            }}
+          />
+        ))}
 
         {/* Price line */}
         <Line

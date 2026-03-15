@@ -1,28 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { fetchFactors } from "../api/factors";
 import { fetchPrices } from "../api/prices";
-import { fetchSignals } from "../api/signals";
 import {
-  fetchSignalAccuracy,
-  fetchIndicatorComparison,
+  fetchIndicatorSignals,
+  fetchIndicatorAccuracy,
+  fetchIndicatorComparisonV2,
 } from "../api/analysis";
 import type {
-  FactorDailyResponse,
   PriceDailyResponse,
-  SignalDailyResponse,
   SignalAccuracyResponse,
-  IndicatorComparisonResponse,
+  IndicatorSignalItem,
+  IndicatorComparisonResponseV2,
 } from "../types/api";
-import FactorChart, {
-  mergeMacdData,
-  MACDChart,
-  getFactorLabel,
-} from "../components/charts/FactorChart";
-import SignalOverlay from "../components/charts/SignalOverlay";
 import IndicatorOverlayChart from "../components/charts/IndicatorOverlayChart";
 import AccuracyBarChart from "../components/charts/AccuracyBarChart";
-import IndicatorSettingsPanel from "../components/common/IndicatorSettingsPanel";
-import type { IndicatorSetting, NormalizeMode } from "../components/common/IndicatorSettingsPanel";
 import AssetSelect from "../components/common/AssetSelect";
 import { useChartActionStore } from "../store/chartActionStore";
 import DateRangePicker from "../components/common/DateRangePicker";
@@ -34,46 +24,21 @@ import ErrorMessage from "../components/common/ErrorMessage";
 // ---------------------------------------------------------------------------
 
 const TABS = [
-  { id: "factors", label: "지표 현황" },
-  { id: "signals", label: "시그널 타임라인" },
+  { id: "signals", label: "시그널" },
   { id: "accuracy", label: "성공률" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
-const CHART_FACTORS = [
-  "rsi_14",
-  "macd",
-  "sma_20",
-  "sma_60",
-  "vol_20",
-  "atr_14",
-  "ret_1d",
-  "ret_5d",
-  "roc",
-  "vol_zscore_20",
+const INDICATORS = [
+  { id: "rsi_14", label: "RSI" },
+  { id: "macd", label: "MACD" },
+  { id: "atr_vol", label: "ATR+변동성" },
 ] as const;
 
-const TABLE_FACTORS = [
-  "rsi_14",
-  "macd",
-  "sma_20",
-  "sma_60",
-  "vol_20",
-  "atr_14",
-  "ret_1d",
-  "ret_5d",
-  "ret_20d",
-  "ret_63d",
-  "roc",
-  "vol_zscore_20",
-];
-
-const STRATEGIES = [
-  { id: "momentum", label: "모멘텀" },
-  { id: "trend", label: "추세추종" },
-  { id: "mean_reversion", label: "평균회귀" },
-] as const;
+const INDICATOR_LABELS: Record<string, string> = Object.fromEntries(
+  INDICATORS.map((i) => [i.id, i.label]),
+);
 
 function defaultStart(): string {
   const d = new Date();
@@ -83,22 +48,6 @@ function defaultStart(): string {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function formatValue(factor: string, value: number): string {
-  if (factor.startsWith("ret_")) return `${(value * 100).toFixed(2)}%`;
-  if (factor === "rsi_14") return value.toFixed(1);
-  if (factor === "vol_zscore_20") return value.toFixed(2);
-  if (factor === "vol_20") return (value * 100).toFixed(2) + "%";
-  return value.toFixed(4);
-}
-
-function signalLabel(signal: number): { text: string; color: string } {
-  if (signal === 1)
-    return { text: "매수", color: "text-green-600 bg-green-50" };
-  if (signal === -1)
-    return { text: "청산", color: "text-red-600 bg-red-50" };
-  return { text: "관망", color: "text-gray-500 bg-gray-50" };
 }
 
 function rateColor(rate: number | null): string {
@@ -113,43 +62,32 @@ function fmtPct(v: number | null): string {
   return `${(v * 100).toFixed(1)}%`;
 }
 
+function signalBadge(signal: number): { text: string; className: string } {
+  if (signal === 1)
+    return { text: "매수", className: "text-green-600 bg-green-50" };
+  if (signal === -1)
+    return { text: "매도", className: "text-red-600 bg-red-50" };
+  return { text: "경고", className: "text-amber-600 bg-amber-50" };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function IndicatorSignalPage() {
-  const [activeTab, setActiveTab] = useState<TabId>("factors");
+  const [activeTab, setActiveTab] = useState<TabId>("signals");
 
   // Shared controls
   const [assetId, setAssetId] = useState("KS200");
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(today);
-
-  // Factors tab
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(["KS200"]);
-  const [selectedFactors, setSelectedFactors] = useState<string[]>([
-    "rsi_14",
-    "macd",
-  ]);
-  const [factorData, setFactorData] = useState<
-    Map<string, FactorDailyResponse[]>
-  >(new Map());
-  const [latestValues, setLatestValues] = useState<
-    Map<string, Map<string, number>>
-  >(new Map());
-  const [factorPrices, setFactorPrices] = useState<PriceDailyResponse[]>([]);
-  const [overlaySettings, setOverlaySettings] = useState<IndicatorSetting[]>(
-    [],
-  );
-  const [normalizeMode, setNormalizeMode] = useState<NormalizeMode>("raw");
+  const [selectedIndicator, setSelectedIndicator] = useState("rsi_14");
 
   // Signals tab
-  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([
-    "momentum",
-  ]);
   const [prices, setPrices] = useState<PriceDailyResponse[]>([]);
-  const [signals, setSignals] = useState<SignalDailyResponse[]>([]);
-  const [matrixSignals, setMatrixSignals] = useState<SignalDailyResponse[]>([]);
+  const [indicatorSignals, setIndicatorSignals] = useState<
+    IndicatorSignalItem[]
+  >([]);
 
   // Accuracy tab
   const [forwardDays, setForwardDays] = useState(5);
@@ -157,7 +95,7 @@ export default function IndicatorSignalPage() {
     [],
   );
   const [comparisonData, setComparisonData] =
-    useState<IndicatorComparisonResponse | null>(null);
+    useState<IndicatorComparisonResponseV2 | null>(null);
 
   // Common
   const [loading, setLoading] = useState(false);
@@ -167,151 +105,58 @@ export default function IndicatorSignalPage() {
   // Data loaders
   // ---------------------------------------------------------------------------
 
-  const loadFactors = useCallback(async () => {
-    if (selectedAssetIds.length === 0 || selectedFactors.length === 0) {
-      setFactorData(new Map());
-      setLatestValues(new Map());
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const factorsToFetch = new Set<string>(selectedFactors);
-      if (factorsToFetch.has("macd")) factorsToFetch.add("ema_12");
-
-      const promises: Promise<{
-        factor: string;
-        data: FactorDailyResponse[];
-      }>[] = [];
-      for (const factor of factorsToFetch) {
-        for (const aid of selectedAssetIds) {
-          promises.push(
-            fetchFactors({
-              asset_id: aid,
-              factor_name: factor,
-              start_date: startDate,
-              end_date: endDate,
-              limit: 500,
-            }).then((data) => ({ factor, data })),
-          );
-        }
-      }
-      // Fetch prices for overlay chart (in parallel with factors)
-      const pricePromises = selectedAssetIds.map((aid) =>
-        fetchPrices({
-          asset_id: aid,
-          start_date: startDate,
-          end_date: endDate,
-          limit: 500,
-        }),
-      );
-
-      const [results, ...priceResults] = await Promise.all([
-        Promise.all(promises),
-        ...pricePromises,
-      ]);
-      setFactorPrices(priceResults.flat());
-
-      const map = new Map<string, FactorDailyResponse[]>();
-      for (const { factor, data } of results) {
-        const existing = map.get(factor) || [];
-        map.set(factor, [...existing, ...data]);
-      }
-      setFactorData(map);
-
-      const latest = new Map<string, Map<string, number>>();
-      for (const [, records] of map) {
-        const sorted = [...records].sort((a, b) =>
-          b.date.localeCompare(a.date),
-        );
-        const seen = new Set<string>();
-        for (const r of sorted) {
-          const key = `${r.asset_id}:${r.factor_name}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            if (!latest.has(r.asset_id)) latest.set(r.asset_id, new Map());
-            latest.get(r.asset_id)!.set(r.factor_name, r.value);
-          }
-        }
-      }
-      setLatestValues(latest);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "팩터 데이터 로딩 실패");
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedAssetIds, selectedFactors, startDate, endDate]);
-
   const loadSignals = useCallback(async () => {
-    if (!assetId || selectedStrategies.length === 0) {
-      setPrices([]);
-      setSignals([]);
-      return;
-    }
+    if (!assetId) return;
     setLoading(true);
     setError(null);
     try {
-      const [priceData, ...signalResults] = await Promise.all([
+      const [priceData, signalData] = await Promise.all([
         fetchPrices({
           asset_id: assetId,
           start_date: startDate,
           end_date: endDate,
           limit: 500,
         }),
-        ...selectedStrategies.map((strategyId) =>
-          fetchSignals({
-            asset_id: assetId,
-            strategy_id: strategyId,
-            start_date: startDate,
-            end_date: endDate,
-            limit: 500,
-          }),
-        ),
+        fetchIndicatorSignals({
+          asset_id: assetId,
+          indicator_id: selectedIndicator,
+          start_date: startDate,
+          end_date: endDate,
+        }),
       ]);
       setPrices(priceData);
-      setSignals(signalResults.flat());
+      setIndicatorSignals(signalData.signals);
     } catch (err) {
       setError(err instanceof Error ? err.message : "시그널 데이터 로딩 실패");
     } finally {
       setLoading(false);
     }
-  }, [assetId, selectedStrategies, startDate, endDate]);
-
-  const loadMatrix = useCallback(async () => {
-    if (!assetId) return;
-    try {
-      const results = await Promise.all(
-        STRATEGIES.map((s) =>
-          fetchSignals({ asset_id: assetId, strategy_id: s.id, limit: 1 }),
-        ),
-      );
-      setMatrixSignals(results.flat());
-    } catch {
-      // silent
-    }
-  }, [assetId]);
+  }, [assetId, selectedIndicator, startDate, endDate]);
 
   const loadAccuracy = useCallback(async () => {
     if (!assetId) return;
     setLoading(true);
     setError(null);
     try {
-      const [accResults, comparison] = await Promise.all([
-        Promise.all(
-          STRATEGIES.map((s) =>
-            fetchSignalAccuracy({
-              asset_id: assetId,
-              strategy_id: s.id,
-              forward_days: forwardDays,
-            }),
-          ),
-        ),
-        fetchIndicatorComparison({
+      const [rsiAcc, macdAcc, comparison] = await Promise.all([
+        fetchIndicatorAccuracy({
+          asset_id: assetId,
+          indicator_id: "rsi_14",
+          forward_days: forwardDays,
+          include_details: true,
+        }),
+        fetchIndicatorAccuracy({
+          asset_id: assetId,
+          indicator_id: "macd",
+          forward_days: forwardDays,
+          include_details: true,
+        }),
+        fetchIndicatorComparisonV2({
           asset_id: assetId,
           forward_days: forwardDays,
         }),
       ]);
-      setAccuracyData(accResults);
+      setAccuracyData([rsiAcc, macdAcc]);
       setComparisonData(comparison);
     } catch (err) {
       setError(err instanceof Error ? err.message : "성공률 데이터 로딩 실패");
@@ -332,77 +177,34 @@ export default function IndicatorSignalPage() {
     if (filters === prevFiltersRef.current) return;
     prevFiltersRef.current = filters;
 
-    // factor_name → 해당 팩터 자동 선택 + 지표 현황 탭 전환
-    const factorName = filters.factor_name;
-    if (factorName && typeof factorName === "string") {
-      setActiveTab("factors");
-      setSelectedFactors((prev) =>
-        prev.includes(factorName) ? prev : [...prev, factorName],
-      );
+    const indicatorId = filters.indicator_id ?? filters.factor_name;
+    if (indicatorId && typeof indicatorId === "string") {
+      const matched = INDICATORS.find((i) => i.id === indicatorId);
+      if (matched) {
+        setActiveTab("signals");
+        setSelectedIndicator(matched.id);
+      }
       clearFilters();
     }
 
-    // strategy_id → 해당 전략 자동 선택 + 시그널 탭 전환
-    const strategyId = filters.strategy_id;
-    if (strategyId && typeof strategyId === "string") {
-      setActiveTab("signals");
-      setSelectedStrategies((prev) =>
-        prev.includes(strategyId) ? prev : [...prev, strategyId],
-      );
-      clearFilters();
-    }
-
-    // asset_id → 자산 변경
     const assetFilter = filters.asset_id;
     if (assetFilter && typeof assetFilter === "string") {
       setAssetId(assetFilter);
-      setSelectedAssetIds((prev) =>
-        prev.includes(assetFilter) ? prev : [...prev, assetFilter],
-      );
       clearFilters();
     }
   }, [filters, clearFilters]);
 
   // ---------------------------------------------------------------------------
-  // Effects — load data based on active tab
+  // Effects
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    if (activeTab === "factors") loadFactors();
-  }, [activeTab, loadFactors]);
-
-  useEffect(() => {
-    if (activeTab === "signals") {
-      loadSignals();
-      loadMatrix();
-    }
-  }, [activeTab, loadSignals, loadMatrix]);
+    if (activeTab === "signals") loadSignals();
+  }, [activeTab, loadSignals]);
 
   useEffect(() => {
     if (activeTab === "accuracy") loadAccuracy();
   }, [activeTab, loadAccuracy]);
-
-  // ---------------------------------------------------------------------------
-  // Toggle helpers
-  // ---------------------------------------------------------------------------
-
-  const toggleFactor = (f: string) =>
-    setSelectedFactors((prev) =>
-      prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f],
-    );
-
-  const toggleStrategy = (id: string) =>
-    setSelectedStrategies((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    );
-
-  // Overlay visible factors (settings panel 기준, macd 제외)
-  const overlayVisibleFactors = selectedFactors
-    .filter((f) => f !== "macd")
-    .filter((f) => {
-      const setting = overlaySettings.find((s) => s.factorName === f);
-      return setting ? setting.visible : true; // default visible
-    });
 
   // ---------------------------------------------------------------------------
   // Render
@@ -414,7 +216,7 @@ export default function IndicatorSignalPage() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">지표 & 시그널</h2>
         <p className="text-gray-500 mt-1 text-sm">
-          기술적 지표 현황 · 매매 시그널 타임라인 · 예측 성공률
+          RSI · MACD · ATR+변동성 시그널 분석 및 성공률
         </p>
       </div>
 
@@ -438,211 +240,7 @@ export default function IndicatorSignalPage() {
       </div>
 
       {/* ============================================================ */}
-      {/* TAB: 지표 현황 */}
-      {/* ============================================================ */}
-      {activeTab === "factors" && (
-        <div className="space-y-6">
-          {/* Controls */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                자산 선택
-              </label>
-              <AssetSelect
-                value=""
-                onChange={() => {}}
-                multiple
-                selectedIds={selectedAssetIds}
-                onChangeMultiple={setSelectedAssetIds}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                팩터 선택
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {CHART_FACTORS.map((f) => {
-                  const selected = selectedFactors.includes(f);
-                  return (
-                    <button
-                      key={f}
-                      onClick={() => toggleFactor(f)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        selected
-                          ? "bg-indigo-600 text-white border-indigo-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
-                      }`}
-                    >
-                      {getFactorLabel(f)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                기간
-              </label>
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onStartChange={setStartDate}
-                onEndChange={setEndDate}
-              />
-            </div>
-          </div>
-
-          {/* Charts + Table */}
-          {loading ? (
-            <Loading message="팩터 데이터 로딩 중..." />
-          ) : error ? (
-            <ErrorMessage message={error} onRetry={loadFactors} />
-          ) : (
-            <div className="space-y-6">
-              {/* Overlay settings panel */}
-              <IndicatorSettingsPanel
-                availableFactors={selectedFactors}
-                settings={overlaySettings}
-                onSettingsChange={setOverlaySettings}
-                normalizeMode={normalizeMode}
-                onNormalizeModeChange={setNormalizeMode}
-              />
-
-              {/* Overlay chart: price + selected indicators */}
-              {selectedAssetIds.map((aid) => (
-                <div
-                  key={`overlay-${aid}`}
-                  className="bg-white rounded-lg border border-gray-200 p-4"
-                >
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                    {aid} — 가격 + 지표 오버레이
-                  </h3>
-                  <IndicatorOverlayChart
-                    prices={factorPrices}
-                    factors={factorData}
-                    assetId={aid}
-                    selectedFactors={overlayVisibleFactors}
-                    normalizeMode={normalizeMode}
-                  />
-                </div>
-              ))}
-
-              {/* Individual factor charts */}
-              {selectedFactors.map((factor) => (
-                <div
-                  key={factor}
-                  className="bg-white rounded-lg border border-gray-200 p-4"
-                >
-                  {factor === "macd" ? (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                        MACD
-                      </h3>
-                      {selectedAssetIds.length === 0 ? (
-                        <div className="text-gray-400 text-center py-8">
-                          자산을 선택하세요
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {selectedAssetIds.map((aid) => {
-                            const macdRecords =
-                              factorData.get("macd") || [];
-                            const ema12Records =
-                              factorData.get("ema_12") || [];
-                            const chartData = mergeMacdData(
-                              macdRecords,
-                              ema12Records,
-                              aid,
-                            );
-                            return (
-                              <div key={aid}>
-                                <p className="text-xs text-gray-500 mb-1">
-                                  {aid}
-                                </p>
-                                <MACDChart data={chartData} />
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <FactorChart
-                      data={factorData.get(factor) || []}
-                      factorName={factor}
-                      assetIds={selectedAssetIds}
-                    />
-                  )}
-                </div>
-              ))}
-
-              {/* Factor comparison table */}
-              {selectedAssetIds.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700">
-                      팩터 비교 (최신값)
-                    </h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                            팩터
-                          </th>
-                          {selectedAssetIds.map((id) => (
-                            <th
-                              key={id}
-                              className="px-4 py-2 text-right text-xs font-medium text-gray-500"
-                            >
-                              {id}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {TABLE_FACTORS.map((factor) => {
-                          const hasData = selectedAssetIds.some(
-                            (id) =>
-                              latestValues.get(id)?.get(factor) !== undefined,
-                          );
-                          if (!hasData) return null;
-                          return (
-                            <tr key={factor} className="hover:bg-gray-50">
-                              <td className="px-4 py-2 text-gray-700 font-medium">
-                                {getFactorLabel(factor)}
-                              </td>
-                              {selectedAssetIds.map((id) => {
-                                const val = latestValues
-                                  .get(id)
-                                  ?.get(factor);
-                                return (
-                                  <td
-                                    key={id}
-                                    className="px-4 py-2 text-right text-gray-600 tabular-nums"
-                                  >
-                                    {val !== undefined
-                                      ? formatValue(factor, val)
-                                      : "—"}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* TAB: 시그널 타임라인 */}
+      {/* TAB: 시그널 */}
       {/* ============================================================ */}
       {activeTab === "signals" && (
         <div className="space-y-6">
@@ -656,25 +254,22 @@ export default function IndicatorSignalPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                전략 선택
+                지표 선택
               </label>
               <div className="flex flex-wrap gap-2">
-                {STRATEGIES.map((s) => {
-                  const selected = selectedStrategies.includes(s.id);
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => toggleStrategy(s.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        selected
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  );
-                })}
+                {INDICATORS.map((ind) => (
+                  <button
+                    key={ind.id}
+                    onClick={() => setSelectedIndicator(ind.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      selectedIndicator === ind.id
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
+                    }`}
+                  >
+                    {ind.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div>
@@ -690,99 +285,67 @@ export default function IndicatorSignalPage() {
             </div>
           </div>
 
-          {/* Charts */}
+          {/* Content: 3/4 chart + 1/4 description */}
           {loading ? (
             <Loading message="시그널 데이터 로딩 중..." />
           ) : error ? (
             <ErrorMessage message={error} onRetry={loadSignals} />
           ) : (
-            <div className="space-y-6">
-              {selectedStrategies.map((strategyId) => {
-                const stratLabel =
-                  STRATEGIES.find((s) => s.id === strategyId)?.label ??
-                  strategyId;
-                return (
-                  <div
-                    key={strategyId}
-                    className="bg-white rounded-lg border border-gray-200 p-4"
-                  >
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2">
-                      {assetId} — {stratLabel}
-                    </h3>
-                    <SignalOverlay
-                      prices={prices}
-                      signals={signals}
-                      assetId={assetId}
-                      strategyId={strategyId}
-                    />
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-4 gap-4">
+              {/* Chart 3/4 */}
+              <div className="col-span-3 bg-white rounded-lg border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                  {assetId} — {INDICATOR_LABELS[selectedIndicator] ?? selectedIndicator} 시그널
+                </h3>
+                <IndicatorOverlayChart
+                  prices={prices}
+                  factors={new Map()}
+                  assetId={assetId}
+                  selectedFactors={[]}
+                  signalDates={indicatorSignals}
+                  indicatorId={selectedIndicator}
+                />
+              </div>
 
-              {/* Signal matrix */}
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    전략 시그널 매트릭스 — {assetId}
-                  </h3>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                          전략
-                        </th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                          최신 시그널
-                        </th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                          날짜
-                        </th>
-                        <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                          스코어
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                          액션
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {STRATEGIES.map((s) => {
-                        const latest = matrixSignals.find(
-                          (sig) => sig.strategy_id === s.id,
-                        );
-                        const sl = latest
-                          ? signalLabel(latest.signal)
-                          : { text: "—", color: "text-gray-400" };
-                        return (
-                          <tr key={s.id} className="hover:bg-gray-50">
-                            <td className="px-4 py-2 font-medium text-gray-700">
-                              {s.label}
-                            </td>
-                            <td className="px-4 py-2 text-center">
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${sl.color}`}
-                              >
-                                {sl.text}
-                              </span>
-                            </td>
-                            <td className="px-4 py-2 text-center text-gray-600 tabular-nums">
-                              {latest?.date ?? "—"}
-                            </td>
-                            <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
-                              {latest?.score != null
-                                ? latest.score.toFixed(2)
-                                : "—"}
-                            </td>
-                            <td className="px-4 py-2 text-gray-600">
-                              {latest?.action ?? "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+              {/* Description panel 1/4 */}
+              <div className="col-span-1 bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">
+                  시그널 이력
+                </h3>
+                <p className="text-xs text-gray-400">
+                  총 {indicatorSignals.length}건
+                </p>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {indicatorSignals.length === 0 ? (
+                    <p className="text-sm text-gray-400">
+                      해당 기간에 시그널이 없습니다
+                    </p>
+                  ) : (
+                    indicatorSignals.map((sig, i) => {
+                      const badge = signalBadge(sig.signal);
+                      return (
+                        <div
+                          key={i}
+                          className="border border-gray-100 rounded p-2 text-xs"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-gray-500 tabular-nums">
+                              {sig.date}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-xs font-medium ${badge.className}`}
+                            >
+                              {badge.text}
+                            </span>
+                          </div>
+                          <p className="text-gray-700">{sig.label}</p>
+                          <p className="text-gray-400 tabular-nums">
+                            가격: {sig.entry_price.toLocaleString()}
+                          </p>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
@@ -832,26 +395,123 @@ export default function IndicatorSignalPage() {
             <ErrorMessage message={error} onRetry={loadAccuracy} />
           ) : (
             <div className="space-y-6">
-              {/* Strategy accuracy cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {accuracyData.map((acc) => {
-                  const stratLabel =
-                    STRATEGIES.find((s) => s.id === acc.strategy_id)?.label ??
-                    acc.strategy_id;
-                  return (
+              {/* Accuracy bar chart + comparison */}
+              <div className="grid grid-cols-4 gap-4">
+                {/* Chart 3/4 */}
+                <div className="col-span-3 space-y-4">
+                  {/* Accuracy bar chart */}
+                  {accuracyData.length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                        지표별 성공률 비교 — {assetId} ({forwardDays}일 기준)
+                      </h3>
+                      <AccuracyBarChart
+                        data={accuracyData}
+                        strategyLabels={INDICATOR_LABELS}
+                      />
+                    </div>
+                  )}
+
+                  {/* Comparison ranking table */}
+                  {comparisonData && (
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-700">
+                          예측력 비교 순위 — {assetId} ({forwardDays}일 기준)
+                        </h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                                순위
+                              </th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
+                                지표
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
+                                매수 성공률
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
+                                매도 성공률
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
+                                매수 후 수익
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
+                                매도 후 수익
+                              </th>
+                              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
+                                평가 수
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {comparisonData.indicators.map((row) => (
+                              <tr
+                                key={row.strategy_id}
+                                className="hover:bg-gray-50"
+                              >
+                                <td className="px-4 py-2 text-center font-semibold text-gray-700">
+                                  {row.rank}
+                                </td>
+                                <td className="px-4 py-2 font-medium text-gray-700">
+                                  {INDICATOR_LABELS[row.strategy_id] ??
+                                    row.strategy_id}
+                                  {row.insufficient_data && (
+                                    <span className="ml-2 text-xs text-gray-400">
+                                      (데이터 부족)
+                                    </span>
+                                  )}
+                                </td>
+                                <td
+                                  className={`px-4 py-2 text-right tabular-nums ${rateColor(row.buy_success_rate)}`}
+                                >
+                                  {fmtPct(row.buy_success_rate)}
+                                </td>
+                                <td
+                                  className={`px-4 py-2 text-right tabular-nums ${rateColor(row.sell_success_rate)}`}
+                                >
+                                  {fmtPct(row.sell_success_rate)}
+                                </td>
+                                <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
+                                  {fmtPct(row.avg_return_after_buy)}
+                                </td>
+                                <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
+                                  {fmtPct(row.avg_return_after_sell)}
+                                </td>
+                                <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
+                                  {row.evaluated_signals}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Trade detail table 1/4 */}
+                <div className="col-span-1 bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+                  <h3 className="text-sm font-semibold text-gray-700">
+                    지표별 요약
+                  </h3>
+                  {accuracyData.map((acc) => (
                     <div
                       key={acc.strategy_id}
-                      className="bg-white rounded-lg border border-gray-200 p-4"
+                      className="border border-gray-100 rounded p-3"
                     >
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                        {stratLabel}
-                      </h3>
+                      <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                        {INDICATOR_LABELS[acc.strategy_id] ?? acc.strategy_id}
+                      </h4>
                       {acc.insufficient_data ? (
-                        <p className="text-sm text-gray-400">
+                        <p className="text-xs text-gray-400">
                           데이터 불충분 (시그널 {acc.total_signals}개)
                         </p>
                       ) : (
-                        <div className="space-y-2 text-sm">
+                        <div className="space-y-1 text-xs">
                           <div className="flex justify-between">
                             <span className="text-gray-500">매수 성공률</span>
                             <span className={rateColor(acc.buy_success_rate)}>
@@ -865,130 +525,26 @@ export default function IndicatorSignalPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              매수 후 평균수익
-                            </span>
+                            <span className="text-gray-500">매수 후 수익</span>
                             <span className="text-gray-700">
                               {fmtPct(acc.avg_return_after_buy)}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-500">
-                              매도 후 평균수익
-                            </span>
+                            <span className="text-gray-500">매도 후 수익</span>
                             <span className="text-gray-700">
                               {fmtPct(acc.avg_return_after_sell)}
                             </span>
                           </div>
-                          <div className="pt-2 border-t border-gray-100 flex justify-between text-xs text-gray-400">
-                            <span>
-                              평가 시그널: {acc.evaluated_signals}/
-                              {acc.total_signals}
-                            </span>
-                            <span>{acc.forward_days}일 기준</span>
+                          <div className="pt-1 border-t border-gray-100 text-gray-400">
+                            평가: {acc.evaluated_signals}/{acc.total_signals}
                           </div>
                         </div>
                       )}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-
-              {/* Accuracy bar chart */}
-              {accuracyData.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                    전략별 성공률 비교 — {assetId} ({forwardDays}일 기준)
-                  </h3>
-                  <AccuracyBarChart
-                    data={accuracyData}
-                    strategyLabels={Object.fromEntries(
-                      STRATEGIES.map((s) => [s.id, s.label]),
-                    )}
-                  />
-                </div>
-              )}
-
-              {/* Comparison ranking table */}
-              {comparisonData && (
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700">
-                      예측력 비교 순위 — {assetId} ({forwardDays}일 기준)
-                    </h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-50">
-                          <th className="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                            순위
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">
-                            전략
-                          </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                            매수 성공률
-                          </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                            매도 성공률
-                          </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                            매수 후 수익
-                          </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                            매도 후 수익
-                          </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500">
-                            평가 수
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {comparisonData.strategies.map((row) => {
-                          const stratLabel =
-                            STRATEGIES.find((s) => s.id === row.strategy_id)
-                              ?.label ?? row.strategy_id;
-                          return (
-                            <tr key={row.strategy_id} className="hover:bg-gray-50">
-                              <td className="px-4 py-2 text-center font-semibold text-gray-700">
-                                {row.rank}
-                              </td>
-                              <td className="px-4 py-2 font-medium text-gray-700">
-                                {stratLabel}
-                                {row.insufficient_data && (
-                                  <span className="ml-2 text-xs text-gray-400">
-                                    (데이터 부족)
-                                  </span>
-                                )}
-                              </td>
-                              <td
-                                className={`px-4 py-2 text-right tabular-nums ${rateColor(row.buy_success_rate)}`}
-                              >
-                                {fmtPct(row.buy_success_rate)}
-                              </td>
-                              <td
-                                className={`px-4 py-2 text-right tabular-nums ${rateColor(row.sell_success_rate)}`}
-                              >
-                                {fmtPct(row.sell_success_rate)}
-                              </td>
-                              <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
-                                {fmtPct(row.avg_return_after_buy)}
-                              </td>
-                              <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
-                                {fmtPct(row.avg_return_after_sell)}
-                              </td>
-                              <td className="px-4 py-2 text-right text-gray-600 tabular-nums">
-                                {row.evaluated_signals}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>

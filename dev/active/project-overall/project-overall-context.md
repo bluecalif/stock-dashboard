@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-03-15
-> Status: MVP 완료 (Phase 0~7), Phase A 완료, Phase B 완료, Phase C + C-rev + C-rev2 완료
+> Status: MVP 완료 (Phase 0~7), Phase A~D 완료, Phase D-rev 계획 수립 완료
 
 ## 핵심 파일
 
@@ -18,7 +18,8 @@
 | `dev/active/phaseA-auth/` | Phase A (Auth) dev-docs — ✅ 완료 |
 | `dev/active/phaseB-chatbot/` | Phase B (Chatbot) dev-docs (plan/context/tasks/debug) |
 | `dev/active/phaseC-correlation/` | Phase C (상관도 페이지) dev-docs |
-| `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs |
+| `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs — ✅ 완료 |
+| `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs |
 | `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs |
 
 ## 주요 결정사항
@@ -60,6 +61,8 @@
 | 스토리텔링 | 하드코딩 템플릿+f-string | 추상 점수 금지, 실제 금액/수익률만 사용 |
 | on-the-fly 백테스트 | DB 저장 안 함 | DB에 없는 기간 조합도 즉시 비교 가능 |
 | REST 분석 API | 성공률/전략비교용 1개 라우터 추가 | 페이지 렌더링용 REST 병행 (챗봇 중심 유지) |
+| 지표별 시그널 | on-the-fly 생성 (DB 저장 없음) | factor_daily에서 파생 가능, 신규 테이블 불필요 |
+| 전략→지표 전환 | 기존 strategy 기반 API 하위호환 유지 | Phase E 전략 페이지에서 사용 |
 
 ## 자산 목록
 

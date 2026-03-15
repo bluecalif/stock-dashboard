@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-03-15
-> Status: MVP 완료 (83/83), Phase A 완료 (16/16), Phase B 완료 (19/19), Phase C + C-rev + C-rev2 완료
+> Status: MVP 완료 (83/83), Phase A~D 완료, Phase D-rev 계획 수립 완료
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -251,31 +251,55 @@
 ### Stage E: 통합 검증
 - [x] CR.7 Phase C-rev 통합 검증 + 프로덕션 배포 `[M]`
 
-## Phase D: 지표 페이지 완성 — ⬜ 미시작 (0/12)
+## Phase D: 지표 페이지 완성 — ✅ 완료 (12/12)
 > dev-docs: `dev/active/phaseD-indicators/`
 > **파일 집계**: 신규 ~10 / 수정 ~7 / Migration 0
 
 ### Stage A: Backend 분석 서비스
-- [ ] D.1 지표 분석 서비스 — 현재 상태 해석 `[M]`
-- [ ] D.2 지표 성공률 서비스 ⭐핵심 `[L]`
-- [ ] D.3 지표 간 예측력 비교 `[M]`
+- [x] D.1 지표 분석 서비스 — 현재 상태 해석 `[M]` — `d0392b6`
+- [x] D.2 지표 성공률 서비스 ⭐핵심 `[L]` — `d7c829b`
+- [x] D.3 지표 간 예측력 비교 `[M]` — `2a971c5`
 
 ### Stage B: REST API + LangGraph
-- [ ] D.4 분석 REST 엔드포인트 `[M]`
-- [ ] D.5 LangGraph Tool — `analyze_indicators` `[M]`
-- [ ] D.6 하이브리드 응답 — 지표 카테고리 확장 `[S]`
+- [x] D.4 분석 REST 엔드포인트 `[M]` — `2a971c5`
+- [x] D.5 LangGraph Tool — `analyze_indicators` `[M]` — `8ff4311`
+- [x] D.6 하이브리드 응답 — 지표 카테고리 확장 `[S]` — `8ff4311`
 
 ### Stage C: Frontend 통합 페이지
-- [ ] D.7 IndicatorSignalPage 통합 `[L]`
-- [ ] D.8 지표 오버레이 차트 `[M]`
-- [ ] D.9 성공률 테이블/차트 `[M]`
+- [x] D.7 IndicatorSignalPage 통합 `[L]` — `7dc230f`
+- [x] D.8 지표 오버레이 차트 `[M]` — `7dc230f`
+- [x] D.9 성공률 테이블/차트 `[M]` — `7dc230f`
 
 ### Stage D: Frontend 고도화
-- [ ] D.10 멀티 지표 설정 + 정규화 `[M]`
-- [ ] D.11 chartActionStore 연결 `[S]`
+- [x] D.10 멀티 지표 설정 + 정규화 `[M]` — `7dc230f`
+- [x] D.11 chartActionStore 연결 `[S]` — `7dc230f`
 
 ### Stage E: 통합 검증
-- [ ] D.12 Phase D 통합 검증 `[M]`
+- [x] D.12 Phase D 통합 검증 `[M]` — 647 tests, 프로덕션 배포 완료
+
+## Phase D-rev: 지표 피드백 반영 — ⬜ 계획 수립 완료 (0/10)
+> dev-docs: `dev/active/phaseD-revision/`
+> **파일 집계**: 신규 ~2 / 수정 ~11 / Migration 0
+
+### Stage A: Backend — 지표별 시그널 생성
+- [ ] DR.1 지표별 시그널 생성 서비스 (indicator_signal_service.py 신규) `[L]`
+- [ ] DR.2 지표별 성공률 계산 수정 `[M]`
+
+### Stage B: Backend — API + 비교 수정
+- [ ] DR.3 지표 비교 서비스 수정 (RSI vs MACD) `[M]`
+- [ ] DR.4 API 엔드포인트 수정 + 신규 `[M]`
+
+### Stage C: Frontend — 탭 통합 + 레이아웃
+- [ ] DR.5 3탭→2탭 전환 + 전략 배제 `[L]`
+- [ ] DR.6 시그널 탭 레이아웃 (차트 3/4 + 설명 1/4, 수직 점선) `[M]`
+- [ ] DR.7 성공률 탭 레이아웃 (차트 3/4 + 거래 테이블 1/4) `[M]`
+
+### Stage D: Frontend — 버그 수정 + 특수 처리
+- [ ] DR.8 정규화 버그 수정 `[S]`
+- [ ] DR.9 ATR(+vol) 특수 처리 `[S]`
+
+### Stage E: 통합 검증
+- [ ] DR.10 Phase D-rev 통합 검증 `[M]`
 
 ## Phase E: 전략 페이지 완성 — ⬜ 미시작 (0/9)
 > dev-docs: `dev/active/phaseE-strategy/`
@@ -325,10 +349,11 @@
 - **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
 - **Phase C**: 12 tasks (S:2, M:8, L:2) — 12/12 ✅
 - **Phase C-rev**: 7 tasks (S:1, M:4, L:2) — 7/7 ✅
-- **Phase D**: 12 tasks (S:2, M:7, L:2, XL:1) — 0/12 ⬜
-- **Phase E**: 9 tasks (S:2, M:3, L:3, XL:1) — 0/9 ⬜
+- **Phase D**: 12 tasks (S:2, M:7, L:2) — 12/12 ✅
+- **Phase D-rev**: 10 tasks (S:2, M:5, L:2) — 0/10 ⬜
+- **Phase E**: 9 tasks (S:2, M:3, L:3) — 0/9 ⬜
 - **Phase F~G**: 미정 (각 Phase 진입 시 확정)
-- **Post-MVP Phase C~E 파일 영향도**: 신규 ~30 / 수정 ~23 / Migration 0
+- **Post-MVP Phase C~E 파일 영향도**: 신규 ~32 / 수정 ~34 / Migration 0
 
 ### Grand Total
 - **MVP**: 83 tasks 완료
@@ -336,6 +361,7 @@
 - **Post-MVP Phase B**: 19/19 ✅
 - **Post-MVP Phase C**: 12/12 ✅ (상관도 페이지)
 - **Post-MVP Phase C-rev**: 7/7 ✅ (피드백 반영)
-- **Post-MVP Phase D**: 0/12 ⬜ (지표 페이지)
+- **Post-MVP Phase D**: 12/12 ✅ (지표 페이지)
+- **Post-MVP Phase D-rev**: 0/10 ⬜ (지표 피드백)
 - **Post-MVP Phase E**: 0/9 ⬜ (전략 페이지)
 - **Post-MVP Phase F~G**: 태스크 상세 미확정

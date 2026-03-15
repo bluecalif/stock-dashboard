@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { fetchPrices } from "../api/prices";
+import { fetchFactors } from "../api/factors";
 import {
   fetchIndicatorSignals,
   fetchIndicatorAccuracy,
@@ -7,6 +8,7 @@ import {
 } from "../api/analysis";
 import type {
   PriceDailyResponse,
+  FactorDailyResponse,
   SignalAccuracyResponse,
   IndicatorSignalItem,
   IndicatorComparisonResponseV2,
@@ -35,6 +37,12 @@ const INDICATORS = [
   { id: "macd", label: "MACD" },
   { id: "atr_vol", label: "ATR+변동성" },
 ] as const;
+
+const INDICATOR_FACTOR_MAP: Record<string, string[]> = {
+  rsi_14: ["rsi_14"],
+  macd: ["macd", "macd_signal"],
+  atr_vol: ["atr_14", "vol_20"],
+};
 
 const INDICATOR_LABELS: Record<string, string> = Object.fromEntries(
   INDICATORS.map((i) => [i.id, i.label]),
@@ -88,6 +96,9 @@ export default function IndicatorSignalPage() {
   const [indicatorSignals, setIndicatorSignals] = useState<
     IndicatorSignalItem[]
   >([]);
+  const [factorData, setFactorData] = useState<
+    Map<string, FactorDailyResponse[]>
+  >(new Map());
 
   // Accuracy tab
   const [forwardDays, setForwardDays] = useState(5);
@@ -110,7 +121,8 @@ export default function IndicatorSignalPage() {
     setLoading(true);
     setError(null);
     try {
-      const [priceData, signalData] = await Promise.all([
+      const factorNames = INDICATOR_FACTOR_MAP[selectedIndicator] ?? [];
+      const [priceData, signalData, ...factorResults] = await Promise.all([
         fetchPrices({
           asset_id: assetId,
           start_date: startDate,
@@ -123,9 +135,23 @@ export default function IndicatorSignalPage() {
           start_date: startDate,
           end_date: endDate,
         }),
+        ...factorNames.map((name) =>
+          fetchFactors({
+            asset_id: assetId,
+            factor_name: name,
+            start_date: startDate,
+            end_date: endDate,
+            limit: 500,
+          }),
+        ),
       ]);
       setPrices(priceData);
       setIndicatorSignals(signalData.signals);
+      const newFactorMap = new Map<string, FactorDailyResponse[]>();
+      factorNames.forEach((name, i) => {
+        newFactorMap.set(name, factorResults[i]);
+      });
+      setFactorData(newFactorMap);
     } catch (err) {
       setError(err instanceof Error ? err.message : "시그널 데이터 로딩 실패");
     } finally {
@@ -299,9 +325,9 @@ export default function IndicatorSignalPage() {
                 </h3>
                 <IndicatorOverlayChart
                   prices={prices}
-                  factors={new Map()}
+                  factors={factorData}
                   assetId={assetId}
-                  selectedFactors={[]}
+                  selectedFactors={INDICATOR_FACTOR_MAP[selectedIndicator] ?? []}
                   signalDates={indicatorSignals}
                   indicatorId={selectedIndicator}
                 />
@@ -341,6 +367,9 @@ export default function IndicatorSignalPage() {
                           <p className="text-gray-700">{sig.label}</p>
                           <p className="text-gray-400 tabular-nums">
                             가격: {sig.entry_price.toLocaleString()}
+                          </p>
+                          <p className="text-gray-400 tabular-nums">
+                            지표값: {sig.value.toFixed(2)}
                           </p>
                         </div>
                       );

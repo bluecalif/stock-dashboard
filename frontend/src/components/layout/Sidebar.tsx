@@ -5,8 +5,7 @@ const NAV_ITEMS = [
   { to: "/", label: "홈", icon: "📊" },
   { to: "/prices", label: "가격", icon: "📈" },
   { to: "/correlation", label: "상관", icon: "🔗" },
-  { to: "/factors", label: "팩터", icon: "📐" },
-  { to: "/signals", label: "시그널", icon: "🚦" },
+  { to: "/indicators", label: "지표/시그널", icon: "📐" },
   { to: "/strategy", label: "전략", icon: "🎯" },
 ];
 

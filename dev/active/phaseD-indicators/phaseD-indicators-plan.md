@@ -1,6 +1,6 @@
 # Phase D: 지표 페이지 완성
 > Last Updated: 2026-03-15
-> Status: In Progress (D.2 완료)
+> Status: In Progress (D.11 완료, D.12 남음)
 
 ## 1. Summary (개요)
 
@@ -18,8 +18,12 @@
 - 팩터 데이터: factor_daily 55K+ rows, 15개 팩터
 - 시그널 데이터: signal_daily 15K+ rows, 3개 전략
 - **D.1 완료**: `indicator_analysis.py` — RSI/MACD/ATR/vol_20 해석 (`d0392b6`)
-- **D.2 완료**: `signal_accuracy_service.py` — 매수/매도 성공률 계산
-- **테스트**: 616 tests passed, 7 skipped, ruff clean
+- **D.2 완료**: `signal_accuracy_service.py` — 매수/매도 성공률 계산 (`d7c829b`)
+- **D.3~D.4 완료**: 예측력 비교 + REST API (`2a971c5`)
+- **D.5~D.6 완료**: analyze_indicators 도구 + 하이브리드 지표 확장 (`8ff4311`)
+- **D.7~D.11 완료**: IndicatorSignalPage 3탭, 오버레이 차트, 성공률 차트, 설정 패널, chartActionStore 연결
+- **테스트**: 647 tests passed, 7 skipped, ruff clean
+- **Frontend**: tsc --noEmit 0 errors, vite build 성공
 
 ## 3. Target State (목표 상태)
 

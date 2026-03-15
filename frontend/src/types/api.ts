@@ -149,6 +149,42 @@ export interface NormalizedPrices {
   asset_b: number[];
 }
 
+// --- Analysis ---
+export interface SignalAccuracyResponse {
+  asset_id: string;
+  strategy_id: string;
+  forward_days: number;
+  total_signals: number;
+  evaluated_signals: number;
+  buy_count: number;
+  buy_success_count: number;
+  buy_success_rate: number | null;
+  avg_return_after_buy: number | null;
+  sell_count: number;
+  sell_success_count: number;
+  sell_success_rate: number | null;
+  avg_return_after_sell: number | null;
+  insufficient_data: boolean;
+}
+
+export interface IndicatorComparisonRow {
+  strategy_id: string;
+  rank: number;
+  buy_success_rate: number | null;
+  sell_success_rate: number | null;
+  avg_return_after_buy: number | null;
+  avg_return_after_sell: number | null;
+  evaluated_signals: number;
+  insufficient_data: boolean;
+}
+
+export interface IndicatorComparisonResponse {
+  asset_id: string;
+  forward_days: number;
+  strategies: IndicatorComparisonRow[];
+  total_strategies: number;
+}
+
 export interface SpreadResponse {
   asset_a: string;
   asset_b: string;

@@ -1,5 +1,6 @@
 """Factor DB storage: compute factors and UPSERT into factor_daily table."""
 
+import datetime
 import logging
 import time
 from dataclasses import dataclass, field
@@ -11,6 +12,9 @@ from sqlalchemy.orm import Session
 from db.models import FactorDaily
 from research_engine.factors import FACTOR_VERSION, compute_all_factors
 from research_engine.preprocessing import preprocess
+
+# SMA(120) is the longest lookback; 150 calendar days gives sufficient margin.
+LOOKBACK_DAYS = 150
 
 logger = logging.getLogger(__name__)
 
@@ -86,9 +90,19 @@ def store_factors_for_asset(
     t0 = time.perf_counter()
     logger.info("Computing factors for %s", asset_id)
 
-    # 1. Preprocess
+    # Extend start date to ensure sufficient lookback for indicators (SMA-120 etc.)
+    extended_start = start
+    if start is not None:
+        start_date = datetime.date.fromisoformat(start)
+        extended_start = (start_date - datetime.timedelta(days=LOOKBACK_DAYS)).isoformat()
+        logger.info(
+            "Extended start for %s: %s → %s (lookback %d days)",
+            asset_id, start, extended_start, LOOKBACK_DAYS,
+        )
+
+    # 1. Preprocess (with extended range for lookback)
     try:
-        df = preprocess(session, asset_id, start, end, missing_threshold=missing_threshold)
+        df = preprocess(session, asset_id, extended_start, end, missing_threshold=missing_threshold)
     except Exception as e:
         elapsed = (time.perf_counter() - t0) * 1000
         logger.error("Preprocess failed for %s: %s", asset_id, e)
@@ -99,7 +113,7 @@ def store_factors_for_asset(
             elapsed_ms=elapsed,
         )
 
-    # 2. Compute factors
+    # 2. Compute factors (on extended range to avoid NaN from lookback)
     try:
         factors_df = compute_all_factors(df)
     except Exception as e:
@@ -111,6 +125,12 @@ def store_factors_for_asset(
             errors=[str(e)],
             elapsed_ms=elapsed,
         )
+
+    # 2b. Trim factors to original requested range (discard lookback rows)
+    if start is not None:
+        factors_df = factors_df[factors_df.index >= pd.Timestamp(start)]
+    if end is not None:
+        factors_df = factors_df[factors_df.index <= pd.Timestamp(end)]
 
     # 3. Convert to long format and UPSERT
     try:

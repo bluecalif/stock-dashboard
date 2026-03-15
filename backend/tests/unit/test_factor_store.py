@@ -208,6 +208,64 @@ class TestStoreFactorsForAsset:
         assert any("DB error" in e for e in result.errors)
         mock_session.rollback.assert_called_once()
 
+    def test_lookback_extends_start(self, ohlcv):
+        """When start is given, preprocess should receive extended start date."""
+        mock_session = MagicMock()
+        mock_preprocess = MagicMock(return_value=ohlcv)
+
+        with (
+            patch("research_engine.factor_store.preprocess", mock_preprocess),
+            patch("research_engine.factor_store._upsert_factors", return_value=100),
+        ):
+            store_factors_for_asset(mock_session, "KS200", start="2026-03-08", end="2026-03-15")
+
+        # preprocess should be called with extended start (150 days before 2026-03-08)
+        args, kwargs = mock_preprocess.call_args
+        actual_start = args[2]  # session, asset_id, start, end
+        assert actual_start == "2025-10-09"  # 2026-03-08 - 150 days
+        assert args[3] == "2026-03-15"  # end unchanged
+
+    def test_lookback_no_extension_when_start_none(self, ohlcv):
+        """When start is None, preprocess should receive None (no extension)."""
+        mock_session = MagicMock()
+        mock_preprocess = MagicMock(return_value=ohlcv)
+
+        with (
+            patch("research_engine.factor_store.preprocess", mock_preprocess),
+            patch("research_engine.factor_store._upsert_factors", return_value=100),
+        ):
+            store_factors_for_asset(mock_session, "KS200")
+
+        args, kwargs = mock_preprocess.call_args
+        assert args[2] is None  # start remains None
+        assert args[3] is None  # end remains None
+
+    def test_lookback_trims_factors_to_original_range(self):
+        """Factors outside original start..end should be trimmed before upsert."""
+        # Create extended OHLCV covering 2025-01-01 ~ 2025-07-31 (>150 bdays)
+        extended_ohlcv = _make_ohlcv(n=200, seed=42)
+
+        mock_session = MagicMock()
+        captured_records = []
+
+        def capture_upsert(session, records, chunk_size=2000):
+            captured_records.extend(records)
+            return len(records)
+
+        with (
+            patch("research_engine.factor_store.preprocess", return_value=extended_ohlcv),
+            patch("research_engine.factor_store._upsert_factors", side_effect=capture_upsert),
+        ):
+            result = store_factors_for_asset(
+                mock_session, "KS200", start="2025-11-01", end="2026-03-15",
+            )
+
+        assert result.status == "success"
+        # All records should have dates >= 2025-11-01
+        import datetime
+        for r in captured_records:
+            assert r["date"] >= datetime.date(2025, 11, 1)
+
 
 # --- store_factors_all ---
 

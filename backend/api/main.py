@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from api.routers import (
+    analysis,
     assets,
     auth,
     backtests,
@@ -92,6 +93,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 # --- Routers ---
 app.include_router(health.router)
+app.include_router(analysis.router)
 app.include_router(auth.router)
 app.include_router(assets.router)
 app.include_router(prices.router)

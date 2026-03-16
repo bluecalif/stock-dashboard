@@ -174,18 +174,10 @@ export default function IndicatorSignalPage() {
     setLoading(true);
     setError(null);
     try {
-      const [rsiAcc, macdAcc, comparison] = await Promise.all([
+      const [acc, comparison] = await Promise.all([
         fetchIndicatorAccuracy({
           asset_id: assetId,
-          indicator_id: "rsi_14",
-          forward_days: forwardDays,
-          include_details: true,
-          start_date: startDate,
-          end_date: endDate,
-        }),
-        fetchIndicatorAccuracy({
-          asset_id: assetId,
-          indicator_id: "macd",
+          indicator_id: selectedIndicator,
           forward_days: forwardDays,
           include_details: true,
           start_date: startDate,
@@ -198,14 +190,14 @@ export default function IndicatorSignalPage() {
           end_date: endDate,
         }),
       ]);
-      setAccuracyData([rsiAcc, macdAcc]);
+      setAccuracyData([acc]);
       setComparisonData(comparison);
     } catch (err) {
       setError(err instanceof Error ? err.message : "성공률 데이터 로딩 실패");
     } finally {
       setLoading(false);
     }
-  }, [assetId, forwardDays, startDate, endDate]);
+  }, [assetId, selectedIndicator, forwardDays, startDate, endDate]);
 
   // ---------------------------------------------------------------------------
   // chartActionStore — consume set_filter actions
@@ -419,20 +411,20 @@ export default function IndicatorSignalPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
-                예측 기간 (거래일)
+                지표 선택
               </label>
-              <div className="flex gap-2">
-                {[3, 5, 10, 20].map((d) => (
+              <div className="flex flex-wrap gap-2">
+                {INDICATORS.map((ind) => (
                   <button
-                    key={d}
-                    onClick={() => setForwardDays(d)}
+                    key={ind.id}
+                    onClick={() => setSelectedIndicator(ind.id)}
                     className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      forwardDays === d
+                      selectedIndicator === ind.id
                         ? "bg-indigo-600 text-white border-indigo-600"
                         : "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
                     }`}
                   >
-                    {d}일
+                    {ind.label}
                   </button>
                 ))}
               </div>
@@ -465,7 +457,7 @@ export default function IndicatorSignalPage() {
                   {accuracyData.length > 0 && (
                     <div className="bg-white rounded-lg border border-gray-200 p-4">
                       <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                        지표별 성공률 비교 — {assetId} ({forwardDays}일 기준)
+                        {INDICATOR_LABELS[selectedIndicator] ?? selectedIndicator} 성공률 — {assetId} (T+{forwardDays}일)
                       </h3>
                       <AccuracyBarChart
                         data={accuracyData}
@@ -562,7 +554,6 @@ export default function IndicatorSignalPage() {
                   </h3>
                   {/* 성공률 기준 설명 (DI.6) */}
                   <div className="bg-gray-50 border border-gray-100 rounded p-2 text-xs text-gray-500 space-y-1">
-                    <p>예측 기간: T+{forwardDays}일</p>
                     <p>성공 기준: 매수 → T+{forwardDays}일 상승, 매도 → T+{forwardDays}일 하락</p>
                     <p>수익률: 시그널 T+{forwardDays}일 수익률 평균</p>
                   </div>

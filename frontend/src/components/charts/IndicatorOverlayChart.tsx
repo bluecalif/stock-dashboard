@@ -367,22 +367,28 @@ export default function IndicatorOverlayChart({
         ))}
 
         {/* DR.6 + DI.3: Signal vertical reference lines */}
-        {signalLines.map((sig, i) => (
-          <ReferenceLine
-            key={`sig-${i}`}
-            yAxisId="price"
-            x={sig.date}
-            stroke={SIGNAL_COLORS[sig.signal] ?? "#9ca3af"}
-            strokeDasharray="4 4"
-            strokeWidth={1.5}
-            label={{
-              value: SIGNAL_MARKER[sig.signal] ?? "?",
-              position: "top",
-              fontSize: 10,
-              fill: SIGNAL_COLORS[sig.signal] ?? "#9ca3af",
-            }}
-          />
-        ))}
+        {signalLines.map((sig, i) => {
+          const isExit = sig.signal === 2 || sig.signal === -2;
+          const color = SIGNAL_COLORS[sig.signal] ?? "#9ca3af";
+          return (
+            <ReferenceLine
+              key={`sig-${i}`}
+              yAxisId="price"
+              x={sig.date}
+              stroke={color}
+              strokeDasharray={isExit ? "2 4" : undefined}
+              strokeWidth={isExit ? 1 : 2}
+              strokeOpacity={isExit ? 0.6 : 1}
+              label={{
+                value: SIGNAL_MARKER[sig.signal] ?? "?",
+                position: "top",
+                fontSize: isExit ? 9 : 12,
+                fill: color,
+                opacity: isExit ? 0.6 : 1,
+              }}
+            />
+          );
+        })}
 
         {/* Price line */}
         <Line

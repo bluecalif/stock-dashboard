@@ -13,6 +13,9 @@ from .classifier import (
     SIGNAL_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
+    STRATEGY_BACKTEST,
+    STRATEGY_COMPARE,
+    STRATEGY_EXPLAIN,
 )
 from .context import PageContext
 
@@ -282,6 +285,136 @@ def _indicator_compare_template(
 
 
 # ---------------------------------------------------------------------------
+# Strategy templates (E.5)
+# ---------------------------------------------------------------------------
+
+_STRATEGY_DISPLAY_E = {
+    "momentum": "모멘텀 (MACD)",
+    "contrarian": "역발상 (RSI)",
+    "risk_aversion": "위험회피 (ATR+변동성)",
+}
+
+
+def _strategy_explain_template(
+    ctx: PageContext,
+    data: dict,
+) -> tuple[str, list[UIAction]]:
+    """전략 설명 템플릿."""
+    strategy_name = data.get("strategy_name", "")
+
+    explanations = {
+        "momentum": (
+            "## 모멘텀 전략 (MACD)\n\n"
+            "MACD 시그널 라인의 골든크로스/데드크로스를 따라 추세에 올라타는 전략입니다.\n\n"
+            "- **매수**: MACD 히스토그램이 양전환 (골든크로스)\n"
+            "- **매도**: MACD 히스토그램이 음전환 (데드크로스)\n"
+            "- **특징**: 추세가 강한 시장에서 유리, 횡보장에서 손실 가능"
+        ),
+        "contrarian": (
+            "## 역발상 전략 (RSI)\n\n"
+            "RSI가 과매도 구간에서 반등을 노리고, 과매수 구간에서 이익을 실현하는 전략입니다.\n\n"
+            "- **매수**: RSI 30 이하 (과매도 진입)\n"
+            "- **매도**: RSI 70 이상 (과매수 진입) 또는 매수 해제\n"
+            "- **특징**: 횡보/반전 시장에서 유리, 강한 추세에서 손실 가능"
+        ),
+        "risk_aversion": (
+            "## 위험회피 전략 (ATR+변동성)\n\n"
+            "ATR/가격 비율이나 변동성이 급등하면 시장을 떠나 손실을 줄이는 전략입니다.\n\n"
+            "- **기본**: 항상 투자 (Buy & Hold)\n"
+            "- **탈출**: ATR/가격 > 3% 또는 변동성 > 30%\n"
+            "- **재진입**: 변동성이 정상 수준으로 복귀 시\n"
+            "- **특징**: 급락장에서 손실 회피, 상승장에서는 Buy & Hold와 동일"
+        ),
+    }
+
+    text = explanations.get(
+        strategy_name,
+        "전략 선택 후 설명을 확인할 수 있습니다.",
+    )
+    return text, []
+
+
+def _strategy_backtest_template(
+    ctx: PageContext,
+    data: dict,
+) -> tuple[str, list[UIAction]]:
+    """전략 백테스트 결과 요약 템플릿."""
+    summary = data.get("summary", "")
+    metrics = data.get("metrics", {})
+    annual = data.get("annual_performance", [])
+    loss_avoided = data.get("loss_avoided")
+    strategy_label = data.get("strategy_label", "?")
+
+    lines = [f"## {strategy_label} 백테스트 결과\n"]
+
+    if summary:
+        lines.append(f"{summary}\n")
+
+    if metrics:
+        tr = metrics.get("total_return", 0)
+        cagr = metrics.get("cagr", 0)
+        mdd = metrics.get("mdd", 0)
+        sharpe = metrics.get("sharpe", 0)
+        lines.append("### 성과 지표")
+        lines.append(f"- 누적 수익률: **{tr * 100:+.1f}%**")
+        lines.append(f"- CAGR: {cagr * 100:+.1f}%")
+        lines.append(f"- MDD: {mdd * 100:.1f}%")
+        lines.append(f"- Sharpe: {sharpe:.2f}")
+
+        bh = metrics.get("bh_total_return")
+        if bh is not None:
+            lines.append(f"- Buy & Hold 수익률: {bh * 100:+.1f}%")
+        lines.append("")
+
+    if loss_avoided is not None and loss_avoided > 0:
+        lines.append(f"### 손실 회피 금액\n- ₩{loss_avoided:,.0f}\n")
+
+    if annual:
+        lines.append("### 연간 성과")
+        for a in annual:
+            fav = "적합" if a.get("is_favorable") else "부적합"
+            ret = a.get("return_pct", 0) * 100
+            lines.append(
+                f"- {a['year']}년: {ret:+.1f}% ({fav}, "
+                f"거래 {a.get('num_trades', 0)}회)"
+            )
+
+    return "\n".join(lines), []
+
+
+def _strategy_compare_template(
+    ctx: PageContext,
+    data: dict,
+) -> tuple[str, list[UIAction]]:
+    """전략 비교 템플릿."""
+    strategies = data.get("strategies", [])
+
+    lines = ["## 전략 비교\n"]
+
+    if not strategies:
+        lines.append("비교할 전략 데이터가 없습니다.")
+    else:
+        lines.append(
+            "| 전략 | 수익률 | CAGR | MDD | 거래 수 | 승률 |"
+        )
+        lines.append("|------|:------:|:----:|:---:|:------:|:----:|")
+        for s in strategies:
+            name = _STRATEGY_DISPLAY_E.get(s.get("strategy_name", ""), "?")
+            m = s.get("metrics", {})
+            tr = m.get("total_return", 0) * 100
+            cagr = m.get("cagr", 0) * 100
+            mdd = m.get("mdd", 0) * 100
+            nt = m.get("num_trades", 0)
+            wr = m.get("win_rate", 0) * 100
+            lines.append(
+                f"| {name} | {tr:+.1f}% | {cagr:+.1f}% | "
+                f"{mdd:.1f}% | {nt} | {wr:.0f}% |"
+            )
+
+    return "\n".join(lines), []
+
+
+# ---------------------------------------------------------------------------
 # Template registry
 # ---------------------------------------------------------------------------
 
@@ -292,6 +425,9 @@ _TEMPLATE_REGISTRY: dict[str, callable] = {
     INDICATOR_EXPLAIN: _indicator_explain_template,
     SIGNAL_ACCURACY: _signal_accuracy_template,
     INDICATOR_COMPARE: _indicator_compare_template,
+    STRATEGY_EXPLAIN: _strategy_explain_template,
+    STRATEGY_BACKTEST: _strategy_backtest_template,
+    STRATEGY_COMPARE: _strategy_compare_template,
 }
 
 

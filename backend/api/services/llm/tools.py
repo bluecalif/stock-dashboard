@@ -330,6 +330,62 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
         db.close()
 
 
+@tool
+def backtest_strategy(
+    asset_id: str,
+    strategy_name: str = "momentum",
+    period: str = "2Y",
+) -> str:
+    """전략 백테스트 실행: 모멘텀(MACD), 역발상(RSI), 위험회피(ATR+vol).
+    asset_id: KS200, 005930, 000660, SOXL, BTC, GC=F, SI=F.
+    strategy_name: momentum, contrarian, risk_aversion.
+    period: 6M, 1Y, 2Y, 3Y."""
+    from api.services.analysis.annual_performance_service import (
+        annual_performance_to_dicts,
+        compute_annual_performance,
+    )
+    from api.services.analysis.storytelling_service import generate_strategy_summary
+    from api.services.analysis.strategy_backtest_service import run_strategy_backtest
+    from research_engine.metrics import metrics_to_dict
+
+    db = next(_get_db())
+    try:
+        result = run_strategy_backtest(
+            db, asset_id, strategy_name, period=period,
+        )
+        metrics = metrics_to_dict(result.metrics)
+        annual = annual_performance_to_dicts(
+            compute_annual_performance(result.backtest_result),
+        )
+        summary = generate_strategy_summary(
+            strategy_name,
+            total_return=result.metrics.total_return,
+            num_trades=result.metrics.num_trades,
+            win_rate=result.metrics.win_rate,
+            annual_performances=compute_annual_performance(result.backtest_result),
+            loss_avoided=result.loss_avoided,
+        )
+        return json.dumps(
+            {
+                "asset_id": result.asset_id,
+                "strategy_name": result.strategy_name,
+                "strategy_label": result.strategy_label,
+                "period": result.period,
+                "initial_cash": result.initial_cash,
+                "metrics": metrics,
+                "annual_performance": annual,
+                "summary": summary,
+                "num_trades": result.metrics.num_trades,
+                "loss_avoided": result.loss_avoided,
+            },
+            ensure_ascii=False,
+        )
+    except ValueError as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
+    finally:
+        db.close()
+
+
 all_tools = [
     get_prices,
     get_factors,
@@ -339,4 +395,5 @@ all_tools = [
     analyze_correlation_tool,
     get_spread,
     analyze_indicators,
+    backtest_strategy,
 ]

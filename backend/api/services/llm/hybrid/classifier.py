@@ -23,10 +23,10 @@ INDICATOR_EXPLAIN = "indicator_explain"
 SIGNAL_ACCURACY = "signal_accuracy"
 INDICATOR_COMPARE = "indicator_compare"
 
-# (Future) Strategy page categories
+# Strategy page categories
 STRATEGY_EXPLAIN = "strategy_explain"
+STRATEGY_BACKTEST = "strategy_backtest"
 STRATEGY_COMPARE = "strategy_compare"
-TRADE_STORY = "trade_story"
 
 # ---------------------------------------------------------------------------
 # Pattern definitions: (compiled_regex, category)
@@ -129,11 +129,60 @@ _INDICATOR_PATTERNS: list[tuple[re.Pattern, str]] = [
     ), INDICATOR_EXPLAIN),
 ]
 
+# Strategy page patterns — 구체적 패턴 먼저 (순서 중요)
+_STRATEGY_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # strategy_compare — 비교 관련
+    (re.compile(
+        r"(비교|순위|어떤|어느).*(전략|수익|성과)",
+        re.IGNORECASE,
+    ), STRATEGY_COMPARE),
+    (re.compile(
+        r"(전략).*(비교|순위|랭킹|나은|좋)",
+        re.IGNORECASE,
+    ), STRATEGY_COMPARE),
+    (re.compile(
+        r"(모멘텀|역발상|위험회피).*(vs|비교|대비)",
+        re.IGNORECASE,
+    ), STRATEGY_COMPARE),
+
+    # strategy_backtest — 백테스트/성과 관련
+    (re.compile(
+        r"(백테스트|수익률|손익|에쿼티|커브|성과)",
+        re.IGNORECASE,
+    ), STRATEGY_BACKTEST),
+    (re.compile(
+        r"(매매|거래).*(내역|이력|포인트|결과)",
+        re.IGNORECASE,
+    ), STRATEGY_BACKTEST),
+    (re.compile(
+        r"(모멘텀|역발상|위험회피).*(결과|수익|손실|실행|돌려)",
+        re.IGNORECASE,
+    ), STRATEGY_BACKTEST),
+    (re.compile(
+        r"(연간|연도별).*(성과|수익|손실)",
+        re.IGNORECASE,
+    ), STRATEGY_BACKTEST),
+
+    # strategy_explain — 전략 설명
+    (re.compile(
+        r"(모멘텀|역발상|위험회피).*(뭐|무엇|설명|어떤|원리|방식|전략)",
+        re.IGNORECASE,
+    ), STRATEGY_EXPLAIN),
+    (re.compile(
+        r"(전략).*(뭐|무엇|설명|어떻게|원리|방식)",
+        re.IGNORECASE,
+    ), STRATEGY_EXPLAIN),
+    (re.compile(
+        r"(MACD|RSI|ATR).*(전략|매매)",
+        re.IGNORECASE,
+    ), STRATEGY_EXPLAIN),
+]
+
 # Map page_id → pattern list
 _PAGE_PATTERNS: dict[str, list[tuple[re.Pattern, str]]] = {
     "correlation": _CORRELATION_PATTERNS,
     "indicators": _INDICATOR_PATTERNS,
-    # "strategy": _STRATEGY_PATTERNS,     # Phase E에서 추가
+    "strategy": _STRATEGY_PATTERNS,
 }
 
 

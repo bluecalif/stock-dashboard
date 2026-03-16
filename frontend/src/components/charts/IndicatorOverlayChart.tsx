@@ -59,9 +59,18 @@ const RSI_REFS = [
 ];
 
 const SIGNAL_COLORS: Record<number, string> = {
-  1: "#16a34a",  // buy — green
+  1: "#16a34a",   // buy — green
   [-1]: "#dc2626", // sell — red
-  0: "#d97706",  // warning — amber
+  2: "#2563eb",   // buy exit — blue
+  [-2]: "#ea580c", // sell exit — orange
+  0: "#d97706",   // warning — amber
+};
+
+const SIGNAL_MARKER: Record<number, string> = {
+  1: "B",
+  [-1]: "S",
+  2: "X",
+  [-2]: "X",
 };
 
 // ---------------------------------------------------------------------------
@@ -100,6 +109,7 @@ function mergeRawData(
   factors: Map<string, FactorDailyResponse[]>,
   assetId: string,
   selectedFactors: string[],
+  indicatorId?: string,
 ): ChartPoint[] {
   const dateMap = new Map<string, ChartPoint>();
 
@@ -115,7 +125,16 @@ function mergeRawData(
       if (r.asset_id !== assetId) continue;
       const existing = dateMap.get(r.date);
       if (existing) {
-        existing[factorName] = r.value;
+        let val = r.value;
+        // DI.4: ATR+vol → convert to % scale
+        if (indicatorId === "atr_vol") {
+          if (factorName === "atr_14" && existing.close && existing.close > 0) {
+            val = (val / existing.close) * 100; // atr_pct %
+          } else if (factorName === "vol_20") {
+            val = val * 100; // annualized vol %
+          }
+        }
+        existing[factorName] = val;
       }
       // DR.8: Don't create entries for dates without price data
     }
@@ -198,7 +217,7 @@ export default function IndicatorOverlayChart({
     );
   }
 
-  const raw = mergeRawData(prices, factors, assetId, selectedFactors);
+  const raw = mergeRawData(prices, factors, assetId, selectedFactors, indicatorId);
   const data = applyTransform(raw, selectedFactors, normalizeMode);
   const isTransformed = normalizeMode !== "raw";
   const hasRSI = selectedFactors.includes("rsi_14");
@@ -208,7 +227,7 @@ export default function IndicatorOverlayChart({
   const isAtr = indicatorId === "atr_vol";
   const atrZones = isAtr && signalDates ? computeAtrZones(signalDates) : [];
 
-  // DR.6: Buy/sell signal lines (non-ATR)
+  // DR.6 + DI.3: Buy/sell/exit signal lines (non-ATR)
   const signalLines =
     signalDates && !isAtr
       ? signalDates.filter((s) => s.signal !== 0)
@@ -313,6 +332,26 @@ export default function IndicatorOverlayChart({
           />
         )}
 
+        {/* DI.4: ATR reference lines (3% / 30%) */}
+        {isAtr && showDualAxis && (
+          <>
+            <ReferenceLine
+              yAxisId="indicator"
+              y={3}
+              stroke="#ef4444"
+              strokeDasharray="4 4"
+              label={{ value: "ATR 3%", position: "right", fontSize: 9, fill: "#ef4444" }}
+            />
+            <ReferenceLine
+              yAxisId="indicator"
+              y={30}
+              stroke="#f97316"
+              strokeDasharray="4 4"
+              label={{ value: "Vol 30%", position: "right", fontSize: 9, fill: "#f97316" }}
+            />
+          </>
+        )}
+
         {/* DR.9: ATR high-volatility zones */}
         {atrZones.map((zone, i) => (
           <ReferenceArea
@@ -327,7 +366,7 @@ export default function IndicatorOverlayChart({
           />
         ))}
 
-        {/* DR.6: Signal vertical reference lines */}
+        {/* DR.6 + DI.3: Signal vertical reference lines */}
         {signalLines.map((sig, i) => (
           <ReferenceLine
             key={`sig-${i}`}
@@ -337,7 +376,7 @@ export default function IndicatorOverlayChart({
             strokeDasharray="4 4"
             strokeWidth={1.5}
             label={{
-              value: sig.signal === 1 ? "B" : "S",
+              value: SIGNAL_MARKER[sig.signal] ?? "?",
               position: "top",
               fontSize: 10,
               fill: SIGNAL_COLORS[sig.signal] ?? "#9ca3af",

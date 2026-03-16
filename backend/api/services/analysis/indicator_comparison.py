@@ -2,10 +2,12 @@
 
 D.3: Compare buy/sell success rates across strategies and rank them.
 DR.3: Compare individual indicators (RSI vs MACD) by accuracy.
+DI.5: start_date/end_date support for period sync with signals tab.
 """
 
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
@@ -102,6 +104,9 @@ def compare_indicators(
     indicator_ids: list[str] | None = None,
     *,
     forward_days: int = 5,
+    start_date: datetime.date | None = None,
+    end_date: datetime.date | None = None,
+    min_gap_days: int = 3,
 ) -> list[IndicatorComparisonRow]:
     """Compare prediction accuracy across individual indicators.
 
@@ -113,6 +118,9 @@ def compare_indicators(
         asset_id: Target asset (e.g. "005930").
         indicator_ids: Indicators to compare. Defaults to ["rsi_14", "macd"].
         forward_days: Look-ahead period for return calculation.
+        start_date: Optional filter start (DI.5).
+        end_date: Optional filter end (DI.5).
+        min_gap_days: Minimum signal gap (DI.2).
 
     Returns:
         List of IndicatorComparisonRow sorted by rank (1 = best).
@@ -122,7 +130,11 @@ def compare_indicators(
 
     results = [
         compute_indicator_accuracy(
-            db, asset_id, iid, forward_days=forward_days,
+            db, asset_id, iid,
+            forward_days=forward_days,
+            start_date=start_date,
+            end_date=end_date,
+            min_gap_days=min_gap_days,
         )
         for iid in indicator_ids
     ]

@@ -8,6 +8,7 @@ import pytest
 from api.services.analysis.indicator_signal_service import (
     VALID_INDICATOR_IDS,
     IndicatorSignal,
+    _apply_frequency_filter,
     _generate_atr_vol_signals,
     _generate_macd_signals,
     _generate_rsi_signals,
@@ -84,16 +85,19 @@ class TestRSISignals:
         assert len(signals) == 0
 
     def test_multiple_crossovers(self):
-        """RSI crosses 30 then 70 → one buy then one sell."""
+        """RSI crosses 30 then 70 → buy + exit + sell + exit."""
         ds = _dates(6)
+        # 35→28 (buy), 28→50 (buy exit), 65→72 (sell), 72→60 (sell exit)
         factors = _factors_from_list(ds, {"rsi_14": [35, 28, 50, 65, 72, 60]})
         prices = _prices_from_list(ds, [100, 98, 102, 108, 112, 106])
 
         signals = _generate_rsi_signals(ds, factors, prices)
 
-        assert len(signals) == 2
-        assert signals[0].signal == 1   # buy (35→28)
-        assert signals[1].signal == -1  # sell (65→72)
+        assert len(signals) == 4
+        assert signals[0].signal == 1    # buy (35→28)
+        assert signals[1].signal == 2    # buy exit (28→50)
+        assert signals[2].signal == -1   # sell (65→72)
+        assert signals[3].signal == -2   # sell exit (72→60)
 
     def test_exact_boundary_no_signal(self):
         """RSI at exactly 30 → no crossover (need to go below)."""
@@ -115,6 +119,55 @@ class TestRSISignals:
 
         # day 1 has no close → skip. day 2 has prev=28, close=98
         assert all(s.entry_price > 0 for s in signals)
+
+    def test_oversold_exit(self):
+        """RSI rises back above 30 → buy exit (signal=2)."""
+        ds = _dates(4)
+        factors = _factors_from_list(ds, {"rsi_14": [35, 28, 29, 32]})
+        prices = _prices_from_list(ds, [100, 98, 99, 101])
+
+        signals = _generate_rsi_signals(ds, factors, prices)
+
+        # day 1: 35→28 → buy (signal=1)
+        # day 3: 29→32 → buy exit (signal=2)
+        assert len(signals) == 2
+        assert signals[0].signal == 1
+        assert signals[0].label == "RSI 과매도 진입"
+        assert signals[1].signal == 2
+        assert signals[1].label == "RSI 과매도 해제"
+        assert signals[1].date == ds[3]
+
+    def test_overbought_exit(self):
+        """RSI drops back below 70 → sell exit (signal=-2)."""
+        ds = _dates(4)
+        factors = _factors_from_list(ds, {"rsi_14": [65, 72, 71, 68]})
+        prices = _prices_from_list(ds, [100, 105, 104, 102])
+
+        signals = _generate_rsi_signals(ds, factors, prices)
+
+        # day 1: 65→72 → sell (signal=-1)
+        # day 3: 71→68 → sell exit (signal=-2)
+        assert len(signals) == 2
+        assert signals[0].signal == -1
+        assert signals[0].label == "RSI 과매수 진입"
+        assert signals[1].signal == -2
+        assert signals[1].label == "RSI 과매수 해제"
+        assert signals[1].date == ds[3]
+
+    def test_full_cycle(self):
+        """RSI oversold entry → exit → overbought entry → exit."""
+        ds = _dates(8)
+        #                         진입(buy)  해제       진입(sell)  해제
+        factors = _factors_from_list(ds, {"rsi_14": [40, 28, 25, 32, 60, 72, 75, 68]})
+        prices = _prices_from_list(ds, [100] * 8)
+
+        signals = _generate_rsi_signals(ds, factors, prices)
+
+        assert len(signals) == 4
+        assert signals[0].signal == 1    # buy entry
+        assert signals[1].signal == 2    # buy exit
+        assert signals[2].signal == -1   # sell entry
+        assert signals[3].signal == -2   # sell exit
 
 
 # ---------------------------------------------------------------------------
@@ -315,3 +368,64 @@ class TestGenerateIndicatorSignals:
         signals = generate_indicator_signals(db, "005930", "rsi_14")
 
         assert signals == []
+
+
+# ---------------------------------------------------------------------------
+# DI.2: Frequency filter tests
+# ---------------------------------------------------------------------------
+
+class TestFrequencyFilter:
+    def _make_signal(self, d: date, signal: int = 1) -> IndicatorSignal:
+        return IndicatorSignal(
+            date=d, indicator_id="rsi_14", signal=signal,
+            label="test", value=50.0, entry_price=100.0,
+        )
+
+    def test_filter_same_direction_within_gap(self):
+        """동일 방향 시그널이 gap 이내 → 후자 제거."""
+        signals = [
+            self._make_signal(date(2026, 1, 1), 1),
+            self._make_signal(date(2026, 1, 2), 1),  # 1일 gap → 제거
+            self._make_signal(date(2026, 1, 5), 1),  # 4일 gap from 1st → 유지
+        ]
+        result = _apply_frequency_filter(signals, min_gap_days=3)
+        assert len(result) == 2
+        assert result[0].date == date(2026, 1, 1)
+        assert result[1].date == date(2026, 1, 5)
+
+    def test_filter_different_direction_within_gap(self):
+        """다른 방향 시그널도 gap 이내 → 후자 제거."""
+        signals = [
+            self._make_signal(date(2026, 1, 1), 1),   # buy
+            self._make_signal(date(2026, 1, 2), -1),   # sell, 1일 gap → 제거
+            self._make_signal(date(2026, 1, 4), -1),   # sell, 3일 gap → 유지
+        ]
+        result = _apply_frequency_filter(signals, min_gap_days=3)
+        assert len(result) == 2
+        assert result[0].signal == 1
+        assert result[1].signal == -1
+        assert result[1].date == date(2026, 1, 4)
+
+    def test_filter_disabled_with_zero(self):
+        """min_gap_days=0 → 필터 비활성."""
+        signals = [
+            self._make_signal(date(2026, 1, 1), 1),
+            self._make_signal(date(2026, 1, 2), -1),
+        ]
+        result = _apply_frequency_filter(signals, min_gap_days=0)
+        assert len(result) == 2
+
+    def test_filter_empty_list(self):
+        """빈 리스트 → 빈 리스트."""
+        assert _apply_frequency_filter([], min_gap_days=3) == []
+
+    def test_filter_exact_boundary(self):
+        """정확히 gap일 만큼 떨어진 시그널 → 제거 (days < min_gap_days)."""
+        signals = [
+            self._make_signal(date(2026, 1, 1), 1),
+            self._make_signal(date(2026, 1, 3), -1),  # 2일 gap < 3 → 제거
+            self._make_signal(date(2026, 1, 4), 1),   # 3일 gap from 1st → 유지
+        ]
+        result = _apply_frequency_filter(signals, min_gap_days=3)
+        assert len(result) == 2
+        assert result[1].date == date(2026, 1, 4)

@@ -48,6 +48,12 @@ const INDICATOR_LABELS: Record<string, string> = Object.fromEntries(
   INDICATORS.map((i) => [i.id, i.label]),
 );
 
+const INDICATOR_DESCRIPTIONS: Record<string, string> = {
+  rsi_14: "RSI 14일 — 30 이하 진입 시 매수, 70 이상 진입 시 매도, 복귀 시 해제",
+  macd: "MACD 히스토그램 — 양(+)전환 시 매수(골든크로스), 음(-)전환 시 매도(데드크로스)",
+  atr_vol: "ATR/가격 > 3% 또는 변동성 > 30% 시 고변동성 경고",
+};
+
 function defaultStart(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 1);
@@ -75,6 +81,10 @@ function signalBadge(signal: number): { text: string; className: string } {
     return { text: "매수", className: "text-green-600 bg-green-50" };
   if (signal === -1)
     return { text: "매도", className: "text-red-600 bg-red-50" };
+  if (signal === 2)
+    return { text: "매수해제", className: "text-blue-600 bg-blue-50" };
+  if (signal === -2)
+    return { text: "매도해제", className: "text-orange-600 bg-orange-50" };
   return { text: "경고", className: "text-amber-600 bg-amber-50" };
 }
 
@@ -170,16 +180,22 @@ export default function IndicatorSignalPage() {
           indicator_id: "rsi_14",
           forward_days: forwardDays,
           include_details: true,
+          start_date: startDate,
+          end_date: endDate,
         }),
         fetchIndicatorAccuracy({
           asset_id: assetId,
           indicator_id: "macd",
           forward_days: forwardDays,
           include_details: true,
+          start_date: startDate,
+          end_date: endDate,
         }),
         fetchIndicatorComparisonV2({
           asset_id: assetId,
           forward_days: forwardDays,
+          start_date: startDate,
+          end_date: endDate,
         }),
       ]);
       setAccuracyData([rsiAcc, macdAcc]);
@@ -189,7 +205,7 @@ export default function IndicatorSignalPage() {
     } finally {
       setLoading(false);
     }
-  }, [assetId, forwardDays]);
+  }, [assetId, forwardDays, startDate, endDate]);
 
   // ---------------------------------------------------------------------------
   // chartActionStore — consume set_filter actions
@@ -335,6 +351,12 @@ export default function IndicatorSignalPage() {
 
               {/* Description panel 1/4 */}
               <div className="col-span-1 bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+                {/* 지표 설명 카드 (DI.1) */}
+                <div className="bg-indigo-50 border border-indigo-100 rounded p-2">
+                  <p className="text-xs text-indigo-700 leading-relaxed">
+                    {INDICATOR_DESCRIPTIONS[selectedIndicator]}
+                  </p>
+                </div>
                 <h3 className="text-sm font-semibold text-gray-700">
                   시그널 이력
                 </h3>
@@ -414,6 +436,17 @@ export default function IndicatorSignalPage() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                기간
+              </label>
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onStartChange={setStartDate}
+                onEndChange={setEndDate}
+              />
             </div>
           </div>
 
@@ -527,6 +560,12 @@ export default function IndicatorSignalPage() {
                   <h3 className="text-sm font-semibold text-gray-700">
                     지표별 요약
                   </h3>
+                  {/* 성공률 기준 설명 (DI.6) */}
+                  <div className="bg-gray-50 border border-gray-100 rounded p-2 text-xs text-gray-500 space-y-1">
+                    <p>예측 기간: T+{forwardDays}일</p>
+                    <p>성공 기준: 매수 → T+{forwardDays}일 상승, 매도 → T+{forwardDays}일 하락</p>
+                    <p>수익률: 시그널 T+{forwardDays}일 수익률 평균</p>
+                  </div>
                   {accuracyData.map((acc) => (
                     <div
                       key={acc.strategy_id}

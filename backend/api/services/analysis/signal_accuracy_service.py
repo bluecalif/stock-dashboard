@@ -261,8 +261,8 @@ def _evaluate_signals_against_prices(
     details: list[SignalDetail] = []
 
     for sig in indicator_signals:
-        if sig.signal == 0:
-            continue  # warnings (ATR) are not buy/sell
+        if sig.signal not in (1, -1):
+            continue  # skip warnings (0) and exit signals (2, -2)
 
         idx = date_to_idx.get(sig.date)
         if idx is None:
@@ -364,12 +364,13 @@ def compute_indicator_accuracy(
     start_date: datetime.date | None = None,
     end_date: datetime.date | None = None,
     include_details: bool = False,
+    min_gap_days: int = 3,
 ) -> SignalAccuracyResult:
     """Compute buy/sell success rates using on-the-fly indicator signals.
 
     Uses generate_indicator_signals() from DR.1 instead of signal_daily table.
     Only works for indicators with buy/sell signals (rsi_14, macd).
-    ATR/vol signals (signal=0) are excluded from accuracy computation.
+    ATR/vol signals (signal=0) and exit signals (|signal|>1) are excluded.
 
     Args:
         db: SQLAlchemy session.
@@ -379,18 +380,20 @@ def compute_indicator_accuracy(
         start_date: Optional filter start.
         end_date: Optional filter end.
         include_details: If True, populate per-signal details list.
+        min_gap_days: Minimum gap between signals (DI.2). 0 disables.
 
     Returns:
         SignalAccuracyResult with strategy_id set to indicator_id.
     """
-    # 1. Generate on-the-fly signals
+    # 1. Generate on-the-fly signals (with frequency filter)
     indicator_signals = generate_indicator_signals(
         db, asset_id, indicator_id,
         start_date=start_date, end_date=end_date,
+        min_gap_days=min_gap_days,
     )
 
-    # Filter to buy/sell only (exclude warnings)
-    trade_signals = [s for s in indicator_signals if s.signal != 0]
+    # Filter to buy/sell only (exclude warnings and exit signals)
+    trade_signals = [s for s in indicator_signals if s.signal in (1, -1)]
     total_signals = len(trade_signals)
 
     if total_signals == 0:

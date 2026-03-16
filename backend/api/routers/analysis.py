@@ -40,6 +40,9 @@ def get_signal_accuracy(
     strategy_id: str | None = Query(default=None, description="전략 ID (예: momentum)"),
     indicator_id: str | None = Query(default=None, description="지표 ID (예: rsi_14, macd)"),
     forward_days: int = Query(default=5, ge=1, le=60, description="예측 기간 (일)"),
+    start_date: datetime.date | None = Query(default=None, description="시작 날짜"),
+    end_date: datetime.date | None = Query(default=None, description="종료 날짜"),
+    min_gap_days: int = Query(default=3, ge=0, description="시그널 최소 간격 (거래일, 0=비활성)"),
     include_details: bool = Query(default=False, description="거래 상세 포함 여부"),
     db: Session = Depends(get_db),
 ) -> SignalAccuracyResponse:
@@ -60,7 +63,10 @@ def get_signal_accuracy(
         result = compute_indicator_acc(
             db, asset_id, indicator_id,
             forward_days=forward_days,
+            start_date=start_date,
+            end_date=end_date,
             include_details=include_details,
+            min_gap_days=min_gap_days,
         )
     else:
         result = compute_signal_accuracy(
@@ -93,6 +99,7 @@ def get_indicator_signals(
     indicator_id: str = Query(description="지표 ID (rsi_14, macd, atr_vol)"),
     start_date: datetime.date | None = Query(default=None, description="시작 날짜"),
     end_date: datetime.date | None = Query(default=None, description="종료 날짜"),
+    min_gap_days: int = Query(default=3, ge=0, description="시그널 최소 간격 (거래일, 0=비활성)"),
     db: Session = Depends(get_db),
 ) -> IndicatorSignalListResponse:
     """지표별 on-the-fly 시그널 목록 조회."""
@@ -106,6 +113,7 @@ def get_indicator_signals(
     signals = generate_indicator_signals(
         db, asset_id, indicator_id,
         start_date=start_date, end_date=end_date,
+        min_gap_days=min_gap_days,
     )
 
     return IndicatorSignalListResponse(
@@ -129,6 +137,8 @@ def get_indicator_signals(
 def get_indicator_comparison(
     asset_id: str = Query(description="자산 ID (예: 005930)"),
     forward_days: int = Query(default=5, ge=1, le=60, description="예측 기간 (일)"),
+    start_date: datetime.date | None = Query(default=None, description="시작 날짜"),
+    end_date: datetime.date | None = Query(default=None, description="종료 날짜"),
     mode: str = Query(default="indicator", description="비교 모드: indicator 또는 strategy"),
     db: Session = Depends(get_db),
 ) -> IndicatorComparisonListResponseV2 | IndicatorComparisonListResponse:
@@ -158,7 +168,10 @@ def get_indicator_comparison(
 
     # Default: indicator mode (RSI vs MACD)
     rows = compare_indicators(
-        db, asset_id, forward_days=forward_days,
+        db, asset_id,
+        forward_days=forward_days,
+        start_date=start_date,
+        end_date=end_date,
     )
     return IndicatorComparisonListResponseV2(
         asset_id=asset_id,

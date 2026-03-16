@@ -69,6 +69,8 @@ interface IndicatorAccuracyParams {
   indicator_id: string;
   forward_days?: number;
   include_details?: boolean;
+  start_date?: string;
+  end_date?: string;
 }
 
 export async function fetchIndicatorAccuracy(
@@ -82,7 +84,7 @@ export async function fetchIndicatorAccuracy(
 }
 
 export async function fetchIndicatorComparisonV2(
-  params: { asset_id: string; forward_days?: number },
+  params: { asset_id: string; forward_days?: number; start_date?: string; end_date?: string },
 ): Promise<IndicatorComparisonResponseV2> {
   const { data } = await apiClient.get<IndicatorComparisonResponseV2>(
     "/v1/analysis/indicator-comparison",

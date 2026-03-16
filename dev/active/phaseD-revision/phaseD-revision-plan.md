@@ -120,38 +120,53 @@
    - 성공률 탭: ATR은 성공/실패 결과만 표시 (성공률 차트에서 제외)
    - 프론트에서 `indicator_id === "atr_vol"` 분기 처리
 
-### Stage E: 통합 검증 (DR.10)
+### Stage E: 추가 피드백 수정 (DR.11)
 
-10. **DR.10** Phase D-rev 통합 검증 `[M]`
-    - Backend: pytest 전체 통과 + ruff check clean
-    - Frontend: tsc --noEmit + vite build 성공
-    - 프로덕션 배포: git push → Railway/Vercel 자동 배포
-    - 브라우저 E2E 체크리스트:
-      1. 2탭 구조 (시그널/성공률) 확인
-      2. RSI/MACD/ATR 지표 선택 → 시그널 표시
-      3. 시그널 수직 점선 표시
-      4. 3/4 + 1/4 레이아웃 (시그널 탭, 성공률 탭)
-      5. 성공/실패 마커 + 거래 테이블
-      6. 정규화 시 0으로 튀지 않음
-      7. ATR 위험 구간 표시
-      8. 챗봇 연동 동작
+11. **DR.11** 오버레이 지표 표시 + MACD 시그널라인 `[M]` — ✅ `92f964d`
+    - IndicatorSignalPage에서 fetchFactors 병렬 호출 → 차트에 지표 곡선 오버레이
+    - INDICATOR_FACTOR_MAP: rsi_14→[rsi_14], macd→[macd, macd_signal], atr_vol→[atr_14, vol_20]
+    - 시그널 이력 패널에 지표값(sig.value) 수치 표시
+
+12. **DR.11b** repo 쿼리 정렬 DESC→ASC 수정 `[S]` — ✅ `4301224`
+    - price_repo, factor_repo, signal_repo 정렬 통일
+    - limit+DESC 조합에서 초기 데이터 잘리는 버그 수정
+
+### Stage F: 팩터 데이터 파이프라인 수정 (DR.12~DR.13)
+
+> **발견**: 프로덕션 팩터 데이터 대부분 2026-02-13에서 끊김, macd_signal은 5건만 존재.
+> **근본 원인**: daily-collect.yml이 `run_research.py --start T-7 --end T` 실행 → 7일치 가격만 로드 → RSI(14)/ATR(14)/vol(20)/SMA(120) 등 lookback 부족으로 전부 NaN → DB 미저장.
+
+13. **DR.12** 팩터 계산 lookback 확장 `[M]`
+    - `factor_store.py`의 `store_factors_for_asset()` 수정
+    - preprocess 시 start를 LOOKBACK_DAYS(150일) 앞당겨 충분한 이력 로드
+    - 팩터 계산 후 원래 요청 범위만 trim하여 DB에 저장
+    - 테스트 수정/추가
+
+14. **DR.13** 프로덕션 백필 + 통합 검증 `[M]`
+    - DR.12 배포 후 GitHub Actions workflow_dispatch 백필 실행
+    - start: 2025-10-01, end: 2026-03-15 (BTC 5개월 갭 포함)
+    - 프로덕션 API 확인: rsi_14, macd_signal, atr_14, vol_20 전체 기간 데이터
+    - 브라우저 E2E: 오버레이 차트 전체 기간 표시 확인
 
 ## 5. Task Breakdown
 
-| # | Task | Size | 의존성 | Stage |
-|---|------|------|--------|-------|
-| DR.1 | 지표별 시그널 생성 서비스 | L | indicator_analysis.py 규칙 | A |
-| DR.2 | 지표별 성공률 계산 수정 | M | DR.1 | A |
-| DR.3 | 지표 비교 서비스 수정 | M | DR.2 | B |
-| DR.4 | API 엔드포인트 수정 | M | DR.1, DR.2, DR.3 | B |
-| DR.5 | 3탭→2탭 전환 + 전략 배제 | L | DR.4 | C |
-| DR.6 | 시그널 탭 레이아웃 (3/4+1/4, 수직 점선) | M | DR.5 | C |
-| DR.7 | 성공률 탭 레이아웃 (3/4+1/4, 거래 테이블) | M | DR.5 | C |
-| DR.8 | 정규화 버그 수정 | S | - | D |
-| DR.9 | ATR(+vol) 특수 처리 | S | DR.5, DR.6 | D |
-| DR.10 | Phase D-rev 통합 검증 | M | DR.1~DR.9 전체 | E |
+| # | Task | Size | 의존성 | Stage | 상태 |
+|---|------|------|--------|-------|------|
+| DR.1 | 지표별 시그널 생성 서비스 | L | indicator_analysis.py 규칙 | A | ✅ |
+| DR.2 | 지표별 성공률 계산 수정 | M | DR.1 | A | ✅ |
+| DR.3 | 지표 비교 서비스 수정 | M | DR.2 | B | ✅ |
+| DR.4 | API 엔드포인트 수정 | M | DR.1, DR.2, DR.3 | B | ✅ |
+| DR.5 | 3탭→2탭 전환 + 전략 배제 | L | DR.4 | C | ✅ |
+| DR.6 | 시그널 탭 레이아웃 (3/4+1/4, 수직 점선) | M | DR.5 | C | ✅ |
+| DR.7 | 성공률 탭 레이아웃 (3/4+1/4, 거래 테이블) | M | DR.5 | C | ✅ |
+| DR.8 | 정규화 버그 수정 | S | - | D | ✅ |
+| DR.9 | ATR(+vol) 특수 처리 | S | DR.5, DR.6 | D | ✅ |
+| DR.11 | 오버레이 지표 표시 + MACD 시그널라인 | M | DR.5 | E | ✅ |
+| DR.11b | repo 쿼리 정렬 DESC→ASC | S | - | E | ✅ |
+| DR.12 | 팩터 계산 lookback 확장 | M | - | F | ⬜ |
+| DR.13 | 프로덕션 백필 + 통합 검증 | M | DR.12 | F | ⬜ |
 
-**Total**: 10 tasks (S:2, M:5, L:2)
+**Total**: 13 tasks (S:3, M:7, L:2) — 완료 11/13
 
 ## 6. Risks & Mitigation
 

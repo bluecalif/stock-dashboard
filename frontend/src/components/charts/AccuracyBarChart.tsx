@@ -7,7 +7,6 @@ import {
   ResponsiveContainer,
   Legend,
   ReferenceLine,
-  Cell,
 } from "recharts";
 import type { SignalAccuracyResponse } from "../../types/api";
 
@@ -22,11 +21,8 @@ interface ChartRow {
   sell: number;
 }
 
-function barColor(rate: number): string {
-  if (rate >= 60) return "#16a34a"; // green
-  if (rate <= 40) return "#dc2626"; // red
-  return "#6b7280"; // gray
-}
+const BUY_COLOR = "#16a34a";  // green — always for buy
+const SELL_COLOR = "#dc2626"; // red — always for sell
 
 export default function AccuracyBarChart({ data, strategyLabels }: Props) {
   const chartData: ChartRow[] = data
@@ -73,16 +69,8 @@ export default function AccuracyBarChart({ data, strategyLabels }: Props) {
           strokeDasharray="4 4"
           label={{ value: "50%", position: "right", fontSize: 10, fill: "#9ca3af" }}
         />
-        <Bar dataKey="buy" name="buy" radius={[4, 4, 0, 0]}>
-          {chartData.map((entry, i) => (
-            <Cell key={`buy-${i}`} fill={barColor(entry.buy)} />
-          ))}
-        </Bar>
-        <Bar dataKey="sell" name="sell" radius={[4, 4, 0, 0]}>
-          {chartData.map((entry, i) => (
-            <Cell key={`sell-${i}`} fill={barColor(entry.sell)} />
-          ))}
-        </Bar>
+        <Bar dataKey="buy" name="buy" fill={BUY_COLOR} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="sell" name="sell" fill={SELL_COLOR} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

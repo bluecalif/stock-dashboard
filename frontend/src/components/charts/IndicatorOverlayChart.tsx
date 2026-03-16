@@ -62,7 +62,7 @@ const SIGNAL_COLORS: Record<number, string> = {
   1: "#16a34a",   // buy — green
   [-1]: "#dc2626", // sell — red
   2: "#2563eb",   // buy exit — blue
-  [-2]: "#ea580c", // sell exit — orange
+  [-2]: "#9ca3af", // sell exit — gray
   0: "#d97706",   // warning — amber
 };
 
@@ -376,15 +376,16 @@ export default function IndicatorOverlayChart({
               yAxisId="price"
               x={sig.date}
               stroke={color}
-              strokeDasharray={isExit ? "2 4" : undefined}
-              strokeWidth={isExit ? 1 : 2}
-              strokeOpacity={isExit ? 0.6 : 1}
+              strokeDasharray={isExit ? "3 6" : undefined}
+              strokeWidth={isExit ? 0.8 : 2.5}
+              strokeOpacity={isExit ? 0.35 : 1}
               label={{
                 value: SIGNAL_MARKER[sig.signal] ?? "?",
                 position: "top",
-                fontSize: isExit ? 9 : 12,
+                fontSize: isExit ? 8 : 13,
                 fill: color,
-                opacity: isExit ? 0.6 : 1,
+                opacity: isExit ? 0.4 : 1,
+                fontWeight: isExit ? "normal" : "bold",
               }}
             />
           );

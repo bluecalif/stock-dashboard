@@ -64,11 +64,18 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function rateColor(rate: number | null): string {
+function buyRateColor(rate: number | null): string {
   if (rate == null) return "text-gray-400";
-  if (rate >= 0.6) return "text-green-600 font-semibold";
-  if (rate <= 0.4) return "text-red-600 font-semibold";
-  return "text-gray-700";
+  if (rate >= 0.6) return "text-green-700 font-semibold";
+  if (rate >= 0.5) return "text-green-600";
+  return "text-green-400";
+}
+
+function sellRateColor(rate: number | null): string {
+  if (rate == null) return "text-gray-400";
+  if (rate >= 0.6) return "text-red-700 font-semibold";
+  if (rate >= 0.5) return "text-red-600";
+  return "text-red-400";
 }
 
 function fmtPct(v: number | null): string {
@@ -84,7 +91,7 @@ function signalBadge(signal: number): { text: string; className: string } {
   if (signal === 2)
     return { text: "매수해제", className: "text-blue-600 bg-blue-50" };
   if (signal === -2)
-    return { text: "매도해제", className: "text-orange-600 bg-orange-50" };
+    return { text: "매도해제", className: "text-gray-500 bg-gray-50" };
   return { text: "경고", className: "text-amber-600 bg-amber-50" };
 }
 
@@ -520,12 +527,12 @@ export default function IndicatorSignalPage() {
                                   )}
                                 </td>
                                 <td
-                                  className={`px-4 py-2 text-right tabular-nums ${rateColor(row.buy_success_rate)}`}
+                                  className={`px-4 py-2 text-right tabular-nums ${buyRateColor(row.buy_success_rate)}`}
                                 >
                                   {fmtPct(row.buy_success_rate)}
                                 </td>
                                 <td
-                                  className={`px-4 py-2 text-right tabular-nums ${rateColor(row.sell_success_rate)}`}
+                                  className={`px-4 py-2 text-right tabular-nums ${sellRateColor(row.sell_success_rate)}`}
                                 >
                                   {fmtPct(row.sell_success_rate)}
                                 </td>
@@ -573,13 +580,13 @@ export default function IndicatorSignalPage() {
                         <div className="space-y-1 text-xs">
                           <div className="flex justify-between">
                             <span className="text-gray-500">매수 성공률</span>
-                            <span className={rateColor(acc.buy_success_rate)}>
+                            <span className={buyRateColor(acc.buy_success_rate)}>
                               {fmtPct(acc.buy_success_rate)}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">매도 성공률</span>
-                            <span className={rateColor(acc.sell_success_rate)}>
+                            <span className={sellRateColor(acc.sell_success_rate)}>
                               {fmtPct(acc.sell_success_rate)}
                             </span>
                           </div>

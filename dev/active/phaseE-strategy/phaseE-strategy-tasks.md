@@ -1,11 +1,11 @@
 # Phase E: 전략 페이지 — Tasks
 > Last Updated: 2026-03-16
-> Status: 2/10 완료 (20%)
+> Status: 3/10 완료 (30%)
 
 ## Stage A: Backend 전략 백테스트 서비스
 - [x] E.1 전략 백테스트 서비스 (indicator 시그널 → on-the-fly 백테스트) `[L]`
 - [x] E.2 연간 성과 분석 서비스 (1년 단위 슬라이싱 + 적합도) `[M]`
-- [ ] E.3 이벤트 스토리텔링 서비스 (Best/Worst 식별 + 내러티브) `[L]`
+- [x] E.3 이벤트 스토리텔링 서비스 (Best/Worst 식별 + 내러티브) `[L]`
 
 ## Stage B: REST + LangGraph
 - [ ] E.4 전략 백테스트 REST 엔드포인트 `[M]`

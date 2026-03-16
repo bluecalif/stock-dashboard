@@ -1,6 +1,6 @@
 # Phase D-improve: 지표 시그널 추가 개선 — Context
 > Last Updated: 2026-03-16
-> Status: Step 2부터 시작
+> Status: Complete (7/7)
 
 ## 1. 핵심 파일
 

@@ -1,6 +1,6 @@
 # Phase D-improve: 지표 시그널 추가 개선
 > Last Updated: 2026-03-16
-> Status: Planning
+> Status: Complete
 > Source: `docs/post-mvp-feedback.md` 추가 개선 Point 섹션
 
 ## 1. Summary (개요)

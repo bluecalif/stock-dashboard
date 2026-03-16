@@ -1,6 +1,6 @@
 # Phase E: 전략 페이지 — Context
 > Last Updated: 2026-03-16
-> Status: In Progress (E.1 완료)
+> Status: In Progress (E.2 완료)
 
 ## 1. 핵심 파일
 
@@ -75,6 +75,10 @@
 ## Changed Files (Step E.1)
 - `backend/api/services/analysis/strategy_backtest_service.py` — 신규 생성
 - `backend/tests/unit/test_strategy_backtest_service.py` — 신규 생성 (20 tests)
+
+## Changed Files (Step E.2)
+- `backend/api/services/analysis/annual_performance_service.py` — 신규 생성
+- `backend/tests/unit/test_annual_performance.py` — 신규 생성 (12 tests)
 
 ## 4. 컨벤션 체크리스트
 

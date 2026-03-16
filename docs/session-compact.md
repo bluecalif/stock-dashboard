@@ -62,7 +62,7 @@ Phase D-improve 완료. 다음 세션에서 Phase E 전략 페이지 구현 시�
 | Phase D 지표 | ✅ 완료 | 12/12 Tasks |
 | Phase D-rev 피드백 | ✅ 완료 | 13/13 Tasks |
 | Phase D-improve | ✅ 완료 | 7/7 Tasks + E2E 수정 |
-| Phase E 전략 | 🔄 진행중 | 3/10 완료 (Stage A 완료) |
+| Phase E 전략 | 🔄 진행중 | 4/10 완료 (E.1~E.4) |
 | Phase F~G | ⬜ 미시작 | Memory/Onboarding |
 
 ## Next Action

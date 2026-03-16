@@ -1,4 +1,4 @@
-"""Analysis endpoints — signal accuracy & indicator comparison."""
+"""Analysis endpoints — signal accuracy, indicator comparison, strategy backtest."""
 
 from __future__ import annotations
 
@@ -9,12 +9,18 @@ from sqlalchemy.orm import Session
 
 from api.dependencies import get_db
 from api.schemas.analysis import (
+    AnnualPerformanceItem,
+    EquityCurveItem,
     IndicatorComparisonListResponse,
     IndicatorComparisonListResponseV2,
     IndicatorComparisonResponse,
     IndicatorSignalItem,
     IndicatorSignalListResponse,
+    MetricsItem,
     SignalAccuracyResponse,
+    StrategyBacktestRequest,
+    StrategyBacktestResponse,
+    TradeItem,
 )
 from api.services.analysis.indicator_comparison import (
     compare_indicator_accuracy,
@@ -190,4 +196,144 @@ def get_indicator_comparison(
             for r in rows
         ],
         total_indicators=len(rows),
+    )
+
+
+# ---------------------------------------------------------------------------
+# E.4: Strategy Backtest
+# ---------------------------------------------------------------------------
+
+@router.post("/strategy-backtest", response_model=StrategyBacktestResponse)
+def post_strategy_backtest(
+    body: StrategyBacktestRequest,
+    db: Session = Depends(get_db),
+) -> StrategyBacktestResponse:
+    """전략 백테스트 실행 — on-the-fly 결과 반환.
+
+    지표 시그널 기반 백테스트를 실행하고 에쿼티 커브, 거래 내역,
+    연간 성과, 내러티브를 포함한 결과를 반환합니다.
+    """
+    from api.services.analysis.annual_performance_service import (
+        compute_annual_performance,
+    )
+    from api.services.analysis.storytelling_service import (
+        generate_strategy_summary,
+        generate_trade_narratives,
+    )
+    from api.services.analysis.strategy_backtest_service import (
+        STRATEGY_INDICATOR_MAP,
+        run_strategy_backtest,
+    )
+    from research_engine.metrics import metrics_to_dict
+
+    if body.asset_id not in {
+        "KS200", "005930", "000660", "SOXL", "BTC", "GC=F", "SI=F",
+    }:
+        raise HTTPException(
+            status_code=422,
+            detail=f"지원하지 않는 asset_id: {body.asset_id}",
+        )
+
+    if body.strategy_name not in STRATEGY_INDICATOR_MAP:
+        raise HTTPException(
+            status_code=422,
+            detail=f"지원하지 않는 strategy_name: {body.strategy_name}",
+        )
+
+    try:
+        result = run_strategy_backtest(
+            db, body.asset_id, body.strategy_name,
+            period=body.period,
+            initial_cash=body.initial_cash,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+
+    # 연간 성과
+    annual_perf = compute_annual_performance(
+        result.backtest_result, initial_cash=body.initial_cash,
+    )
+
+    # 내러티브
+    trade_narratives = generate_trade_narratives(
+        result.backtest_result.trades, body.strategy_name,
+        loss_avoided=result.loss_avoided,
+    )
+
+    # 전략 요약
+    summary = generate_strategy_summary(
+        body.strategy_name,
+        total_return=result.metrics.total_return,
+        num_trades=result.metrics.num_trades,
+        win_rate=result.metrics.win_rate,
+        annual_performances=annual_perf,
+        loss_avoided=result.loss_avoided,
+    )
+
+    # 에쿼티 커브 + B&H 에쿼티 병합
+    eq = result.backtest_result.equity_curve
+    bh = result.backtest_result.buy_hold_equity
+    bh_map: dict[str, float] = {}
+    if not bh.empty:
+        for _, row in bh.iterrows():
+            d_key = str(row["date"].date()) if hasattr(row["date"], "date") else str(row["date"])
+            bh_map[d_key] = float(row["equity"])
+
+    equity_items: list[EquityCurveItem] = []
+    for _, row in eq.iterrows():
+        d = str(row["date"].date()) if hasattr(row["date"], "date") else str(row["date"])
+        equity_items.append(EquityCurveItem(
+            date=d,
+            equity=round(float(row["equity"]), 0),
+            drawdown=round(float(row["drawdown"]), 6),
+            bh_equity=round(bh_map.get(d, 0), 0) if bh_map else None,
+        ))
+
+    # 거래 내역 + 내러티브 매핑
+    trade_items: list[TradeItem] = []
+    for tn in trade_narratives:
+        trade_items.append(TradeItem(
+            entry_date=str(tn.entry_date),
+            exit_date=str(tn.exit_date) if tn.exit_date else None,
+            entry_price=tn.entry_price,
+            exit_price=tn.exit_price,
+            pnl=round(tn.pnl, 0) if tn.pnl is not None else None,
+            pnl_pct=tn.pnl_pct,
+            holding_days=tn.holding_days,
+            narrative=tn.narrative,
+            is_best=tn.is_best,
+            is_worst=tn.is_worst,
+        ))
+
+    # 메트릭스
+    m = metrics_to_dict(result.metrics)
+
+    # 연간 성과
+    annual_items = [
+        AnnualPerformanceItem(
+            year=p.year,
+            return_pct=p.return_pct,
+            pnl_amount=p.pnl_amount,
+            mdd=p.mdd,
+            num_trades=p.num_trades,
+            win_rate=p.win_rate,
+            is_favorable=p.is_favorable,
+            is_partial_year=p.is_partial_year,
+            trading_days=p.trading_days,
+        )
+        for p in annual_perf
+    ]
+
+    return StrategyBacktestResponse(
+        asset_id=result.asset_id,
+        strategy_name=result.strategy_name,
+        strategy_label=result.strategy_label,
+        period=result.period,
+        initial_cash=result.initial_cash,
+        metrics=MetricsItem(**m),
+        equity_curve=equity_items,
+        trades=trade_items,
+        annual_performance=annual_items,
+        summary_narrative=summary,
+        loss_avoided=result.loss_avoided,
     )

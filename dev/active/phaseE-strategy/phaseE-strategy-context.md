@@ -1,6 +1,6 @@
 # Phase E: 전략 페이지 — Context
 > Last Updated: 2026-03-16
-> Status: In Progress (E.3 완료, Stage A 완료)
+> Status: In Progress (E.4 완료)
 
 ## 1. 핵심 파일
 
@@ -83,6 +83,10 @@
 ## Changed Files (Step E.3)
 - `backend/api/services/analysis/storytelling_service.py` — 신규 생성
 - `backend/tests/unit/test_storytelling.py` — 신규 생성 (19 tests)
+
+## Changed Files (Step E.4)
+- `backend/api/routers/analysis.py` — POST /v1/analysis/strategy-backtest 추가
+- `backend/api/schemas/analysis.py` — StrategyBacktestRequest/Response 스키마 추가
 
 ## 4. 컨벤션 체크리스트
 

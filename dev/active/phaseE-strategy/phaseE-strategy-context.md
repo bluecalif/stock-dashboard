@@ -1,6 +1,6 @@
 # Phase E: 전략 페이지 — Context
-> Last Updated: 2026-03-16
-> Status: In Progress (E.5 완료, Stage A+B 완료)
+> Last Updated: 2026-03-17
+> Status: Complete (10/10)
 
 ## 1. 핵심 파일
 
@@ -88,22 +88,32 @@
 - `backend/api/routers/analysis.py` — POST /v1/analysis/strategy-backtest 추가
 - `backend/api/schemas/analysis.py` — StrategyBacktestRequest/Response 스키마 추가
 
+## Changed Files (Step E.6~E.9)
+- `frontend/src/components/strategy/StrategyDescriptionCard.tsx` — 신규 생성 (3전략 설명 카드)
+- `frontend/src/components/strategy/TradeNarrativePanel.tsx` — 신규 생성 (거래 내러티브 패널)
+- `frontend/src/components/charts/EquityCurveWithEvents.tsx` — 신규 생성 (에쿼티+이벤트 마커)
+- `frontend/src/components/charts/AnnualPerformanceChart.tsx` — 신규 생성 (연간 성과 바차트)
+- `frontend/src/pages/StrategyPage.tsx` — 전면 리라이트 (구 backtests API → 신 strategy-backtest API)
+- `frontend/src/api/analysis.ts` — fetchStrategyBacktest() 추가
+- `frontend/src/types/api.ts` — StrategyBacktestResponse 등 타입 추가
+- `frontend/src/pages/IndicatorSignalPage.tsx` — 미사용 setForwardDays 제거 (빌드 수정)
+
 ## 4. 컨벤션 체크리스트
 
 ### Backend
 - [x] indicator_signal_service 시그널 → backtest.run_backtest() 입력 변환
-- [ ] 금액 포맷: 원화 (₩) + 천 단위 쉼표 (프론트에서 처리)
-- [ ] 수익률: 소수점 2자리 (%)
-- [ ] NaN/None 안전 처리
+- [x] 금액 포맷: 원화 (₩) + 천 단위 쉼표 (프론트에서 처리)
+- [x] 수익률: 소수점 2자리 (%)
+- [x] NaN/None 안전 처리
 - [x] 위험회피 전략: loss_avoided 계산 로직 검증
-- [ ] 연간 성과: 6개월 미만 데이터 연도 제외 또는 부분연도 라벨
+- [x] 연간 성과: 부분연도 라벨 (is_partial_year + 투명도 처리)
 
 ### Frontend
-- [ ] ReferenceDot: 매수=초록, 매도=빨강
-- [ ] Best 구간: 초록 하이라이트 ReferenceArea + 수익 금액 라벨
-- [ ] Worst 구간: 빨강 하이라이트 ReferenceArea + 손실 금액 라벨
-- [ ] 내러티브 카드: 클릭 이벤트 → 패널 표시
-- [ ] 연간 바 차트: 적합=초록, 부적합=빨강
-- [ ] 기간 프리셋: 6M/1Y/2Y/3Y 버튼
-- [ ] 금액 포맷: toLocaleString('ko-KR') + ₩
-- [ ] 위험회피: 손실 회피 금액 별도 카드 또는 라벨
+- [x] ReferenceDot: 매수=초록, 매도=빨강
+- [x] Best 구간: 초록 하이라이트 ReferenceArea + 수익 금액 라벨
+- [x] Worst 구간: 빨강 하이라이트 ReferenceArea + 손실 금액 라벨
+- [x] 내러티브 카드: 클릭 이벤트 → 패널 표시
+- [x] 연간 바 차트: 적합=초록, 부적합=빨강
+- [x] 기간 프리셋: 6M/1Y/2Y/3Y 버튼
+- [x] 금액 포맷: toLocaleString('ko-KR') + ₩
+- [x] 위험회피: 손실 회피 금액 별도 라벨 (에쿼티 커브 상단)

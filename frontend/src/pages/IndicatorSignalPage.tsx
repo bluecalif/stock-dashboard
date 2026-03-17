@@ -118,7 +118,7 @@ export default function IndicatorSignalPage() {
   >(new Map());
 
   // Accuracy tab
-  const [forwardDays, setForwardDays] = useState(5);
+  const [forwardDays] = useState(5);
   const [accuracyData, setAccuracyData] = useState<SignalAccuracyResponse[]>(
     [],
   );

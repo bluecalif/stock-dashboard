@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-03-15
-> Status: MVP 완료 (Phase 0~7), Phase A~D 완료, Phase D-rev 계획 수립 완료
+> Last Updated: 2026-03-17
+> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F~G 미시작
 
 ## 핵심 파일
 
@@ -19,8 +19,8 @@
 | `dev/active/phaseB-chatbot/` | Phase B (Chatbot) dev-docs (plan/context/tasks/debug) |
 | `dev/active/phaseC-correlation/` | Phase C (상관도 페이지) dev-docs |
 | `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs — ✅ 완료 |
-| `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs |
-| `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs |
+| `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs — 12/13 완료 |
+| `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs — ✅ 완료 |
 
 ## 주요 결정사항
 
@@ -63,6 +63,10 @@
 | REST 분석 API | 성공률/전략비교용 1개 라우터 추가 | 페이지 렌더링용 REST 병행 (챗봇 중심 유지) |
 | 지표별 시그널 | on-the-fly 생성 (DB 저장 없음) | factor_daily에서 파생 가능, 신규 테이블 불필요 |
 | 전략→지표 전환 | 기존 strategy 기반 API 하위호환 유지 | Phase E 전략 페이지에서 사용 |
+| 전략 재정의 (E) | 모멘텀=MACD, 역발상=RSI, 위험회피=ATR+vol | indicator_signal_service 시그널 기반 백테스트 |
+| 1년단위 구간 평가 (E) | 연도별 전략 적합도 표시 | 수익률>0 AND win_rate>50% 기준 |
+| Best/Worst annotation (E) | 그래프 내 효과 큰/실패 구간 visual 삽입 | ReferenceArea + 금액 라벨 |
+| 위험회피 손실 회피 (E) | B&H 대비 절감된 손실 금액 표시 | ATR+vol 전략 전용 |
 
 ## 자산 목록
 
@@ -149,7 +153,7 @@
 |--------|------|------|-------|
 | GET | `/v1/analysis/signal-accuracy` | 지표 매수/매도 성공률 | D |
 | GET | `/v1/analysis/indicator-comparison` | 지표 예측력 비교 | D |
-| POST | `/v1/analysis/strategy-comparison` | 전략 비교 (on-the-fly 백테스트) | E |
+| POST | `/v1/analysis/strategy-backtest` | 전략 백테스트 (indicator 시그널 기반, on-the-fly) | E |
 
 #### Memory / Onboarding API (Phase F~G)
 | Method | Path | Phase |
@@ -177,7 +181,7 @@
 - **채팅 패널**: 우측 슬라이드 (Phase B) ✅
 - **상관도 페이지 확장**: 그룹핑 카드 + ScatterPlot + SpreadChart + 넛지 질문 + 관심 종목 (Phase C)
 - **지표 시그널 통합 페이지**: 팩터+시그널 통합, 성공률 탭, 오버레이 차트, 설정 패널 (Phase D)
-- **전략 페이지 고도화**: 전략 설명 카드, 이벤트 마커, 내러티브 패널, 기간 설정 (Phase E)
+- **전략 페이지 고도화**: 전략 백테스트(모멘텀/역발상/위험회피), 연간 성과, Best/Worst annotation, 내러티브, 기간 설정 (Phase E)
 - 최종 구조: 홈 / 가격 / 상관 / 지표시그널 / 전략 + 채팅 패널
 
 ## 컨벤션 체크리스트
@@ -221,8 +225,8 @@
 - [x] Zustand chartActionStore (Phase C) ✅
 - [x] Zustand watchlistStore (Phase C) ✅
 - [x] 하이브리드 분류기 (정규표현식+키워드) (Phase C) ✅
-- [ ] 분석 REST API (Phase D~E)
-- [ ] LangGraph Tool 확장 (5→8개) (Phase C~E)
+- [x] 분석 REST API (Phase D~E) ✅
+- [x] LangGraph Tool 확장 (5→8개) (Phase C~E) ✅
 - [ ] 사용자 데이터 user_id 기준 격리
 
 ## 배포 인프라

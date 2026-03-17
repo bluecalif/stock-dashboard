@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-03-15
-> Status: MVP 완료 (Phase 0~7), Phase A~D 완료, Phase D-rev 계획 수립 완료
+> Last Updated: 2026-03-17
+> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F~G 미시작
 
 ## 1. Summary (개요)
 
@@ -40,7 +40,10 @@
 - **Phase C 상관도**: 12/12 Steps 완료 (상관도 페이지 완성)
 - **Phase C-rev2**: 완료 — 넛지 질문 품질 개선, LangSmith 트레이싱, 3-패널 SpreadChart (`ba30728`)
 - **Phase D 지표**: 12/12 완료 — 지표 해석, 성공률, 비교, REST API, 프론트 3탭 (`d0392b6`~`7dc230f`)
-- **Git**: `master` 브랜치, 647 passed, ruff clean
+- **Phase D-rev**: 12/13 완료 — 전략→지표 전환, 탭 통합, 정규화 버그, lookback 확장 (`9073f05`~`d942cfc`)
+- **Phase D-improve**: 7/7 완료 — 지표 설명, T+3 frequency, RSI 해제, 시각구분 강화 (`a4e4c16`~`058a053`)
+- **Phase E 전략**: 10/10 완료 — 전략 백테스트, 연간 성과, 스토리텔링, 매매 마커, 프론트 전면 개편 (`7bd04ca`~`be8ecf1`)
+- **Git**: `master` 브랜치, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -60,8 +63,8 @@
 | **상관도 페이지** | 그룹핑/유사자산, 스프레드, 하이브리드 응답, 관심종목 | ✅ Phase C |
 | **상관도 피드백** | 종목명 표시, 히트맵 연동, 가격 오버레이, 채팅 UX | ✅ Phase C-rev |
 | **지표 페이지** | 성공률, 예측력 비교, 오버레이 차트, REST 분석 API | ✅ Phase D |
-| **지표 피드백** | 전략→지표 전환, 탭 통합, 레이아웃 개선, 정규화 버그 | ⬜ Phase D-rev |
-| **전략 페이지** | 이벤트 스토리텔링, 에쿼티 마커, 기간 설정, 라우트 정리 | ⬜ Phase E |
+| **지표 피드백** | 전략→지표 전환, 탭 통합, 레이아웃 개선, 정규화 버그 | ✅ Phase D-rev+improve |
+| **전략 페이지** | 전략 백테스트, 연간 성과, 이벤트 스토리텔링, 매매 마커 | ✅ Phase E |
 | **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase F |
 | **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase G |
 
@@ -251,55 +254,66 @@
 **파일 집계**: 신규 ~10 / 수정 ~7 / Migration 0
 **완료**: 12/12 tasks — `d0392b6`~`7dc230f`
 
-#### Phase D-rev: 지표 페이지 피드백 반영 — ⬜ 계획 수립 완료 (10 Tasks) [상세 확정]
+#### Phase D-rev: 지표 페이지 피드백 반영 — ✅ 완료 (12/13) [DR.13 백필 잔여]
 > dev-docs: `dev/active/phaseD-revision/`
 > Source: `docs/post-mvp-feedback.md` Phase D 섹션
 
 **목적**: 전략(momentum/trend/mean_reversion) → 개별 지표(RSI/MACD/ATR+vol) 단위 전환, 탭 통합, 레이아웃 개선
-**핵심 변경**: 지표별 on-the-fly 시그널 생성, 3탭→2탭 통합, 3/4+1/4 레이아웃, 정규화 버그 수정
+**핵심 변경**: 지표별 on-the-fly 시그널 생성, 3탭→2탭 통합, 3/4+1/4 레이아웃, 정규화 버그 수정, lookback 확장
 
-**수정 항목**:
-1. 지표별 시그널 생성 서비스 (factor_daily → on-the-fly 시그널)
-2. 성공률/비교 서비스 — strategy_id → indicator_id 전환
-3. API 엔드포인트 수정 + indicator-signals 신규
-4. 3탭→2탭(시그널/성공률) + 전략 배제
-5. 시그널 탭: 차트 3/4 + 설명 1/4, Y축 수직 점선
-6. 성공률 탭: 차트 3/4 + 거래 성공/실패 테이블 1/4
-7. 정규화 0 스파이크 버그 수정
-8. ATR(+vol) 위험 구간 특수 처리
+**완료 항목**:
+1. DR.1~DR.9: 지표별 시그널 생성, 성공률, 비교, API, 탭 통합, 레이아웃, 버그 수정 — `9073f05`
+2. DR.11: 오버레이 지표 표시 + MACD 시그널라인 + repo 정렬 버그 수정 — `92f964d`, `4301224`
+3. DR.12: 팩터 계산 lookback 확장 (LOOKBACK_DAYS=150) — `d942cfc`
+
+**미완료**: DR.13 프로덕션 백필 + 통합 검증
 
 **파일 집계**: 신규 ~2 / 수정 ~11 / Migration 0
 
-#### Phase E: 전략 페이지 완성 — ⬜ 미시작 (9 Steps) [상세 확정]
-> dev-docs: `dev/active/phaseE-strategy/`
+#### Phase D-improve: 지표 페이지 추가 개선 — ✅ 완료 (7/7)
 
-**목적**: 전략 비교 분석 + 이벤트 스토리텔링 + 에쿼티 이벤트 마커 + 기간 설정 + 라우트 최종 정리
-**핵심 신규 기능**: 이벤트 스토리텔링 (하드코딩 템플릿+f-string), on-the-fly 경량 백테스트
+**목적**: 지표 설명, 시그널 frequency 제어, RSI 해제, ATR 스케일, 기간 동기화, 시각구분 강화
+**완료**: DI.1~DI.7 전체 + E2E 버그 3건 + 색상 수정 — `a4e4c16`~`058a053`
+
+#### Phase E: 전략 페이지 완성 — ✅ 완료 (10/10 Tasks) [2026-03-17 완료]
+> dev-docs: `dev/active/phaseE-strategy/`
+> Source: `docs/post-mvp-feedback.md` Phase E 섹션
+
+**목적**: 3개 전략(모멘텀/역발상/위험회피) 매매 결과 시각화 + 연간 성과 평가 + 이벤트 스토리텔링
+**핵심 변경**: indicator_signal_service 기반 전략 전환, 1년단위 구간 평가, Best/Worst visual annotation
+
+**전략 재정의** (피드백 기반):
+- 모멘텀 = MACD 시그널 기반 매수/매도
+- 역발상 = RSI 시그널 기반 매수/매도
+- 위험회피 = ATR+vol 시그널 기반 시장 탈출 (손실 회피 금액 표현)
 
 **Backend 산출물**:
-- `api/services/analysis/strategy_analysis.py` — on-the-fly 전략 비교 (DB 저장 없음)
-- `api/services/analysis/storytelling_service.py` — `generate_trade_narratives()`, `generate_strategy_story()`
-- `api/routers/analysis_router.py` 수정 — `POST /v1/analysis/strategy-comparison`
-- `api/schemas/analysis.py` 수정 — 전략 비교 요청/응답 스키마
-- `api/services/llm/tools.py` 수정 — `compare_strategies` Tool 추가
+- `api/services/analysis/strategy_backtest_service.py` — indicator 시그널 → on-the-fly 백테스트 (DB 저장 없음)
+- `api/services/analysis/annual_performance_service.py` — 1년 단위 성과 분석
+- `api/services/analysis/storytelling_service.py` — 매매 내러티브 + Best/Worst 식별
+- `api/routers/analysis_router.py` 수정 — `POST /v1/analysis/strategy-backtest`
+- `api/schemas/analysis.py` 수정 — 전략 백테스트 요청/응답 스키마
+- `api/services/llm/tools.py` 수정 — `backtest_strategy` Tool 추가
 - `api/services/llm/hybrid/templates.py`, `classifier.py` 수정 — 전략 카테고리 확장
 
 **Frontend 산출물**:
-- `src/components/strategy/StrategyDescriptionCard.tsx` — 3개 전략별 설명 (접힘/펼침)
-- `src/components/charts/EquityCurveWithEvents.tsx` — ReferenceDot 매매 포인트
+- `src/components/strategy/StrategyDescriptionCard.tsx` — 모멘텀/역발상/위험회피 설명 (접힘/펼침)
+- `src/components/charts/EquityCurveWithEvents.tsx` — 매매 마커 + Best/Worst 하이라이트
 - `src/components/strategy/TradeNarrativePanel.tsx` — 클릭 시 내러티브 카드
-- `src/api/analysis.ts` 수정 — `fetchStrategyComparison()` 추가
-- `src/pages/StrategyPage.tsx` 수정 — 설명 카드, 이벤트 마커, 6M/1Y/2Y 기간
+- `src/components/charts/AnnualPerformanceChart.tsx` — 연도별 성과 바 차트
+- `src/api/analysis.ts` 수정 — `fetchStrategyBacktest()` 추가
+- `src/pages/StrategyPage.tsx` 수정 — 전면 개편
 - `src/components/layout/Sidebar.tsx` 수정 — 5개 항목 최종 정리
-- `src/App.tsx` 수정 — `/factors`, `/signals` → `/indicators` redirect 확인
+- `src/App.tsx` 수정 — redirect 확인
 
 **설계 결정**:
+- indicator_signal_service 시그널 기반 전략 (기존 research_engine 전략 하위호환 유지)
 - 스토리텔링 = 하드코딩 템플릿+f-string (추상 점수 금지, 실제 금액/수익률만)
-- on-the-fly 백테스트 (DB 저장 안 함) — DB에 없는 기간 조합도 즉시 비교
-- 전략 설명 하드코딩 (모멘텀="달리는 말에 타는 전략…")
-- 기존 FactorPage.tsx, SignalPage.tsx 파일 유지 (삭제 안 함)
+- on-the-fly 백테스트 (DB 저장 안 함)
+- 1년단위 구간 평가 + Best/Worst visual annotation
+- 위험회피: B&H 대비 손실 회피 금액 표시
 
-**파일 집계**: 신규 ~7 / 수정 ~7 / Migration 0
+**파일 집계**: 신규 ~8 / 수정 ~8 / Migration 0
 
 #### Phase F: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 

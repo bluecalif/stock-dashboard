@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-03-15
-> Status: MVP 완료 (83/83), Phase A~D 완료, Phase D-rev 계획 수립 완료
+> Last Updated: 2026-03-17
+> Status: MVP 완료 (83/83), Phase A~E 완료, Phase F~G 미시작
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -277,48 +277,60 @@
 ### Stage E: 통합 검증
 - [x] D.12 Phase D 통합 검증 `[M]` — 647 tests, 프로덕션 배포 완료
 
-## Phase D-rev: 지표 피드백 반영 — ⬜ 계획 수립 완료 (0/10)
+## Phase D-rev: 지표 피드백 반영 — ✅ 12/13 완료 (DR.13 백필 잔여)
 > dev-docs: `dev/active/phaseD-revision/`
 > **파일 집계**: 신규 ~2 / 수정 ~11 / Migration 0
 
 ### Stage A: Backend — 지표별 시그널 생성
-- [ ] DR.1 지표별 시그널 생성 서비스 (indicator_signal_service.py 신규) `[L]`
-- [ ] DR.2 지표별 성공률 계산 수정 `[M]`
+- [x] DR.1 지표별 시그널 생성 서비스 (indicator_signal_service.py 신규) `[L]` — `9073f05`
+- [x] DR.2 지표별 성공률 계산 수정 `[M]` — `9073f05`
 
 ### Stage B: Backend — API + 비교 수정
-- [ ] DR.3 지표 비교 서비스 수정 (RSI vs MACD) `[M]`
-- [ ] DR.4 API 엔드포인트 수정 + 신규 `[M]`
+- [x] DR.3 지표 비교 서비스 수정 (RSI vs MACD) `[M]` — `9073f05`
+- [x] DR.4 API 엔드포인트 수정 + 신규 `[M]` — `9073f05`
 
 ### Stage C: Frontend — 탭 통합 + 레이아웃
-- [ ] DR.5 3탭→2탭 전환 + 전략 배제 `[L]`
-- [ ] DR.6 시그널 탭 레이아웃 (차트 3/4 + 설명 1/4, 수직 점선) `[M]`
-- [ ] DR.7 성공률 탭 레이아웃 (차트 3/4 + 거래 테이블 1/4) `[M]`
+- [x] DR.5 3탭→2탭 전환 + 전략 배제 `[L]` — `9073f05`
+- [x] DR.6 시그널 탭 레이아웃 (차트 3/4 + 설명 1/4, 수직 점선) `[M]` — `9073f05`
+- [x] DR.7 성공률 탭 레이아웃 (차트 3/4 + 거래 테이블 1/4) `[M]` — `9073f05`
 
 ### Stage D: Frontend — 버그 수정 + 특수 처리
-- [ ] DR.8 정규화 버그 수정 `[S]`
-- [ ] DR.9 ATR(+vol) 특수 처리 `[S]`
+- [x] DR.8 정규화 버그 수정 `[S]` — `9073f05`
+- [x] DR.9 ATR(+vol) 특수 처리 `[S]` — `9073f05`
 
-### Stage E: 통합 검증
-- [ ] DR.10 Phase D-rev 통합 검증 `[M]`
+### Stage E: 추가 피드백 수정
+- [x] DR.11 오버레이 지표 표시 + MACD 시그널라인 `[M]` — `92f964d`
+- [x] DR.11b repo 쿼리 정렬 DESC→ASC 수정 `[S]` — `4301224`
+- [x] DR.12 팩터 계산 lookback 확장 (LOOKBACK_DAYS=150) `[M]` — `d942cfc`
+- [ ] DR.13 프로덕션 백필 + 통합 검증 `[M]`
 
-## Phase E: 전략 페이지 완성 — ⬜ 미시작 (0/9)
+## Phase D-improve: 지표 추가 개선 — ✅ 완료 (7/7)
+- [x] DI.1~DI.7 지표 설명, T+3 frequency, RSI 해제, ATR 스케일, 기간 동기화 — `a4e4c16`
+- [x] E2E 버그 수정 3건 (시그널 시각구분, MACD backfill, 성공률 탭 단순화) — `19daaa9`
+- [x] 시그널 시각구분 강화 + 바차트/테이블 색상 고정 — `b359598`
+
+## Phase E: 전략 페이지 완성 — ✅ 완료 (10/10)
 > dev-docs: `dev/active/phaseE-strategy/`
-> **파일 집계**: 신규 ~7 / 수정 ~7 / Migration 0
+> **파일 집계**: 신규 ~8 / 수정 ~8 / Migration 0
+> **전략 재정의**: 모멘텀(MACD), 역발상(RSI), 위험회피(ATR+vol) — indicator_signal_service 활용
 
-### Stage A: Backend 분석 서비스
-- [ ] E.1 전략 비교 분석 서비스 `[L]`
-- [ ] E.2 이벤트 스토리텔링 서비스 ⭐핵심 `[L]`
+### Stage A: Backend 전략 백테스트 서비스
+- [x] E.1 전략 백테스트 서비스 (indicator 시그널 → on-the-fly 백테스트) `[L]` — `7bd04ca`
+- [x] E.2 연간 성과 분석 서비스 (1년 단위 슬라이싱 + 적합도) `[M]` — `baebc45`
+- [x] E.3 이벤트 스토리텔링 서비스 (Best/Worst 식별 + 내러티브) `[L]` — `8bf845c`
 
-### Stage B: LangGraph + REST
-- [ ] E.3 LangGraph Tool — `compare_strategies` `[M]`
-- [ ] E.4 하이브리드 응답 — 전략 카테고리 확장 `[S]`
-- [ ] E.5 전략 비교 REST 엔드포인트 `[M]`
+### Stage B: REST + LangGraph
+- [x] E.4 전략 백테스트 REST 엔드포인트 `[M]` — `3686246`
+- [x] E.5 LangGraph Tool + 하이브리드 전략 확장 `[M]` — `3b9bf40`
 
 ### Stage C: Frontend
-- [ ] E.6 전략 사전 설명 카드 `[S]`
-- [ ] E.7 에쿼티 커브 이벤트 마커 + 내러티브 ⭐핵심 `[L]`
-- [ ] E.8 기간 설정 + 1억원 시드 `[M]`
-- [ ] E.9 라우트 최종 정리 `[S]`
+- [x] E.6 전략 사전 설명 카드 (모멘텀/역발상/위험회피) `[S]` — `cc69eb3`
+- [x] E.7 에쿼티 커브 이벤트 마커 + Best/Worst annotation + 내러티브 ⭐핵심 `[XL]` — `cc69eb3`
+- [x] E.8 연간 성과 차트 + 기간 설정 + 1억원 시드 `[L]` — `cc69eb3`
+- [x] E.9 라우트 최종 정리 `[S]` — `cc69eb3`
+
+### Stage D: 통합 검증
+- [x] E.10 Phase E 통합 검증 `[M]` — `be8ecf1`
 
 ## Phase F: Memory + Retrieval — ⬜ 미시작
 > 상세 태스크: Phase F dev-docs 생성 시 확정
@@ -350,8 +362,9 @@
 - **Phase C**: 12 tasks (S:2, M:8, L:2) — 12/12 ✅
 - **Phase C-rev**: 7 tasks (S:1, M:4, L:2) — 7/7 ✅
 - **Phase D**: 12 tasks (S:2, M:7, L:2) — 12/12 ✅
-- **Phase D-rev**: 10 tasks (S:2, M:5, L:2) — 0/10 ⬜
-- **Phase E**: 9 tasks (S:2, M:3, L:3) — 0/9 ⬜
+- **Phase D-rev**: 13 tasks (S:3, M:7, L:2) — 12/13 ✅ (DR.13 잔여)
+- **Phase D-improve**: 7 tasks — 7/7 ✅
+- **Phase E**: 10 tasks (S:2, M:3, L:3, XL:1) — 10/10 ✅
 - **Phase F~G**: 미정 (각 Phase 진입 시 확정)
 - **Post-MVP Phase C~E 파일 영향도**: 신규 ~32 / 수정 ~34 / Migration 0
 
@@ -362,6 +375,7 @@
 - **Post-MVP Phase C**: 12/12 ✅ (상관도 페이지)
 - **Post-MVP Phase C-rev**: 7/7 ✅ (피드백 반영)
 - **Post-MVP Phase D**: 12/12 ✅ (지표 페이지)
-- **Post-MVP Phase D-rev**: 0/10 ⬜ (지표 피드백)
-- **Post-MVP Phase E**: 0/9 ⬜ (전략 페이지)
+- **Post-MVP Phase D-rev**: 12/13 ✅ (지표 피드백, DR.13 백필 잔여)
+- **Post-MVP Phase D-improve**: 7/7 ✅ (지표 추가 개선)
+- **Post-MVP Phase E**: 10/10 ✅ (전략 페이지)
 - **Post-MVP Phase F~G**: 태스크 상세 미확정

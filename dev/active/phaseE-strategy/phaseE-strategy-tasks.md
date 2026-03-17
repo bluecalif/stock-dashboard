@@ -1,6 +1,6 @@
 # Phase E: 전략 페이지 — Tasks
-> Last Updated: 2026-03-16
-> Status: 5/10 완료 (50%)
+> Last Updated: 2026-03-17
+> Status: 9/10 완료 (90%)
 
 ## Stage A: Backend 전략 백테스트 서비스
 - [x] E.1 전략 백테스트 서비스 (indicator 시그널 → on-the-fly 백테스트) `[L]`
@@ -12,10 +12,10 @@
 - [x] E.5 LangGraph Tool + 하이브리드 전략 확장 `[M]`
 
 ## Stage C: Frontend
-- [ ] E.6 전략 사전 설명 카드 (모멘텀/역발상/위험회피) `[S]`
-- [ ] E.7 에쿼티 커브 이벤트 마커 + Best/Worst annotation + 내러티브 ⭐핵심 `[XL]`
-- [ ] E.8 연간 성과 차트 + 기간 설정 + 1억원 시드 `[L]`
-- [ ] E.9 라우트 최종 정리 `[S]`
+- [x] E.6 전략 사전 설명 카드 (모멘텀/역발상/위험회피) `[S]`
+- [x] E.7 에쿼티 커브 이벤트 마커 + Best/Worst annotation + 내러티브 ⭐핵심 `[XL]`
+- [x] E.8 연간 성과 차트 + 기간 설정 + 1억원 시드 `[L]`
+- [x] E.9 라우트 최종 정리 `[S]`
 
 ## Stage D: 통합 검증
 - [ ] E.10 Phase E 통합 검증 `[M]`

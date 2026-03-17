@@ -209,6 +209,77 @@ export interface IndicatorComparisonResponseV2 {
   total_indicators: number;
 }
 
+// --- Strategy Backtest (E.4) ---
+export interface StrategyBacktestRequest {
+  asset_id: string;
+  strategy_name: "momentum" | "contrarian" | "risk_aversion";
+  period?: "6M" | "1Y" | "2Y" | "3Y";
+  initial_cash?: number;
+}
+
+export interface EquityCurveItem {
+  date: string;
+  equity: number;
+  drawdown: number;
+  bh_equity: number | null;
+}
+
+export interface TradeItem {
+  entry_date: string;
+  exit_date: string | null;
+  entry_price: number;
+  exit_price: number | null;
+  pnl: number | null;
+  pnl_pct: number | null;
+  holding_days: number;
+  narrative: string;
+  is_best: boolean;
+  is_worst: boolean;
+}
+
+export interface AnnualPerformanceItem {
+  year: number;
+  return_pct: number;
+  pnl_amount: number;
+  mdd: number;
+  num_trades: number;
+  win_rate: number;
+  is_favorable: boolean;
+  is_partial_year: boolean;
+  trading_days: number;
+}
+
+export interface MetricsItem {
+  total_return: number;
+  cagr: number;
+  mdd: number;
+  volatility: number;
+  sharpe: number;
+  sortino: number;
+  calmar: number;
+  win_rate: number;
+  num_trades: number;
+  avg_trade_pnl: number;
+  turnover: number;
+  bh_total_return: number | null;
+  bh_cagr: number | null;
+  excess_return: number | null;
+}
+
+export interface StrategyBacktestResponse {
+  asset_id: string;
+  strategy_name: string;
+  strategy_label: string;
+  period: string;
+  initial_cash: number;
+  metrics: MetricsItem;
+  equity_curve: EquityCurveItem[];
+  trades: TradeItem[];
+  annual_performance: AnnualPerformanceItem[];
+  summary_narrative: string;
+  loss_avoided: number | null;
+}
+
 export interface SpreadResponse {
   asset_a: string;
   asset_b: string;

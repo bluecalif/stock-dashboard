@@ -4,6 +4,8 @@ import type {
   IndicatorComparisonResponse,
   IndicatorSignalListResponse,
   IndicatorComparisonResponseV2,
+  StrategyBacktestRequest,
+  StrategyBacktestResponse,
 } from "../types/api";
 
 // ---------------------------------------------------------------------------
@@ -79,6 +81,20 @@ export async function fetchIndicatorAccuracy(
   const { data } = await apiClient.get<SignalAccuracyResponse>(
     "/v1/analysis/signal-accuracy",
     { params },
+  );
+  return data;
+}
+
+// ---------------------------------------------------------------------------
+// Strategy Backtest (E.4)
+// ---------------------------------------------------------------------------
+
+export async function fetchStrategyBacktest(
+  params: StrategyBacktestRequest,
+): Promise<StrategyBacktestResponse> {
+  const { data } = await apiClient.post<StrategyBacktestResponse>(
+    "/v1/analysis/strategy-backtest",
+    params,
   );
   return data;
 }

@@ -54,12 +54,15 @@ class TestGenerateReport:
             follow_up_questions=["MACD는 어떤가요?", "다른 자산도 볼까요?"],
         )
 
+        mock_json = mock_report.model_dump_json()
+        mock_response = AsyncMock()
+        mock_response.content = mock_json
+
         with patch(
             "api.services.llm.agentic.reporter.ChatOpenAI",
         ) as mock_cls:
             mock_llm = mock_cls.return_value
-            mock_structured = AsyncMock(return_value=mock_report)
-            mock_llm.with_structured_output.return_value.ainvoke = mock_structured
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
             result = await generate_report(
                 category="indicator_explain",
@@ -78,14 +81,14 @@ class TestGenerateReport:
             summary="심층 분석",
             analysis="상세 내용",
         )
+        mock_response = AsyncMock()
+        mock_response.content = mock_report.model_dump_json()
 
         with patch(
             "api.services.llm.agentic.reporter.ChatOpenAI",
         ) as mock_cls:
             mock_llm = mock_cls.return_value
-            mock_llm.with_structured_output.return_value.ainvoke = AsyncMock(
-                return_value=mock_report,
-            )
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
             await generate_report(
                 category="strategy_backtest",
@@ -102,14 +105,14 @@ class TestGenerateReport:
     @pytest.mark.asyncio
     async def test_lite_mode_uses_lite_model(self):
         mock_report = CuratedReport(summary="요약", analysis="분석")
+        mock_response = AsyncMock()
+        mock_response.content = mock_report.model_dump_json()
 
         with patch(
             "api.services.llm.agentic.reporter.ChatOpenAI",
         ) as mock_cls:
             mock_llm = mock_cls.return_value
-            mock_llm.with_structured_output.return_value.ainvoke = AsyncMock(
-                return_value=mock_report,
-            )
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
             await generate_report(
                 category="general",

@@ -46,8 +46,11 @@ async def classify_question(
         ])
         return result
 
-    except Exception:
-        logger.exception("LLM Classifier failed — falling back to general")
+    except Exception as exc:
+        logger.exception(
+            "LLM Classifier failed (model=%s): %s — falling back to general",
+            settings.llm_lite_model, exc,
+        )
         return ClassificationResult(
             target_page="home",
             should_navigate=False,

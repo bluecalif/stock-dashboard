@@ -246,6 +246,8 @@ async def stream_chat(
     yield _status_event("thinking", "AI가 생각하고 있어요...")
     graph = _get_graph()
     thread_id = str(session_id)
+    tools_called: list[str] = []
+    tool_results_raw: dict[str, str] = {}
 
     try:
         async for event in graph.astream_events(
@@ -269,6 +271,7 @@ async def stream_chat(
                     yield _sse({"type": "text_delta", "content": text})
 
             elif kind == "on_tool_start":
+                tools_called.append(event["name"])
                 yield _sse({
                     "type": "tool_call",
                     "name": event["name"],
@@ -279,6 +282,7 @@ async def stream_chat(
                 raw_output = event["data"].get("output", "")
                 if hasattr(raw_output, "content"):
                     raw_output = raw_output.content
+                tool_results_raw[event["name"]] = str(raw_output)
                 yield _sse({
                     "type": "tool_result",
                     "name": event["name"],
@@ -288,6 +292,15 @@ async def stream_chat(
     except Exception:
         logger.exception("LangGraph stream error for session %s", session_id)
         yield _sse({"type": "error", "content": "응답 생성 중 오류가 발생했습니다."})
+
+    # ── LangGraph 후처리: ui_action + follow_up ──
+    for action_evt in _langgraph_ui_actions(tools_called, tool_results_raw):
+        yield _sse(action_evt)
+
+    page_id = _infer_page_from_tools(tools_called, ctx.page_id)
+    follow_ups = _default_follow_ups(page_id)
+    if follow_ups:
+        yield _sse({"type": "follow_up", "questions": follow_ups})
 
     # assistant 메시지 DB 저장
     if full_response:
@@ -321,6 +334,55 @@ def _page_id_to_path(page_id: str) -> str | None:
         "home": "/",
     }
     return mapping.get(page_id)
+
+
+def _langgraph_ui_actions(
+    tools_called: list[str],
+    tool_results_raw: dict[str, str],
+) -> list[dict]:
+    """LangGraph fallback에서 tool 호출 결과 기반 ui_action 생성."""
+    import json as _json
+    actions: list[dict] = []
+
+    # analyze_correlation_tool → highlight_pair (상위 1쌍)
+    if "analyze_correlation_tool" in tools_called:
+        raw = tool_results_raw.get("analyze_correlation_tool", "")
+        try:
+            data = _json.loads(raw)
+            top_pairs = data.get("top_pairs", [])
+            if top_pairs:
+                pair = top_pairs[0]
+                actions.append({
+                    "type": "ui_action",
+                    "action": "highlight_pair",
+                    "payload": {
+                        "asset_a": pair["asset_a"],
+                        "asset_b": pair["asset_b"],
+                    },
+                })
+        except (ValueError, KeyError, TypeError):
+            pass
+
+    return actions
+
+
+def _infer_page_from_tools(tools_called: list[str], current_page: str) -> str:
+    """호출된 tool 이름에서 페이지 ID 추론."""
+    tool_page_map = {
+        "get_prices": "prices",
+        "analyze_correlation_tool": "correlation",
+        "get_correlation": "correlation",
+        "get_spread": "correlation",
+        "analyze_indicators": "indicators",
+        "get_signals": "indicators",
+        "get_factors": "indicators",
+        "backtest_strategy": "strategy",
+        "list_backtests": "strategy",
+    }
+    for tool in tools_called:
+        if tool in tool_page_map:
+            return tool_page_map[tool]
+    return current_page
 
 
 def _ensure_highlight_pair(

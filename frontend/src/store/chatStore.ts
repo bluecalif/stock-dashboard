@@ -10,6 +10,7 @@ interface ChatState {
   isPanelOpen: boolean;
   deepMode: boolean;
   statusMessage: string | null;
+  followUpQuestions: string[];
 
   // Actions
   togglePanel: () => void;
@@ -21,6 +22,7 @@ interface ChatState {
   selectSession: (sessionId: string) => Promise<void>;
   setStreaming: (v: boolean) => void;
   setStatusMessage: (msg: string | null) => void;
+  setFollowUpQuestions: (questions: string[]) => void;
   addUserMessage: (content: string) => void;
   appendAssistantDelta: (content: string) => void;
   finalizeAssistant: () => void;
@@ -35,6 +37,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isPanelOpen: false,
   deepMode: false,
   statusMessage: null,
+  followUpQuestions: [],
 
   togglePanel: () => set((s) => ({ isPanelOpen: !s.isPanelOpen })),
   toggleDeepMode: () => set((s) => ({ deepMode: !s.deepMode })),
@@ -64,6 +67,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setStreaming: (v) => set({ isStreaming: v }),
   setStatusMessage: (msg) => set({ statusMessage: msg }),
+  setFollowUpQuestions: (questions) => set({ followUpQuestions: questions }),
 
   addUserMessage: (content: string) => {
     const msg: ChatMessage = {

@@ -21,13 +21,14 @@ export interface SessionDetailResponse extends ChatSession {
 }
 
 export interface SSEEvent {
-  type: "text_delta" | "tool_call" | "tool_result" | "ui_action" | "status" | "done" | "error";
+  type: "text_delta" | "tool_call" | "tool_result" | "ui_action" | "status" | "follow_up" | "done" | "error";
   content?: string;
   name?: string;
   args?: Record<string, unknown>;
   data?: { step?: string; message?: string } & Record<string, unknown>;
   action?: string;
   payload?: Record<string, unknown>;
+  questions?: string[];
 }
 
 /** Backend에서 SSE로 전송하는 UI 액션 타입 */

@@ -1,4 +1,4 @@
-"""Chat service — LangGraph 오케스트레이션 + 하이브리드 분류기 + SSE 이벤트 생성."""
+"""Chat service — Agentic flow (Classifier → DataFetcher → Reporter) + LangGraph fallback."""
 
 from __future__ import annotations
 
@@ -12,16 +12,21 @@ from langchain_core.messages import HumanMessage
 from sqlalchemy.orm import Session
 
 from api.repositories import chat_repo
+from api.services.llm.agentic.classifier import classify_question as llm_classify
+from api.services.llm.agentic.data_fetcher import fetch_data
+from api.services.llm.agentic.reporter import generate_report
+from api.services.llm.agentic.schemas import CuratedReport
 from api.services.llm.graph import build_graph
-from api.services.llm.hybrid.classifier import classify_question
 from api.services.llm.hybrid.context import PageContext
-from api.services.llm.hybrid.templates import get_template_response
 from db.models import ChatSession
 
 logger = logging.getLogger(__name__)
 
-# 그래프 싱글톤 (MemorySaver 유지)
+# LangGraph 싱글톤 (MemorySaver 유지)
 _graph = None
+
+# Confidence threshold — 이 값 미만이면 LangGraph fallback
+_CONFIDENCE_THRESHOLD = 0.5
 
 
 def _get_graph():
@@ -30,6 +35,10 @@ def _get_graph():
         _graph = build_graph()
     return _graph
 
+
+# ---------------------------------------------------------------------------
+# Session CRUD (변경 없음)
+# ---------------------------------------------------------------------------
 
 def create_session(
     db: Session,
@@ -74,152 +83,29 @@ def list_sessions(
     return chat_repo.list_sessions_by_user(db, user_id)
 
 
-def _get_name_map(asset_ids: list[str]) -> dict[str, str]:
-    """종목명 매핑 조회 (템플릿 응답용)."""
-    from api.repositories import asset_repo
-    from db.session import SessionLocal
-
-    db = SessionLocal()
-    try:
-        return asset_repo.get_name_map(db, asset_ids)
-    finally:
-        db.close()
-
-
-def _resolve_name_to_id() -> dict[str, str]:
-    """종목명 → asset_id 역매핑 (넛지 질문에서 종목 추출용)."""
-    from api.repositories import asset_repo
-    from db.session import SessionLocal
-
-    db = SessionLocal()
-    try:
-        assets = asset_repo.get_all(db, is_active=True)
-        mapping: dict[str, str] = {}
-        for a in assets:
-            mapping[a.name] = a.asset_id
-            mapping[a.asset_id] = a.asset_id
-        return mapping
-    finally:
-        db.close()
-
-
-def _extract_pair_from_text(text: str) -> tuple[str, str] | None:
-    """질문 텍스트에서 두 종목을 추출하여 (asset_a, asset_b) 반환."""
-    name_to_id = _resolve_name_to_id()
-    found = []
-    # 긴 이름 먼저 매칭 (SK하이닉스 vs SK)
-    for name in sorted(name_to_id, key=len, reverse=True):
-        if name in text and name_to_id[name] not in found:
-            found.append(name_to_id[name])
-            if len(found) == 2:
-                return (found[0], found[1])
-    return None
-
-
-def _fetch_hybrid_data(
-    category: str, page_context: PageContext, question: str = "",
-) -> dict | None:
-    """하이브리드 분류기가 매칭한 카테고리에 대해 Tool 데이터를 가져온다."""
-    from api.services.llm.hybrid.classifier import (
-        CORRELATION_EXPLAIN,
-        INDICATOR_COMPARE,
-        INDICATOR_EXPLAIN,
-        SIGNAL_ACCURACY,
-        SIMILAR_ASSETS,
-        SPREAD_ANALYSIS,
-    )
-
-    try:
-        # ── Indicator page categories ──
-        if category in (INDICATOR_EXPLAIN, SIGNAL_ACCURACY, INDICATOR_COMPARE):
-            asset_id = (
-                page_context.asset_ids[0]
-                if page_context.asset_ids
-                else "KS200"
-            )
-            forward_days = page_context.params.get("forward_days", 5)
-            from api.services.llm.tools import analyze_indicators
-            raw = analyze_indicators.invoke({
-                "asset_id": asset_id,
-                "forward_days": forward_days,
-            })
-            data = json.loads(raw)
-            data["name_map"] = _get_name_map([asset_id])
-            return data
-
-        # ── Correlation page categories ──
-        if category == CORRELATION_EXPLAIN:
-            from api.services.llm.tools import analyze_correlation_tool
-            raw = analyze_correlation_tool.invoke({
-                "asset_ids": page_context.asset_ids or None,
-                "days": page_context.params.get("window", 60),
-            })
-            data = json.loads(raw)
-            # 종목명 매핑 추가
-            all_ids = set()
-            for g in data.get("groups", []):
-                all_ids.update(g.get("asset_ids", []))
-            for p in data.get("top_pairs", []):
-                all_ids.update([p["asset_a"], p["asset_b"]])
-            if all_ids:
-                data["name_map"] = _get_name_map(list(all_ids))
-            return data
-
-        if category == SIMILAR_ASSETS:
-            target = (
-                page_context.asset_ids[0]
-                if page_context.asset_ids
-                else "KS200"
-            )
-            from api.services.llm.tools import analyze_correlation_tool
-            raw = analyze_correlation_tool.invoke({
-                "asset_ids": None,
-                "target_id": target,
-            })
-            data = json.loads(raw)
-            data["target_id"] = target
-            # 종목명 매핑 추가
-            all_ids = {target}
-            for s in data.get("similar", []):
-                all_ids.add(s["asset_id"])
-            data["name_map"] = _get_name_map(list(all_ids))
-            return data
-
-        if category == SPREAD_ANALYSIS:
-            pair = page_context.params.get("selected_pair", [])
-            if len(pair) >= 2:
-                asset_a, asset_b = pair[0], pair[1]
-            elif len(page_context.asset_ids) >= 2:
-                asset_a, asset_b = page_context.asset_ids[0], page_context.asset_ids[1]
-            else:
-                # 질문 텍스트에서 종목 추출 시도
-                extracted = _extract_pair_from_text(question)
-                if extracted:
-                    asset_a, asset_b = extracted
-                else:
-                    return None  # 페어 정보 없으면 LLM fallback
-            from api.services.llm.tools import get_spread
-            raw = get_spread.invoke({
-                "asset_a": asset_a,
-                "asset_b": asset_b,
-                "days": page_context.params.get("window", 60),
-            })
-            data = json.loads(raw)
-            data["name_map"] = _get_name_map([asset_a, asset_b])
-            return data
-
-    except Exception:
-        logger.exception("Hybrid data fetch error for category=%s", category)
-        return None
-
-    return None
-
+# ---------------------------------------------------------------------------
+# SSE helpers
+# ---------------------------------------------------------------------------
 
 def _status_event(step: str, message: str) -> str:
     """status SSE 이벤트 생성."""
     evt = {"type": "status", "data": {"step": step, "message": message}}
     return f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
 
+
+def _chunk_text(text: str, size: int) -> list[str]:
+    """텍스트를 size 글자 단위로 분할 (SSE 스트리밍 시뮬레이션)."""
+    return [text[i:i + size] for i in range(0, len(text), size)]
+
+
+def _sse(evt: dict) -> str:
+    """SSE data line from dict."""
+    return f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+
+
+# ---------------------------------------------------------------------------
+# Main streaming function
+# ---------------------------------------------------------------------------
 
 async def stream_chat(
     db: Session,
@@ -231,7 +117,13 @@ async def stream_chat(
     page_context: dict | None = None,
     is_nudge: bool = False,
 ) -> AsyncGenerator[str, None]:
-    """하이브리드 분류기 → 템플릿 응답 / LangGraph fallback → SSE 이벤트 스트림."""
+    """Agentic flow → SSE 이벤트 스트림.
+
+    1. LLM Classifier: 질문 분류
+    2. confidence >= threshold AND category != general:
+       → DataFetcher → LLM Reporter → 구조화된 응답
+    3. else: LangGraph fallback (기존 agent+tools 루프)
+    """
     # 세션 소유권 검증
     session = chat_repo.get_session(db, session_id)
     if not session:
@@ -252,70 +144,82 @@ async def stream_chat(
     ctx = PageContext.from_dict(page_context)
     full_response = ""
 
-    # ── 1) 하이브리드 분류기 시도 ──
+    # ── Step 1: LLM Classifier ──
     yield _status_event("analyzing", "질문 분석 중...")
 
-    # is_nudge=True → regex 분류 시도, is_nudge=False → 바로 LLM fallback
-    if is_nudge:
-        category = classify_question(content, ctx)
-    else:
-        category = None
+    classification = await llm_classify(
+        question=content,
+        current_page=ctx.page_id,
+        asset_ids=ctx.asset_ids or None,
+        params=ctx.params or None,
+    )
 
-    # is_nudge인데 분류 실패 시 → 페이지별 기본 카테고리 적용
-    if not category and is_nudge:
-        from api.services.llm.hybrid.classifier import (
-            INDICATOR_EXPLAIN,
-            SIMILAR_ASSETS,
-        )
-        _page_defaults = {
-            "correlation": SIMILAR_ASSETS,
-            "indicators": INDICATOR_EXPLAIN,
-            "strategy": SIMILAR_ASSETS,
-        }
-        category = _page_defaults.get(ctx.page_id, SIMILAR_ASSETS)
+    logger.info(
+        "Classifier result: category=%s confidence=%.2f target_page=%s",
+        classification.category,
+        classification.confidence,
+        classification.target_page,
+    )
 
-    if category:
+    # ── Agentic flow or LangGraph fallback ──
+    use_agentic = (
+        classification.confidence >= _CONFIDENCE_THRESHOLD
+        and classification.category != "general"
+    )
+
+    if use_agentic:
+        # Navigate 액션 (페이지 이동이 필요한 경우)
+        if classification.should_navigate:
+            page_path = _page_id_to_path(classification.target_page)
+            if page_path:
+                yield _sse({
+                    "type": "ui_action",
+                    "action": "navigate",
+                    "payload": {"path": page_path},
+                })
+
+        # ── Step 2: DataFetcher ──
         yield _status_event("fetching", "데이터 조회 중...")
-        data = _fetch_hybrid_data(category, ctx, question=content)
-        if data:
-            result = get_template_response(category, ctx, data)
-            if result:
-                text, actions = result
-                full_response = text
+        tool_results = await fetch_data(classification)
 
-                # 텍스트 스트리밍 (청크 단위)
-                for chunk in _chunk_text(text, 80):
-                    evt = {"type": "text_delta", "content": chunk}
-                    yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-
-                # UI 액션 전송
-                for action in actions:
-                    evt = {"type": "ui_action", **action.to_dict()}
-                    yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-
-                # DB 저장 + done
-                if full_response:
-                    chat_repo.create_message(
-                        db, session_id=session_id, role="assistant",
-                        content=full_response,
-                    )
-                    db.commit()
-                yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                return
-
-    # is_nudge인데 여기까지 왔으면 데이터 fetch 실패 → LLM 방지
-    if is_nudge:
-        fallback_text = "죄송합니다. 데이터를 조회하지 못했습니다. 잠시 후 다시 시도해주세요."
-        evt = {"type": "text_delta", "content": fallback_text}
-        yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
-        chat_repo.create_message(
-            db, session_id=session_id, role="assistant", content=fallback_text,
+        # ── Step 3: LLM Reporter ──
+        yield _status_event("generating", "분석 리포트 생성 중...")
+        report = await generate_report(
+            category=classification.category,
+            tool_results=tool_results,
+            page_id=classification.target_page,
+            question=content,
+            deep_mode=deep_mode,
         )
-        db.commit()
-        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        # ── 응답 스트리밍 ──
+        full_response = _format_report(report)
+
+        for chunk in _chunk_text(full_response, 80):
+            yield _sse({"type": "text_delta", "content": chunk})
+
+        # UI 액션 전송
+        for action in report.ui_actions:
+            yield _sse({"type": "ui_action", **action.model_dump()})
+
+        # Follow-up 질문 전송
+        if report.follow_up_questions:
+            yield _sse({
+                "type": "follow_up",
+                "questions": report.follow_up_questions,
+            })
+
+        # DB 저장 + done
+        if full_response:
+            chat_repo.create_message(
+                db, session_id=session_id, role="assistant",
+                content=full_response,
+            )
+            db.commit()
+        yield _sse({"type": "done"})
         return
 
-    # ── 2) LangGraph fallback ──
+    # ── LangGraph fallback ──
     yield _status_event("thinking", "AI가 생각하고 있어요...")
     graph = _get_graph()
     thread_id = str(session_id)
@@ -339,32 +243,28 @@ async def stream_chat(
                 if chunk and hasattr(chunk, "content") and chunk.content:
                     text = chunk.content
                     full_response += text
-                    evt = {"type": "text_delta", "content": text}
-                    yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+                    yield _sse({"type": "text_delta", "content": text})
 
             elif kind == "on_tool_start":
-                evt = {
+                yield _sse({
                     "type": "tool_call",
                     "name": event["name"],
                     "args": event["data"].get("input", {}),
-                }
-                yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+                })
 
             elif kind == "on_tool_end":
                 raw_output = event["data"].get("output", "")
                 if hasattr(raw_output, "content"):
                     raw_output = raw_output.content
-                evt = {
+                yield _sse({
                     "type": "tool_result",
                     "name": event["name"],
                     "data": str(raw_output),
-                }
-                yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+                })
 
     except Exception:
         logger.exception("LangGraph stream error for session %s", session_id)
-        evt = {"type": "error", "content": "응답 생성 중 오류가 발생했습니다."}
-        yield f"data: {json.dumps(evt, ensure_ascii=False)}\n\n"
+        yield _sse({"type": "error", "content": "응답 생성 중 오류가 발생했습니다."})
 
     # assistant 메시지 DB 저장
     if full_response:
@@ -373,9 +273,28 @@ async def stream_chat(
         )
         db.commit()
 
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    yield _sse({"type": "done"})
 
 
-def _chunk_text(text: str, size: int) -> list[str]:
-    """텍스트를 size 글자 단위로 분할 (SSE 스트리밍 시뮬레이션)."""
-    return [text[i:i + size] for i in range(0, len(text), size)]
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _format_report(report: CuratedReport) -> str:
+    """CuratedReport를 텍스트로 포매팅."""
+    parts = [report.summary, "", report.analysis]
+    if report.verdict:
+        parts.extend(["", f"> {report.verdict}"])
+    return "\n".join(parts)
+
+
+def _page_id_to_path(page_id: str) -> str | None:
+    """page_id → React Router 경로."""
+    mapping = {
+        "prices": "/prices",
+        "correlation": "/correlation",
+        "indicators": "/indicators",
+        "strategy": "/strategy",
+        "home": "/",
+    }
+    return mapping.get(page_id)

@@ -7,6 +7,7 @@ interface UseSSECallbacks {
   onToolResult?: (name: string, data: unknown) => void;
   onUIAction?: (action: UIAction) => void;
   onStatus?: (step: string, message: string) => void;
+  onFollowUp?: (questions: string[]) => void;
   onDone?: () => void;
   onError?: (message: string) => void;
 }
@@ -81,6 +82,11 @@ export function useSSE() {
                   callbacks.onStatus?.(d?.step || "", d?.message || "");
                   break;
                 }
+                case "follow_up":
+                  if (event.questions && Array.isArray(event.questions)) {
+                    callbacks.onFollowUp?.(event.questions);
+                  }
+                  break;
                 case "done":
                   callbacks.onDone?.();
                   break;

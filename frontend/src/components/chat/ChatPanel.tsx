@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useChatStore } from "../../store/chatStore";
 import { useAuthStore } from "../../store/authStore";
 import { useChartActionStore } from "../../store/chartActionStore";
@@ -27,6 +27,8 @@ export default function ChatPanel() {
     selectSession,
     setStreaming,
     setStatusMessage,
+    setFollowUpQuestions,
+    followUpQuestions,
     addUserMessage,
     appendAssistantDelta,
     finalizeAssistant,
@@ -36,6 +38,7 @@ export default function ChatPanel() {
   const { push: pushAction, setHighlightedPair, setFilter } = useChartActionStore();
   const { startStream } = useSSE();
   const location = useLocation();
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   /** 현재 페이지 경로에서 page_id 추출 */
@@ -48,6 +51,9 @@ export default function ChatPanel() {
   const handleUIAction = useCallback(
     (action: UIAction) => {
       switch (action.action) {
+        case "navigate":
+          navigate(action.payload.path as string);
+          break;
         case "highlight_pair":
           setHighlightedPair({
             asset_a: action.payload.asset_a as string,
@@ -65,7 +71,7 @@ export default function ChatPanel() {
           break;
       }
     },
-    [pushAction, setHighlightedPair, setFilter],
+    [navigate, pushAction, setHighlightedPair, setFilter],
   );
 
   // 패널 열릴 때 세션 목록 로드
@@ -93,6 +99,7 @@ export default function ChatPanel() {
       addUserMessage(content);
       setStreaming(true);
       setStatusMessage(null);
+      setFollowUpQuestions([]);
 
       const pageContext = getPageContext();
       const { response, abort } = sendMessageSSE(
@@ -106,6 +113,7 @@ export default function ChatPanel() {
         },
         onStatus: (_step, message) => setStatusMessage(message),
         onUIAction: handleUIAction,
+        onFollowUp: (questions) => setFollowUpQuestions(questions),
         onDone: () => finalizeAssistant(),
         onError: (msg) => {
           appendAssistantDelta(`\n\n⚠️ 오류: ${msg}`);
@@ -126,6 +134,7 @@ export default function ChatPanel() {
       finalizeAssistant,
       getPageContext,
       handleUIAction,
+      setFollowUpQuestions,
     ],
   );
 
@@ -193,6 +202,21 @@ export default function ChatPanel() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Follow-up questions */}
+      {followUpQuestions.length > 0 && !isStreaming && (
+        <div className="border-t border-gray-100 px-3 py-2 flex flex-wrap gap-1.5">
+          {followUpQuestions.map((q, i) => (
+            <button
+              key={i}
+              onClick={() => handleSend(q)}
+              className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full px-3 py-1.5 transition-colors"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Input */}
       <ChatInput onSend={handleSend} disabled={isStreaming} deepMode={deepMode} onToggleDeepMode={toggleDeepMode} />

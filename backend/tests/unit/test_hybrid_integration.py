@@ -1,7 +1,6 @@
-"""Tests for C.7 하이브리드 → LangGraph 통합.
+"""Tests for chat_service agentic flow integration.
 
-- chat_service.stream_chat() 하이브리드 경로 테스트
-- page_context 전달 테스트
+- stream_chat() agentic 경로 테스트
 - LangGraph fallback 테스트
 - graph.py _build_system_prompt 테스트
 """
@@ -10,15 +9,19 @@ from __future__ import annotations
 
 import json
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from api.services.chat.chat_service import _chunk_text, _fetch_hybrid_data, stream_chat
+from api.services.chat.chat_service import _chunk_text, stream_chat
+from api.services.llm.agentic.schemas import (
+    ClassificationResult,
+    CuratedReport,
+    UIActionModel,
+)
 from api.services.llm.graph import _build_system_prompt
-from api.services.llm.hybrid.context import PageContext
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -84,40 +87,10 @@ class TestChunkText:
 
 
 # ---------------------------------------------------------------------------
-# _fetch_hybrid_data
+# stream_chat — agentic 경로
 # ---------------------------------------------------------------------------
 
-class TestFetchHybridData:
-    def test_unknown_category_returns_none(self):
-        ctx = PageContext(page_id="home")
-        assert _fetch_hybrid_data("unknown_category", ctx) is None
-
-    @patch("api.services.chat.chat_service.json")
-    def test_correlation_explain_calls_tool(self, mock_json):
-        mock_json.loads.return_value = {"groups": [], "top_pairs": []}
-        ctx = PageContext(page_id="correlation", asset_ids=["KS200"])
-
-        with patch(
-            "api.services.llm.tools.analyze_correlation_tool"
-        ) as mock_tool:
-            mock_tool.invoke.return_value = '{"groups":[],"top_pairs":[]}'
-            mock_json.loads.return_value = {"groups": [], "top_pairs": []}
-            result = _fetch_hybrid_data("correlation_explain", ctx)
-
-        assert result is not None
-        mock_tool.invoke.assert_called_once()
-
-    def test_spread_no_pair_returns_none(self):
-        ctx = PageContext(page_id="correlation", asset_ids=["KS200"])
-        result = _fetch_hybrid_data("spread_analysis", ctx)
-        assert result is None
-
-
-# ---------------------------------------------------------------------------
-# stream_chat — 하이브리드 경로
-# ---------------------------------------------------------------------------
-
-class TestStreamChatHybrid:
+class TestStreamChatAgentic:
     @patch("api.services.chat.chat_service.chat_repo")
     async def test_session_not_found(self, mock_repo, mock_db):
         mock_repo.get_session.return_value = None
@@ -131,66 +104,127 @@ class TestStreamChatHybrid:
             await gen.__anext__()
         assert exc_info.value.status_code == 404
 
-    @patch("api.services.chat.chat_service.get_template_response")
-    @patch("api.services.chat.chat_service._fetch_hybrid_data")
-    @patch("api.services.chat.chat_service.classify_question")
+    @patch("api.services.chat.chat_service.generate_report")
+    @patch("api.services.chat.chat_service.fetch_data")
+    @patch("api.services.chat.chat_service.llm_classify")
     @patch("api.services.chat.chat_service.chat_repo")
-    async def test_hybrid_path_returns_template(
-        self, mock_repo, mock_classify, mock_fetch, mock_template, mock_db,
+    async def test_agentic_path_returns_report(
+        self, mock_repo, mock_classify, mock_fetch, mock_report, mock_db,
     ):
-        """하이브리드 분류기 매칭 → 템플릿 응답 경로."""
+        """Classifier 높은 confidence → DataFetcher → Reporter 경로."""
         uid = uuid.uuid4()
         fake = _make_session(user_id=uid)
         mock_repo.get_session.return_value = fake
 
-        mock_classify.return_value = "correlation_explain"
-        mock_fetch.return_value = {"groups": [], "top_pairs": []}
+        mock_classify.return_value = ClassificationResult(
+            target_page="correlation",
+            should_navigate=False,
+            category="similar_assets",
+            required_tools=["analyze_correlation_tool"],
+            asset_ids=["KS200"],
+            params={},
+            confidence=0.9,
+        )
+        mock_fetch.return_value = {"analyze_correlation_tool": {}, "name_map": {}}
+        mock_report.return_value = CuratedReport(
+            summary="유사 자산 분석 결과입니다.",
+            analysis="## 유사 자산\n\nKS200과 유사한 자산 목록",
+            ui_actions=[
+                UIActionModel(
+                    action="highlight_pair",
+                    payload={"asset_a": "KS200", "asset_b": "005930"},
+                ),
+            ],
+            follow_up_questions=["스프레드도 볼까요?"],
+        )
 
-        mock_action = MagicMock()
-        mock_action.to_dict.return_value = {
-            "action": "highlight_pair",
-            "payload": {"asset_a": "KS200", "asset_b": "005930"},
-        }
-        mock_template.return_value = ("## 상관도 분석 결과", [mock_action])
-
-        page_ctx = {"page_id": "correlation", "asset_ids": [], "params": {}}
         events = []
         gen = stream_chat(
             mock_db,
             session_id=fake.id,
             user_id=uid,
-            content="상관관계 설명해줘",
-            page_context=page_ctx,
-            is_nudge=True,
+            content="유사 자산 추천해줘",
+            page_context={"page_id": "correlation", "asset_ids": ["KS200"], "params": {}},
         )
         async for event in gen:
             events.append(event)
 
-        # text_delta + ui_action + done
         event_types = []
         for e in events:
             data = json.loads(e.replace("data: ", "").strip())
             event_types.append(data["type"])
 
+        assert "status" in event_types  # analyzing, fetching, generating
         assert "text_delta" in event_types
         assert "ui_action" in event_types
+        assert "follow_up" in event_types
         assert event_types[-1] == "done"
 
         # assistant 메시지 DB 저장
         assert mock_repo.create_message.call_count == 2  # user + assistant
 
-    @patch("api.services.chat.chat_service._get_graph")
-    @patch("api.services.chat.chat_service.classify_question")
+    @patch("api.services.chat.chat_service.generate_report")
+    @patch("api.services.chat.chat_service.fetch_data")
+    @patch("api.services.chat.chat_service.llm_classify")
     @patch("api.services.chat.chat_service.chat_repo")
-    async def test_fallback_to_langgraph(
-        self, mock_repo, mock_classify, mock_graph, mock_db,
+    async def test_navigate_action_emitted(
+        self, mock_repo, mock_classify, mock_fetch, mock_report, mock_db,
     ):
-        """분류 실패 → LangGraph fallback."""
+        """should_navigate=True → navigate UI 액션 발생."""
         uid = uuid.uuid4()
         fake = _make_session(user_id=uid)
         mock_repo.get_session.return_value = fake
 
-        mock_classify.return_value = None  # 분류 실패
+        mock_classify.return_value = ClassificationResult(
+            target_page="correlation",
+            should_navigate=True,
+            category="similar_assets",
+            required_tools=[],
+            asset_ids=[],
+            params={},
+            confidence=0.85,
+        )
+        mock_fetch.return_value = {"name_map": {}}
+        mock_report.return_value = CuratedReport(
+            summary="요약", analysis="분석",
+        )
+
+        events = []
+        gen = stream_chat(
+            mock_db,
+            session_id=fake.id,
+            user_id=uid,
+            content="상관관계 보여줘",
+            page_context={"page_id": "prices"},
+        )
+        async for event in gen:
+            events.append(event)
+
+        # navigate action should be present
+        navigate_events = [
+            e for e in events
+            if "navigate" in e and "ui_action" in e
+        ]
+        assert len(navigate_events) == 1
+        data = json.loads(navigate_events[0].replace("data: ", "").strip())
+        assert data["payload"]["path"] == "/correlation"
+
+    @patch("api.services.chat.chat_service._get_graph")
+    @patch("api.services.chat.chat_service.llm_classify")
+    @patch("api.services.chat.chat_service.chat_repo")
+    async def test_fallback_to_langgraph(
+        self, mock_repo, mock_classify, mock_graph, mock_db,
+    ):
+        """낮은 confidence → LangGraph fallback."""
+        uid = uuid.uuid4()
+        fake = _make_session(user_id=uid)
+        mock_repo.get_session.return_value = fake
+
+        mock_classify.return_value = ClassificationResult(
+            target_page="home",
+            category="general",
+            confidence=0.3,
+        )
 
         mock_event = {
             "event": "on_chat_model_stream",
@@ -215,77 +249,98 @@ class TestStreamChatHybrid:
         async for event in gen:
             events.append(event)
 
-        # status(analyzing) + status(thinking) + text_delta + done
-        assert len(events) == 4
-        assert '"status"' in events[0]
-        assert '"text_delta"' in events[2]
+        event_types = [
+            json.loads(e.replace("data: ", "").strip())["type"]
+            for e in events
+        ]
+        # analyzing + thinking + text_delta + done
+        assert "status" in event_types
+        assert "text_delta" in event_types
+        assert event_types[-1] == "done"
 
-    @patch("api.services.chat.chat_service._fetch_hybrid_data")
-    @patch("api.services.chat.chat_service.classify_question")
     @patch("api.services.chat.chat_service._get_graph")
+    @patch("api.services.chat.chat_service.llm_classify")
     @patch("api.services.chat.chat_service.chat_repo")
-    async def test_hybrid_data_fail_falls_back(
-        self, mock_repo, mock_graph, mock_classify, mock_fetch, mock_db,
+    async def test_general_category_falls_back(
+        self, mock_repo, mock_classify, mock_graph, mock_db,
     ):
-        """넛지 분류 성공했지만 데이터 fetch 실패 → 에러 메시지 fallback."""
+        """category=general + high confidence → 여전히 LangGraph fallback."""
         uid = uuid.uuid4()
         fake = _make_session(user_id=uid)
         mock_repo.get_session.return_value = fake
 
-        mock_classify.return_value = "correlation_explain"
-        mock_fetch.return_value = None  # fetch 실패
+        mock_classify.return_value = ClassificationResult(
+            target_page="home",
+            category="general",
+            confidence=0.9,  # 높은 confidence지만 general
+        )
+
+        async def fake_stream(*args, **kwargs):
+            yield {
+                "event": "on_chat_model_stream",
+                "data": {"chunk": MagicMock(content="안녕하세요!")},
+            }
+
+        graph_instance = MagicMock()
+        graph_instance.astream_events = fake_stream
+        mock_graph.return_value = graph_instance
 
         events = []
         gen = stream_chat(
             mock_db,
             session_id=fake.id,
             user_id=uid,
-            content="상관관계 설명해줘",
-            page_context={"page_id": "correlation"},
-            is_nudge=True,
+            content="안녕하세요",
         )
         async for event in gen:
             events.append(event)
 
-        # status(analyzing) + status(fetching) + text_delta(에러 메시지) + done
-        assert len(events) == 4
+        assert "thinking" in str(events)  # LangGraph thinking status
 
+    @patch("api.services.chat.chat_service.llm_classify")
     @patch("api.services.chat.chat_service.chat_repo")
     async def test_no_page_context_defaults_home(self, mock_repo, mock_db):
-        """page_context 없이 호출 → home 기본값으로 분류기 실행."""
+        """page_context 없이 호출 → home 기본값으로 classifier 호출."""
         uid = uuid.uuid4()
         fake = _make_session(user_id=uid)
         mock_repo.get_session.return_value = fake
 
-        with patch(
-            "api.services.chat.chat_service.classify_question"
-        ) as mock_cls:
-            mock_cls.return_value = None
-            with patch("api.services.chat.chat_service._get_graph") as mock_g:
-                async def fake_stream(*args, **kwargs):
-                    yield {
-                        "event": "on_chat_model_stream",
-                        "data": {"chunk": MagicMock(content="ok")},
-                    }
-                gi = MagicMock()
-                gi.astream_events = fake_stream
-                mock_g.return_value = gi
+        mock_classify = AsyncMock(return_value=ClassificationResult(
+            target_page="home",
+            category="general",
+            confidence=0.0,
+        ))
 
-                events = []
-                gen = stream_chat(
-                    mock_db,
-                    session_id=fake.id,
-                    user_id=uid,
-                    content="hello",
-                    page_context=None,
-                    is_nudge=True,
-                )
-                async for event in gen:
-                    events.append(event)
+        with (
+            patch(
+                "api.services.chat.chat_service.llm_classify",
+                mock_classify,
+            ),
+            patch("api.services.chat.chat_service._get_graph") as mock_g,
+        ):
+            async def fake_stream(*args, **kwargs):
+                yield {
+                    "event": "on_chat_model_stream",
+                    "data": {"chunk": MagicMock(content="ok")},
+                }
+            gi = MagicMock()
+            gi.astream_events = fake_stream
+            mock_g.return_value = gi
 
-            # classify_question은 PageContext(page_id="home")으로 호출
-            call_args = mock_cls.call_args
-            assert call_args[0][1].page_id == "home"
+            events = []
+            gen = stream_chat(
+                mock_db,
+                session_id=fake.id,
+                user_id=uid,
+                content="hello",
+                page_context=None,
+            )
+            async for event in gen:
+                events.append(event)
+
+        # classifier가 current_page="home"으로 호출됨
+        call_kwargs = mock_classify.call_args[1]
+        assert call_kwargs["current_page"] == "home"
 
 
 # ---------------------------------------------------------------------------

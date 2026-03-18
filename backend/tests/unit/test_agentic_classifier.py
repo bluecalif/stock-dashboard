@@ -10,7 +10,6 @@ from api.services.llm.agentic.classifier import (
     _build_user_message,
     classify_question,
 )
-from api.services.llm.agentic.schemas import ClassificationResult
 
 
 class TestBuildUserMessage:

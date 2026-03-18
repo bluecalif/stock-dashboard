@@ -145,7 +145,7 @@ async def stream_chat(
     full_response = ""
 
     # ── Step 1: LLM Classifier ──
-    yield _status_event("analyzing", "질문 분석 중...")
+    yield _status_event("analyzing", "🔍 질문을 분석하고 있어요...")
 
     classification = await llm_classify(
         question=content,
@@ -184,11 +184,11 @@ async def stream_chat(
                     })
 
             # ── Step 2: DataFetcher ──
-            yield _status_event("fetching", "데이터 조회 중...")
+            yield _status_event("fetching", "📊 에이전트가 데이터를 수집하고 있어요...")
             tool_results = await fetch_data(classification)
 
             # ── Step 3: LLM Reporter ──
-            yield _status_event("generating", "분석 리포트 생성 중...")
+            yield _status_event("generating", "📝 에이전트가 리포트를 작성하고 있어요...")
             report = await generate_report(
                 category=classification.category,
                 tool_results=tool_results,
@@ -243,7 +243,7 @@ async def stream_chat(
             full_response = ""
 
     # ── LangGraph fallback ──
-    yield _status_event("thinking", "AI가 생각하고 있어요...")
+    yield _status_event("thinking", "💬 AI가 생각하고 있어요...")
     graph = _get_graph()
     thread_id = str(session_id)
     tools_called: list[str] = []

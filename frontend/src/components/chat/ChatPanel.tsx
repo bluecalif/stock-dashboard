@@ -113,7 +113,10 @@ export default function ChatPanel() {
         },
         onStatus: (_step, message) => setStatusMessage(message),
         onUIAction: handleUIAction,
-        onFollowUp: (questions) => setFollowUpQuestions(questions),
+        onFollowUp: (questions) => {
+          console.log("[ChatPanel] Setting follow-up questions:", questions);
+          setFollowUpQuestions(questions);
+        },
         onDone: () => finalizeAssistant(),
         onError: (msg) => {
           appendAssistantDelta(`\n\n⚠️ 오류: ${msg}`);

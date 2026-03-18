@@ -203,8 +203,12 @@ async def stream_chat(
             for chunk in _chunk_text(full_response, 80):
                 yield _sse({"type": "text_delta", "content": chunk})
 
-            # UI 액션 전송
-            for action in report.ui_actions:
+            # UI 액션 전송 (LLM 생성 + 프로그래밍적 보정)
+            ui_actions = list(report.ui_actions)
+            ui_actions = _ensure_highlight_pair(
+                ui_actions, classification, report,
+            )
+            for action in ui_actions:
                 yield _sse({"type": "ui_action", **action.model_dump()})
 
             # Follow-up 질문 전송 (LLM이 빈 배열이면 기본 질문 사용)
@@ -212,10 +216,13 @@ async def stream_chat(
                 classification.target_page,
             )
             if follow_ups:
+                logger.info("Sending follow_up SSE: %d questions", len(follow_ups))
                 yield _sse({
                     "type": "follow_up",
                     "questions": follow_ups,
                 })
+            else:
+                logger.warning("No follow_up questions to send")
 
             # DB 저장 + done
             if full_response:
@@ -314,6 +321,69 @@ def _page_id_to_path(page_id: str) -> str | None:
         "home": "/",
     }
     return mapping.get(page_id)
+
+
+def _ensure_highlight_pair(
+    ui_actions: list,
+    classification,
+    report,
+) -> list:
+    """상관도 카테고리에서 highlight_pair 누락 시 프로그래밍적으로 추가.
+
+    LLM이 ui_actions에 highlight_pair를 생성하지 않는 경우가 많으므로,
+    카테고리가 상관도 관련이고 분석 텍스트에서 자산 쌍을 추출할 수 있으면 추가.
+    """
+    from api.services.llm.agentic.schemas import UIActionModel
+
+    # 이미 highlight_pair가 있으면 그대로 반환
+    if any(a.action == "highlight_pair" for a in ui_actions):
+        return ui_actions
+
+    # 상관도 카테고리만 처리
+    corr_categories = {"correlation_explain", "similar_assets", "spread_analysis"}
+    if classification.category not in corr_categories:
+        return ui_actions
+
+    # asset_ids에서 상위 2개 자산 쌍 추출
+    asset_ids = classification.asset_ids or []
+    if len(asset_ids) >= 2:
+        ui_actions.append(UIActionModel(
+            action="highlight_pair",
+            payload={"asset_a": asset_ids[0], "asset_b": asset_ids[1]},
+        ))
+        logger.info(
+            "Injected highlight_pair: %s ↔ %s", asset_ids[0], asset_ids[1],
+        )
+    elif len(asset_ids) == 1:
+        # 단일 자산 → 분석 텍스트에서 가장 높은 상관 자산 추출 시도
+        top_pair_asset = _extract_top_correlated(report.analysis, asset_ids[0])
+        if top_pair_asset:
+            ui_actions.append(UIActionModel(
+                action="highlight_pair",
+                payload={"asset_a": asset_ids[0], "asset_b": top_pair_asset},
+            ))
+            logger.info(
+                "Injected highlight_pair (extracted): %s ↔ %s",
+                asset_ids[0], top_pair_asset,
+            )
+
+    return ui_actions
+
+
+def _extract_top_correlated(analysis_text: str, base_asset: str) -> str | None:
+    """분석 텍스트에서 상관계수 상위 항목의 asset_id를 추출."""
+    import re
+    # 알려진 자산 ID 패턴 매칭
+    known_ids = ["KS200", "005930", "000660", "SOXL", "BTC/KRW", "GC=F", "SI=F"]
+    for aid in known_ids:
+        if aid != base_asset and aid in analysis_text:
+            return aid
+    # 6자리 종목코드 패턴
+    codes = re.findall(r"\b(\d{6})\b", analysis_text)
+    for code in codes:
+        if code != base_asset:
+            return code
+    return None
 
 
 def _default_follow_ups(page_id: str) -> list[str]:

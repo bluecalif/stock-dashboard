@@ -1,6 +1,6 @@
 # Project Overall Tasks
 > Last Updated: 2026-03-17
-> Status: MVP 완료 (83/83), Phase A~E 완료, Phase F~G 미시작
+> Status: MVP 완료 (83/83), Phase A~E 완료, Phase F 계획 중, Phase G~H 미시작
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -143,8 +143,8 @@
 
 ## Post-MVP Phases (Phase A~F) — 계획
 
-> 구현 순서: A → B → C → D → E → F → G
-> Phase A, B: 완료. Phase C~E: 상세 확정 (31 Steps). Phase F~G: 진입 시 `/dev-docs`로 상세 기획.
+> 구현 순서: A → B → C → D → E → F → G → H
+> Phase A~E: 완료. Phase F: 상세 확정 (10 tasks). Phase G~H: 진입 시 `/dev-docs`로 상세 기획.
 
 ## Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16)
 > dev-docs: `dev/active/phaseA-auth/`
@@ -332,12 +332,36 @@
 ### Stage D: 통합 검증
 - [x] E.10 Phase E 통합 검증 `[M]` — `be8ecf1`
 
-## Phase F: Memory + Retrieval — ⬜ 미시작
-> 상세 태스크: Phase F dev-docs 생성 시 확정
+## Phase F: Full Agentic Flow — 📋 계획 중 (0/10)
+> dev-docs: `dev/active/phaseF-agentic/`
+> **파일 집계**: 신규 ~6 / 수정 ~6 / Migration 0
+
+### Stage A: 기반 정의
+- [ ] F.1 Pydantic 스키마 정의 (ClassificationResult, CuratedReport, UIActionModel) `[S]`
+- [ ] F.2 Knowledge Expert Prompts (Classifier + 4개 페이지 전문가) `[S]`
+
+### Stage B: 핵심 모듈 구현
+- [ ] F.3 LLM Classifier (Structured Output, gpt-5-mini) `[M]` — depends: F.1, F.2
+- [ ] F.4 DataFetcher (tool 프로그래밍적 호출, 동적 매핑) `[M]` — depends: F.1
+- [ ] F.5 LLM Reporter (Structured Output, knowledge prompt) `[M]` — depends: F.1, F.2
+
+### Stage C: 백엔드 통합
+- [ ] F.6 chat_service.py 통합 (agentic flow 전환) `[L]` — depends: F.3, F.4, F.5
+
+### Stage D: 프론트엔드 확장
+- [ ] F.7 follow_up SSE + 프론트엔드 UI `[S]` — depends: F.6
+- [ ] F.8 프론트엔드 navigate 핸들러 (즉시 이동) `[S]` — depends: F.6
+
+### Stage E: 정리 + 검증
+- [ ] F.9 레거시 코드 정리 (regex classifier, templates) `[S]` — depends: F.6~F.8
+- [ ] F.10 통합 검증 (pytest + tsc + vite + E2E) `[M]` — depends: F.1~F.9
+
+## Phase G: Memory + Retrieval — ⬜ 미시작
+> 상세 태스크: Phase G dev-docs 생성 시 확정
 > **파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
 
-## Phase G: Onboarding + 운영 안정화 — ⬜ 미시작
-> 상세 태스크: Phase G dev-docs 생성 시 확정
+## Phase H: Onboarding + 운영 안정화 — ⬜ 미시작
+> 상세 태스크: Phase H dev-docs 생성 시 확정
 > **파일 집계 (추정)**: 신규 ~10 / 수정 ~3 / Migration 1
 
 ---
@@ -365,7 +389,8 @@
 - **Phase D-rev**: 13 tasks (S:3, M:7, L:2) — 12/13 ✅ (DR.13 잔여)
 - **Phase D-improve**: 7 tasks — 7/7 ✅
 - **Phase E**: 10 tasks (S:2, M:3, L:3, XL:1) — 10/10 ✅
-- **Phase F~G**: 미정 (각 Phase 진입 시 확정)
+- **Phase F**: 10 tasks (S:5, M:4, L:1) — 0/10 📋
+- **Phase G~H**: 미정 (각 Phase 진입 시 확정)
 - **Post-MVP Phase C~E 파일 영향도**: 신규 ~32 / 수정 ~34 / Migration 0
 
 ### Grand Total
@@ -378,4 +403,5 @@
 - **Post-MVP Phase D-rev**: 12/13 ✅ (지표 피드백, DR.13 백필 잔여)
 - **Post-MVP Phase D-improve**: 7/7 ✅ (지표 추가 개선)
 - **Post-MVP Phase E**: 10/10 ✅ (전략 페이지)
-- **Post-MVP Phase F~G**: 태스크 상세 미확정
+- **Post-MVP Phase F**: 0/10 📋 (Agentic Flow)
+- **Post-MVP Phase G~H**: 태스크 상세 미확정

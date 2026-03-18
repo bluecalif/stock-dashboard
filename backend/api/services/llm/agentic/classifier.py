@@ -36,6 +36,8 @@ async def classify_question(
             model=settings.llm_lite_model,
             api_key=settings.openai_api_key,
             temperature=0,
+            max_retries=3,
+            request_timeout=10,
         )
         structured_llm = llm.with_structured_output(ClassificationResult)
         result: ClassificationResult = await structured_llm.ainvoke([

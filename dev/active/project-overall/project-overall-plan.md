@@ -1,6 +1,6 @@
 # Project Overall Plan
 > Last Updated: 2026-03-17
-> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F~G 미시작
+> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F 계획 중, Phase G~H 미시작
 
 ## 1. Summary (개요)
 
@@ -8,7 +8,7 @@
 
 **범위**:
 - **MVP (완료)**: Phase 0~7 — 수집 → 분석 → API → 대시보드 → 배포 → 자동 수집
-- **Post-MVP (계획)**: Phase A~G — 인증 → 챗봇 → 상관도 → 지표 → 전략 → 메모리/벡터 → 온보딩
+- **Post-MVP (계획)**: Phase A~H — 인증 → 챗봇 → 상관도 → 지표 → 전략 → **Agentic Flow** → 메모리/벡터 → 온보딩
 
 **MVP 결과물**:
 - FDR 기반 일봉 수집 파이프라인 ✅
@@ -65,8 +65,9 @@
 | **지표 페이지** | 성공률, 예측력 비교, 오버레이 차트, REST 분석 API | ✅ Phase D |
 | **지표 피드백** | 전략→지표 전환, 탭 통합, 레이아웃 개선, 정규화 버그 | ✅ Phase D-rev+improve |
 | **전략 페이지** | 전략 백테스트, 연간 성과, 이벤트 스토리텔링, 매매 마커 | ✅ Phase E |
-| **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase F |
-| **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase G |
+| **Agentic Flow** | 2-Step LLM (Classifier+Reporter) + 자동 네비게이션 | 📋 Phase F |
+| **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase G |
+| **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase H |
 
 ## 4. Implementation Phases (구현 단계)
 
@@ -107,7 +108,7 @@
 > 참조: `docs/post-mvp-implementation-sketch.md` (제품 요구사항)
 > 통합 계획: `docs/post-mvp-phaseCD-detail.md` (Phase C~E 상세)
 
-**구현 순서**: `A (Auth) → B (Chat) → C (상관도) → D (지표) → E (전략) → F (Memory+Vector) → G (Onboarding)`
+**구현 순서**: `A (Auth) → B (Chat) → C (상관도) → D (지표) → E (전략) → F (Agentic Flow) → G (Memory+Vector) → H (Onboarding)`
 **설계 원칙**: 기존 Phase C(분석 시나리오)+D(그래프 커스텀)를 **페이지별로 분리** — 각 페이지를 백엔드+프론트+챗봇까지 완결한 뒤 다음 페이지로 이동.
 
 #### Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16) [상세 확정]
@@ -315,10 +316,43 @@
 
 **파일 집계**: 신규 ~8 / 수정 ~8 / Migration 0
 
-#### Phase F: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+#### Phase F: Full Agentic Flow — 📋 계획 중 (10 tasks) [상세 확정]
+> dev-docs: `dev/active/phaseF-agentic/`
+
+**목적**: regex 분류기 + 하드코딩 템플릿을 **2-Step LLM Structured Output** (Classifier + Reporter)으로 교체, **자동 페이지 네비게이션** 구현
+
+**핵심 변경**:
+- LLM Classifier (gpt-5-mini, Structured Output) — regex 대체, 페이지 간 라우팅
+- LLM Reporter (gpt-5/gpt-5-mini, Structured Output) — 템플릿 대체, 큐레이팅된 분석
+- DataFetcher — 기존 9개 tool 프로그래밍적 호출 (동적 매핑)
+- 자동 네비게이션 — 즉시 페이지 이동 (ChatPanel navigate 핸들러)
+- follow-up 질문 — 동적 생성 + 인라인 버튼 UI
+- 기존 LangGraph — general fallback으로 유지
+
+**Backend 산출물**:
+- `api/services/llm/agentic/` 패키지 (schemas, classifier, data_fetcher, reporter, knowledge_prompts)
+- `api/services/chat/chat_service.py` 리팩토링 (agentic flow 통합)
+- Knowledge Expert Prompts 4종 (prices, correlation, indicators, strategy)
+
+**Frontend 산출물**:
+- ChatPanel navigate 핸들러 (즉시 이동)
+- follow-up 질문 인라인 버튼 UI
+- SSE follow_up 이벤트 파싱
+
+**설계 결정**:
+- LLM 호출 최대 2회 (Classifier + Reporter) — 다단계 에이전트 대비 레이턴시/비용 최소화
+- Classifier는 항상 gpt-5-mini (분류는 저비용 모델로 충분)
+- regex classifier + 하드코딩 템플릿 제거 (LLM 완전 대체)
+- is_nudge 파라미터 시그니처 유지, 내부 무시 (하위호환)
+- confidence < 0.5 시 LangGraph fallback
+- UIActionModel Literal 타입 제한 (LLM hallucination 방지)
+
+**파일 집계**: 신규 ~6 / 수정 ~6 / Migration 0
+
+#### Phase G: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 
 **사전 확인**: Railway PostgreSQL pgvector 지원 여부
-**상세 기획 시점**: Phase E 완료 후, dev-docs로 메모리 데이터 타입/embedding 대상 확정
+**상세 기획 시점**: Phase F 완료 후, dev-docs로 메모리 데이터 타입/embedding 대상 확정
 
 **예상 산출물**:
 - `user_memories`, `retrieval_chunks`, `analysis_snapshots` DB 테이블
@@ -327,13 +361,13 @@
 - LangGraph retrieval 노드 + 임베딩 인덱싱
 - 패키지: pgvector, langchain-community (pgvector retriever)
 
-**기술 결정**: pgvector (Railway 지원 여부 Phase F 전 확인), Embedding 모델 Phase F 진입 시 결정
+**기술 결정**: pgvector (Railway 지원 여부 Phase G 전 확인), Embedding 모델 Phase G 진입 시 결정
 **파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
 
-#### Phase G: Onboarding + 운영 안정화 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+#### Phase H: Onboarding + 운영 안정화 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
 
 **목적**: 사용자 온보딩 + 운영 방어
-**상세 기획 시점**: Phase F 완료 후, dev-docs로 온보딩 메뉴/질문 항목 확정
+**상세 기획 시점**: Phase G 완료 후, dev-docs로 온보딩 메뉴/질문 항목 확정
 
 **예상 산출물**:
 - `onboarding_profiles` DB 테이블

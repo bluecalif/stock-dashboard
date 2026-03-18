@@ -1,6 +1,6 @@
 # Project Overall Context
 > Last Updated: 2026-03-17
-> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F~G 미시작
+> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F 계획 중, Phase G~H 미시작
 
 ## 핵심 파일
 
@@ -21,6 +21,7 @@
 | `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs — ✅ 완료 |
 | `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs — 12/13 완료 |
 | `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs — ✅ 완료 |
+| `dev/active/phaseF-agentic/` | Phase F (Agentic Flow) dev-docs — 📋 계획 중 |
 
 ## 주요 결정사항
 
@@ -67,6 +68,13 @@
 | 1년단위 구간 평가 (E) | 연도별 전략 적합도 표시 | 수익률>0 AND win_rate>50% 기준 |
 | Best/Worst annotation (E) | 그래프 내 효과 큰/실패 구간 visual 삽입 | ReferenceArea + 금액 라벨 |
 | 위험회피 손실 회피 (E) | B&H 대비 절감된 손실 금액 표시 | ATR+vol 전략 전용 |
+| 2-Step LLM Agentic (F) | Classifier(gpt-5-mini) + Reporter(deep_mode 선택) | 다단계 에이전트 대비 레이턴시/비용 최소화, LLM 최대 2회 |
+| regex classifier 제거 (F) | LLM Structured Output으로 완전 대체 | 확장성 + 페이지 간 라우팅 가능 |
+| 자동 네비게이션 (F) | 즉시 이동 (확인 없음) | Agentic AI UX 극대화 |
+| 하드코딩 템플릿 제거 (F) | LLM Reporter로 대체 | 자연스러운 큐레이팅 분석 + 동적 follow-up |
+| is_nudge 하위호환 (F) | 파라미터 유지, 내부 무시 | 프론트/백 배포 시점 불일치 방지 |
+| confidence threshold (F) | 0.5 미만 시 LangGraph fallback | 분류 실패 안전망 |
+| UIActionModel Literal (F) | action 필드를 Literal 타입으로 제한 | LLM hallucination 방지 |
 
 ## 자산 목록
 
@@ -98,10 +106,10 @@
 11. `chat_sessions` — 채팅 세션 (Phase B)
 12. `chat_messages` — 채팅 메시지 (Phase B)
 13. `chart_presets` — 차트 프리셋 (Phase F 이후)
-14. `user_memories` — 사용자 메모리 (Phase F)
-15. `retrieval_chunks` — 벡터 임베딩 (Phase F)
-16. `analysis_snapshots` — 분석 스냅샷 (Phase F)
-17. `onboarding_profiles` — 온보딩 프로필 (Phase G)
+14. `user_memories` — 사용자 메모리 (Phase G)
+15. `retrieval_chunks` — 벡터 임베딩 (Phase G)
+16. `analysis_snapshots` — 분석 스냅샷 (Phase G)
+17. `onboarding_profiles` — 온보딩 프로필 (Phase H)
 
 ## API 엔드포인트
 
@@ -155,14 +163,14 @@
 | GET | `/v1/analysis/indicator-comparison` | 지표 예측력 비교 | D |
 | POST | `/v1/analysis/strategy-backtest` | 전략 백테스트 (indicator 시그널 기반, on-the-fly) | E |
 
-#### Memory / Onboarding API (Phase F~G)
+#### Memory / Onboarding API (Phase G~H)
 | Method | Path | Phase |
 |--------|------|-------|
-| GET/POST/DELETE | `/v1/memory` | F |
-| POST | `/v1/retrieval/query` | F |
-| POST | `/v1/onboarding/start` | G |
-| POST | `/v1/onboarding/answers` | G |
-| GET | `/v1/onboarding/profile` | G |
+| GET/POST/DELETE | `/v1/memory` | G |
+| POST | `/v1/retrieval/query` | G |
+| POST | `/v1/onboarding/start` | H |
+| POST | `/v1/onboarding/answers` | H |
+| GET | `/v1/onboarding/profile` | H |
 
 ## 프론트엔드 페이지
 
@@ -226,7 +234,10 @@
 - [x] Zustand watchlistStore (Phase C) ✅
 - [x] 하이브리드 분류기 (정규표현식+키워드) (Phase C) ✅
 - [x] 분석 REST API (Phase D~E) ✅
-- [x] LangGraph Tool 확장 (5→8개) (Phase C~E) ✅
+- [x] LangGraph Tool 확장 (5→9개) (Phase C~E) ✅
+- [ ] Agentic Flow: 2-Step LLM Structured Output (Phase F)
+- [ ] Agentic Flow: 자동 페이지 네비게이션 (Phase F)
+- [ ] Agentic Flow: 동적 follow-up 질문 (Phase F)
 - [ ] 사용자 데이터 user_id 기준 격리
 
 ## 배포 인프라

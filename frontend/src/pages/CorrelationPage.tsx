@@ -198,6 +198,7 @@ export default function CorrelationPage() {
                 matrix={data.matrix}
                 nameMap={nameMap}
                 onCellClick={(a, b) => setHighlightedPair({ asset_a: a, asset_b: b })}
+                highlightedPair={highlightedPair}
               />
               {highlightedPair && (
                 <div className="mt-2 flex items-center gap-2">

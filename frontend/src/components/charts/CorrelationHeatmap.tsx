@@ -5,6 +5,7 @@ interface Props {
   matrix: number[][];
   nameMap?: Record<string, string>;
   onCellClick?: (assetA: string, assetB: string) => void;
+  highlightedPair?: { asset_a: string; asset_b: string } | null;
 }
 
 /** -1(파랑) ~ 0(흰) ~ +1(빨강) 색상 보간 */
@@ -30,7 +31,7 @@ function textColor(value: number): string {
   return Math.abs(value) > 0.6 ? "#fff" : "#1f2937";
 }
 
-export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {}, onCellClick }: Props) {
+export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {}, onCellClick, highlightedPair }: Props) {
   const displayName = (id: string) => nameMap[id] || id;
   const [hovered, setHovered] = useState<{ row: number; col: number } | null>(
     null,
@@ -81,19 +82,26 @@ export default function CorrelationHeatmap({ assetIds, matrix, nameMap = {}, onC
             const isHovered =
               hovered !== null && hovered.row === i && hovered.col === j;
             const isClickable = i !== j && !!onCellClick;
+            const isHighlighted = highlightedPair != null && (
+              (assetIds[i] === highlightedPair.asset_a && assetIds[j] === highlightedPair.asset_b)
+              || (assetIds[i] === highlightedPair.asset_b && assetIds[j] === highlightedPair.asset_a)
+            );
             return (
               <div
                 key={`${i}-${j}`}
-                className="relative flex items-center justify-center border border-white transition-transform"
+                className="relative flex items-center justify-center border transition-transform"
                 style={{
                   width: cellSize,
                   height: cellSize,
                   flexShrink: 0,
                   backgroundColor: correlationColor(value),
                   color: textColor(value),
-                  transform: isHovered ? "scale(1.08)" : undefined,
-                  zIndex: isHovered ? 10 : undefined,
+                  transform: isHovered || isHighlighted ? "scale(1.08)" : undefined,
+                  zIndex: isHovered || isHighlighted ? 10 : undefined,
                   cursor: isClickable ? "pointer" : undefined,
+                  borderWidth: isHighlighted ? 2 : 1,
+                  borderColor: isHighlighted ? "#f59e0b" : "white",
+                  boxShadow: isHighlighted ? "0 0 8px rgba(245, 158, 11, 0.6)" : undefined,
                 }}
                 onMouseEnter={() => setHovered({ row: i, col: j })}
                 onMouseLeave={() => setHovered(null)}

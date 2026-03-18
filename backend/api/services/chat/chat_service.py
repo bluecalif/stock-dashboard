@@ -168,56 +168,72 @@ async def stream_chat(
     )
 
     if use_agentic:
-        # Navigate 액션 (페이지 이동이 필요한 경우)
-        if classification.should_navigate:
-            page_path = _page_id_to_path(classification.target_page)
-            if page_path:
+        try:
+            # Navigate 액션 — LLM 판단 + 결정적 보정 (target != current이면 항상 이동)
+            should_nav = (
+                classification.should_navigate
+                or classification.target_page != ctx.page_id
+            )
+            if should_nav and classification.target_page != ctx.page_id:
+                page_path = _page_id_to_path(classification.target_page)
+                if page_path:
+                    yield _sse({
+                        "type": "ui_action",
+                        "action": "navigate",
+                        "payload": {"path": page_path},
+                    })
+
+            # ── Step 2: DataFetcher ──
+            yield _status_event("fetching", "데이터 조회 중...")
+            tool_results = await fetch_data(classification)
+
+            # ── Step 3: LLM Reporter ──
+            yield _status_event("generating", "분석 리포트 생성 중...")
+            report = await generate_report(
+                category=classification.category,
+                tool_results=tool_results,
+                page_id=classification.target_page,
+                question=content,
+                deep_mode=deep_mode,
+            )
+
+            # ── 응답 스트리밍 ──
+            full_response = _format_report(report)
+
+            for chunk in _chunk_text(full_response, 80):
+                yield _sse({"type": "text_delta", "content": chunk})
+
+            # UI 액션 전송
+            for action in report.ui_actions:
+                yield _sse({"type": "ui_action", **action.model_dump()})
+
+            # Follow-up 질문 전송 (LLM이 빈 배열이면 기본 질문 사용)
+            follow_ups = report.follow_up_questions or _default_follow_ups(
+                classification.target_page,
+            )
+            if follow_ups:
                 yield _sse({
-                    "type": "ui_action",
-                    "action": "navigate",
-                    "payload": {"path": page_path},
+                    "type": "follow_up",
+                    "questions": follow_ups,
                 })
 
-        # ── Step 2: DataFetcher ──
-        yield _status_event("fetching", "데이터 조회 중...")
-        tool_results = await fetch_data(classification)
+            # DB 저장 + done
+            if full_response:
+                chat_repo.create_message(
+                    db, session_id=session_id, role="assistant",
+                    content=full_response,
+                )
+                db.commit()
+            yield _sse({"type": "done"})
+            return
 
-        # ── Step 3: LLM Reporter ──
-        yield _status_event("generating", "분석 리포트 생성 중...")
-        report = await generate_report(
-            category=classification.category,
-            tool_results=tool_results,
-            page_id=classification.target_page,
-            question=content,
-            deep_mode=deep_mode,
-        )
-
-        # ── 응답 스트리밍 ──
-        full_response = _format_report(report)
-
-        for chunk in _chunk_text(full_response, 80):
-            yield _sse({"type": "text_delta", "content": chunk})
-
-        # UI 액션 전송
-        for action in report.ui_actions:
-            yield _sse({"type": "ui_action", **action.model_dump()})
-
-        # Follow-up 질문 전송
-        if report.follow_up_questions:
-            yield _sse({
-                "type": "follow_up",
-                "questions": report.follow_up_questions,
-            })
-
-        # DB 저장 + done
-        if full_response:
-            chat_repo.create_message(
-                db, session_id=session_id, role="assistant",
-                content=full_response,
+        except Exception:
+            logger.exception(
+                "Agentic flow failed for session %s — falling back to LangGraph",
+                session_id,
             )
-            db.commit()
-        yield _sse({"type": "done"})
-        return
+            # agentic 실패 시 LangGraph fallback으로 계속 진행
+            full_response = ""
 
     # ── LangGraph fallback ──
     yield _status_event("thinking", "AI가 생각하고 있어요...")
@@ -298,3 +314,26 @@ def _page_id_to_path(page_id: str) -> str | None:
         "home": "/",
     }
     return mapping.get(page_id)
+
+
+def _default_follow_ups(page_id: str) -> list[str]:
+    """페이지별 기본 후속 질문 (LLM이 빈 배열 반환 시 fallback)."""
+    defaults: dict[str, list[str]] = {
+        "prices": [
+            "최근 수익률이 가장 높은 자산은?",
+            "변동성이 큰 자산을 비교해줘",
+        ],
+        "correlation": [
+            "가장 상관관계가 높은 자산 쌍은?",
+            "분산투자에 좋은 조합 추천해줘",
+        ],
+        "indicators": [
+            "현재 매수 신호가 나온 자산은?",
+            "RSI 과매도 구간 자산을 알려줘",
+        ],
+        "strategy": [
+            "수익률이 가장 높은 전략은?",
+            "최근 백테스트 결과를 요약해줘",
+        ],
+    }
+    return defaults.get(page_id, ["다른 자산에 대해 분석해줘", "더 자세히 설명해줘"])

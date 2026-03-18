@@ -41,6 +41,8 @@ async def generate_report(
             model=model_name,
             api_key=settings.openai_api_key,
             temperature=0.3,
+            max_retries=3,
+            request_timeout=30,
         )
         structured_llm = llm.with_structured_output(CuratedReport)
         result: CuratedReport = await structured_llm.ainvoke([

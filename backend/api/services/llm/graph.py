@@ -17,7 +17,23 @@ def _build_model(deep_mode: bool = False) -> ChatOpenAI:
     return ChatOpenAI(
         model=model_name,
         api_key=settings.openai_api_key,
+        max_retries=3,
+        request_timeout=30,
     )
+
+
+# 메시지 트리밍 — MemorySaver 토큰 누적 방지
+_MAX_MESSAGES = 20
+
+
+def _trim_messages(messages: list) -> list:
+    """최근 _MAX_MESSAGES개만 유지 (SystemMessage 항상 보존)."""
+    if len(messages) <= _MAX_MESSAGES:
+        return messages
+    # SystemMessage가 첫 번째이면 보존
+    if messages and isinstance(messages[0], SystemMessage):
+        return [messages[0]] + messages[-(_MAX_MESSAGES - 1):]
+    return messages[-_MAX_MESSAGES:]
 
 
 def _build_system_prompt(page_context: dict | None = None) -> str:
@@ -52,11 +68,13 @@ async def agent_node(state: MessagesState, config: dict | None = None) -> dict:
     page_context = configurable.get("page_context")
 
     model = _build_model(deep_mode).bind_tools(all_tools)
-    messages = state["messages"]
+    messages = list(state["messages"])
     # 시스템 프롬프트가 없으면 맨 앞에 추가
     if not messages or not isinstance(messages[0], SystemMessage):
         prompt = _build_system_prompt(page_context)
-        messages = [SystemMessage(content=prompt)] + list(messages)
+        messages = [SystemMessage(content=prompt)] + messages
+    # 토큰 누적 방지 트리밍
+    messages = _trim_messages(messages)
     response = await model.ainvoke(messages)
     return {"messages": [response]}
 

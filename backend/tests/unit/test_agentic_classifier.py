@@ -35,22 +35,21 @@ class TestBuildUserMessage:
 class TestClassifyQuestion:
     @pytest.mark.asyncio
     async def test_successful_classification(self):
-        mock_result = ClassificationResult(
-            target_page="correlation",
-            should_navigate=True,
-            category="similar_assets",
-            required_tools=["analyze_correlation_tool"],
-            asset_ids=["KS200"],
-            params={"days": 60},
-            confidence=0.9,
+        mock_json = (
+            '{"target_page": "correlation", "should_navigate": true,'
+            ' "category": "similar_assets",'
+            ' "required_tools": ["analyze_correlation_tool"],'
+            ' "asset_ids": ["KS200"], "params": {"days": 60},'
+            ' "confidence": 0.9}'
         )
+        mock_response = AsyncMock()
+        mock_response.content = mock_json
 
         with patch(
             "api.services.llm.agentic.classifier.ChatOpenAI",
         ) as mock_cls:
             mock_llm = mock_cls.return_value
-            mock_structured = AsyncMock(return_value=mock_result)
-            mock_llm.with_structured_output.return_value.ainvoke = mock_structured
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
 
             result = await classify_question(
                 "유사 자산 추천해줘",

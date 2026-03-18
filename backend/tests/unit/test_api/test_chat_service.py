@@ -149,12 +149,13 @@ async def test_stream_chat_success(mock_repo, mock_graph, mock_db):
     async for event in gen:
         events.append(event)
 
-    # status(analyzing) + status(thinking) + text_delta + done
-    assert len(events) == 4
+    # status(analyzing) + status(thinking) + text_delta + follow_up + done
+    assert len(events) == 5
     assert '"status"' in events[0]
     assert '"status"' in events[1]
     assert '"text_delta"' in events[2]
-    assert '"done"' in events[3]
+    assert '"follow_up"' in events[3]
+    assert '"done"' in events[4]
 
     # user 메시지 + assistant 메시지 저장
     assert mock_repo.create_message.call_count == 2

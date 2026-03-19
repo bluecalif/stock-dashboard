@@ -6,7 +6,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from db.models import ChatMessage, ChatSession
+from db.models import ChatMessage, ChatSession, ConversationSummary
 
 
 def create_session(
@@ -76,5 +76,46 @@ def list_messages_by_session(
         db.query(ChatMessage)
         .filter(ChatMessage.session_id == session_id)
         .order_by(ChatMessage.created_at.asc())
+        .all()
+    )
+
+
+# ── ConversationSummary ────────────────────────────────────────
+
+
+def upsert_summary(
+    db: Session,
+    *,
+    session_id: uuid.UUID,
+    summary_data: dict,
+) -> ConversationSummary:
+    """세션 요약 UPSERT (없으면 생성, 있으면 교체)."""
+    summary = (
+        db.query(ConversationSummary)
+        .filter(ConversationSummary.session_id == session_id)
+        .first()
+    )
+    if summary is None:
+        summary = ConversationSummary(session_id=session_id, summary_data=summary_data)
+        db.add(summary)
+    else:
+        summary.summary_data = summary_data
+    db.flush()
+    return summary
+
+
+def get_recent_summaries(
+    db: Session,
+    user_id: uuid.UUID,
+    *,
+    limit: int = 3,
+) -> list[ConversationSummary]:
+    """사용자의 최근 세션 요약 (최신순)."""
+    return (
+        db.query(ConversationSummary)
+        .join(ChatSession, ConversationSummary.session_id == ChatSession.id)
+        .filter(ChatSession.user_id == user_id)
+        .order_by(ConversationSummary.updated_at.desc())
+        .limit(limit)
         .all()
     )

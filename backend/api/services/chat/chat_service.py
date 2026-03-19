@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import uuid
@@ -11,7 +12,7 @@ from fastapi import HTTPException, status
 from langchain_core.messages import HumanMessage
 from sqlalchemy.orm import Session
 
-from api.repositories import chat_repo
+from api.repositories import chat_repo, profile_repo
 from api.services.llm.agentic.classifier import classify_question as llm_classify
 from api.services.llm.agentic.data_fetcher import fetch_data
 from api.services.llm.agentic.reporter import generate_report
@@ -27,6 +28,9 @@ _graph = None
 
 # Confidence threshold — 이 값 미만이면 LangGraph fallback
 _CONFIDENCE_THRESHOLD = 0.5
+
+# 요약 트리거 턴 간격
+_SUMMARY_TURN_INTERVAL = 5
 
 
 def _get_graph():
@@ -161,6 +165,9 @@ async def stream_chat(
         classification.target_page,
     )
 
+    # ── Activity tracking (비차단 — 실패해도 채팅 계속) ──
+    _track_activity(db, user_id, classification.category, classification.asset_ids, deep_mode)
+
     # ── Agentic flow or LangGraph fallback ──
     use_agentic = (
         classification.confidence >= _CONFIDENCE_THRESHOLD
@@ -245,6 +252,7 @@ async def stream_chat(
                 )
                 db.commit()
             yield _sse({"type": "done"})
+            _maybe_trigger_summary(db, session_id, user_id)
             return
 
         except Exception as exc:
@@ -330,6 +338,101 @@ async def stream_chat(
         db.commit()
 
     yield _sse({"type": "done"})
+    _maybe_trigger_summary(db, session_id, user_id)
+
+
+# ---------------------------------------------------------------------------
+# Summary trigger
+# ---------------------------------------------------------------------------
+
+def _maybe_trigger_summary(
+    db: Session,
+    session_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> None:
+    """user 메시지 수가 _SUMMARY_TURN_INTERVAL의 배수이면 백그라운드 요약 실행."""
+    try:
+        from db.models import ChatMessage
+        user_msg_count = (
+            db.query(ChatMessage)
+            .filter(ChatMessage.session_id == session_id, ChatMessage.role == "user")
+            .count()
+        )
+        if user_msg_count > 0 and user_msg_count % _SUMMARY_TURN_INTERVAL == 0:
+            messages = chat_repo.list_messages_by_session(db, session_id)
+            msg_dicts = [
+                {"role": m.role, "content": m.content or ""}
+                for m in messages
+            ]
+            asyncio.ensure_future(_run_summary(db, session_id, user_id, msg_dicts))
+    except Exception:
+        logger.warning("Summary trigger check failed for session %s", session_id, exc_info=True)
+
+
+async def _run_summary(
+    db: Session,
+    session_id: uuid.UUID,
+    user_id: uuid.UUID,
+    messages: list[dict[str, str]],
+) -> None:
+    """백그라운드 요약 실행 + DB 저장 + user_profile 갱신."""
+    try:
+        from api.services.chat.summarizer import summarize_session
+
+        summary_data = await summarize_session(messages)
+        chat_repo.upsert_summary(db, session_id=session_id, summary_data=summary_data)
+
+        # user_profile의 top_assets, top_categories 갱신
+        assets = summary_data.get("assets_discussed", [])
+        categories = summary_data.get("categories_used", [])
+        if assets or categories:
+            update_kwargs: dict = {}
+            if assets:
+                update_kwargs["top_assets"] = assets
+            if categories:
+                update_kwargs["top_categories"] = categories
+            if update_kwargs:
+                profile_repo.upsert_profile(db, user_id=user_id, **update_kwargs)
+
+        db.commit()
+        turns = summary_data.get("turn_count", 0)
+        logger.info("Session %s summary saved (%d turns)", session_id, turns)
+    except Exception:
+        logger.warning("Background summary failed for session %s", session_id, exc_info=True)
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Activity tracking
+# ---------------------------------------------------------------------------
+
+def _track_activity(
+    db: Session,
+    user_id: uuid.UUID,
+    category: str,
+    asset_ids: list[str] | None,
+    deep_mode: bool,
+) -> None:
+    """질문 카운터, 자산 조회수, deep_mode 카운터 증가 (실패 무시)."""
+    try:
+        profile_repo.increment_activity(db, user_id=user_id, path="total_questions")
+        profile_repo.increment_activity(
+            db, user_id=user_id, path=f"question_categories.{category}",
+        )
+        if deep_mode:
+            profile_repo.increment_activity(db, user_id=user_id, path="deep_mode_count")
+        for aid in asset_ids or []:
+            safe_aid = aid.replace("/", "_").replace("=", "_")
+            profile_repo.increment_activity(
+                db, user_id=user_id, path=f"asset_views.{safe_aid}",
+            )
+        db.commit()
+    except Exception:
+        logger.warning("Activity tracking failed for user %s", user_id, exc_info=True)
+        db.rollback()
 
 
 # ---------------------------------------------------------------------------

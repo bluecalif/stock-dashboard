@@ -70,7 +70,6 @@ export function useSSE() {
                   callbacks.onToolResult?.(event.name || "", event.data);
                   break;
                 case "ui_action":
-                  console.log("[SSE] ui_action event received:", event.action, event.payload);
                   if (event.action) {
                     callbacks.onUIAction?.({
                       action: event.action as UIAction["action"],

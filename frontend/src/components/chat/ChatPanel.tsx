@@ -114,7 +114,6 @@ export default function ChatPanel() {
         onStatus: (_step, message) => setStatusMessage(message),
         onUIAction: handleUIAction,
         onFollowUp: (questions) => {
-          console.log("[ChatPanel] Setting follow-up questions:", questions);
           setFollowUpQuestions(questions);
         },
         onDone: () => finalizeAssistant(),

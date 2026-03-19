@@ -1,63 +1,71 @@
 # Session Compact
 
-> Generated: 2026-03-19 14:00
-> Source: Phase F 완료 — DataFetcher ValueError 수정 + 에러 로깅 강화
+> Generated: 2026-03-19 19:00
+> Source: Phase G Stage G-1 + G-2 구현 완료
 
 ## Goal
-Phase F E2E 프로덕션 버그 수정 완료. Agentic flow (Classifier → DataFetcher → Reporter) 프로덕션 정상 동작 확인.
+Phase G "User Context & Guided Experience" 구현: G-1 (User Profile & Behavior Tracking) + G-2 (Conversation Memory) + G-3 (Context-Aware Response).
 
 ## Completed
-- [x] 529 에러 수정: max_retries=3, request_timeout=10/30, 메시지 트리밍
-- [x] `_default_follow_ups` 함수 추가 (NameError 해결)
-- [x] Classifier: `with_structured_output` → JSON mode 전환 (근본 원인 해결)
-- [x] Reporter: `with_structured_output` → JSON mode 전환 (같은 문제)
-- [x] LangGraph fallback에 follow_up + highlight_pair 후처리 추가
-- [x] highlight_pair 프로그래밍적 주입 (`_ensure_highlight_pair`)
-- [x] Status 메시지 구분: 📊 에이전트 vs 💬 AI
-- [x] CorrelationHeatmap에 highlight 시각 효과 추가 (gold border, scale, shadow)
-- [x] CorrelationPage에서 highlightedPair store 연결
-- [x] CI 테스트 수정 (classifier/reporter mock → JSON mode 패턴)
-- [x] Railway Git 연동 설정 (CLI → GitHub push 자동 배포)
-- [x] **DataFetcher asset_ids<2 ValueError 수정** — 1개 자산 시 전체 활성 자산 사용
-- [x] **에러 로깅 강화** — data_fetcher, chat_service, reporter 4곳 상세 로깅
-- [x] **E2E 프로덕션 검증 완료** — 모든 항목 정상 동작
+- [x] 디버그 console.log 제거 (useSSE.ts, ChatPanel.tsx)
+- [x] **Stage G-1 완료 (9/9)**: DB 모델 + 마이그레이션 + Repository + 스키마 + API + chat_service Activity + Ice-breaking 모달 + usePageTracking + 테스트 18개
+- [x] **Stage G-2 완료 (5/5)**: ConversationSummary 모델 + 마이그레이션 + chat_repo 확장 + summarizer.py + stream_chat 5턴 요약 트리거 + 테스트 8개
 
 ## Current State
 
 ### Git 상태
-- 최신 커밋: `9511cf2` (master, push 완료)
-- CI 통과 → Railway 자동 배포 완료
+- 최신 커밋: `edd06f8` (master) + 미커밋 변경 (G-1, G-2 구현)
+- 834 tests, ruff clean
 
-### 프로덕션 E2E 검증 결과 (배포 `9511cf2` 기준)
-- ✅ 529 에러: 해결됨
-- ✅ Classifier: JSON mode 정상 작동
-- ✅ Reporter: JSON mode 리포트 생성 성공
-- ✅ DataFetcher: analyze_correlation_tool 정상 호출
-- ✅ Follow-up 버튼: 표시됨
-- ✅ Status 메시지: 📊 에이전트 단계별 표시
-- ✅ highlight_pair: 상관 쌍 하이라이트 정상
-- ✅ navigate: 자동 페이지 이동 정상
+### 생성된 파일 (신규)
+- `backend/api/repositories/profile_repo.py` — Profile/Activity CRUD
+- `backend/api/schemas/profile.py` — Pydantic 스키마
+- `backend/api/routers/profile.py` — Profile API (4 endpoints)
+- `backend/api/services/chat/summarizer.py` — LLM 세션 요약
+- `backend/db/alembic/versions/b3f1a2c4e567_*.py` — user_profiles + user_activity 마이그레이션
+- `backend/db/alembic/versions/c4d2e5f6a789_*.py` — conversation_summaries 마이그레이션
+- `frontend/src/types/profile.ts` — TypeScript 타입
+- `frontend/src/api/profile.ts` — API 클라이언트
+- `frontend/src/store/profileStore.ts` — Zustand 스토어
+- `frontend/src/components/onboarding/IceBreakingModal.tsx` — 2문항 모달
+- `frontend/src/hooks/usePageTracking.ts` — 페이지 방문 추적
+- `backend/tests/unit/test_api/test_profile_router.py` — 10 tests
+- `backend/tests/unit/test_api/test_repositories/test_profile_repo.py` — 8 tests
+- `backend/tests/unit/test_api/test_repositories/test_chat_repo_summary.py` — 5 tests
+- `backend/tests/unit/test_api/test_summarizer.py` — 3 tests
 
-### 인프라 상태
-- **Railway**: Git 연동 완료 (GitHub push → CI → 자동 배포)
-- **Vercel**: Git 연동 완료 (GitHub push → 자동 배포)
-- **CI**: GitHub Actions — test job (pytest + ruff) → deploy-railway + deploy-vercel
+### 수정된 파일
+- `backend/db/models.py` — UserProfile, UserActivity, ConversationSummary 모델 추가
+- `backend/api/main.py` — profile router 등록
+- `backend/api/repositories/chat_repo.py` — summary CRUD 추가
+- `backend/api/services/chat/chat_service.py` — activity tracking + 5턴 요약 트리거
+- `frontend/src/App.tsx` — IceBreaking 모달 + profileStore 통합
+- `frontend/src/components/layout/Layout.tsx` — usePageTracking 통합
+- `frontend/src/hooks/useSSE.ts` — console.log 제거
+- `frontend/src/components/chat/ChatPanel.tsx` — console.log 제거
 
-## Remaining / TODO (Minor cleanup)
-- [ ] 디버그 console.log 제거 (useSSE.ts:73, ChatPanel.tsx:117)
-- [ ] dev docs 업데이트 (Phase G 계획)
+## Remaining / TODO
+- [ ] **Phase G-3 구현 시작** (6 tasks)
+  - G.15 UserContext 구조 + Classifier 프롬프트 수정
+  - G.16 Reporter 프롬프트 수정
+  - G.17 stream_chat UserContext 파이프라인 연결
+  - G.18 Dynamic Nudge + "unsupported" 카테고리
+  - G.19 Frontend: PageGuide 컴포넌트
+  - G.20 G-3 테스트 + 통합 검증
 
 ## Key Decisions
-- **with_structured_output → JSON mode**: LangChain의 `with_structured_output(Pydantic)`이 프로덕션에서 실패. `response_format=json_object` + 수동 파싱으로 전환.
-- **asset_ids<2 방어**: Classifier가 1개 자산만 반환 시 correlation tool에 None 전달 → 전체 활성 자산 사용
-- **Railway Git 연동**: `railway up` CLI → GitHub push 자동 배포로 전환
-- **Status 메시지 구분**: Agentic(📊📝) vs Fallback(💬)
+- **Phase G+H 통합**: H(Onboarding)는 G(Memory)의 선행 조건이므로 단일 Phase로 통합
+- **pgvector 미사용**: 7자산×5페이지 한정 도메인에서 구조화 쿼리가 더 정확/빠름
+- **JSONB 집계**: user_activity는 1 row per user, 카운터 increment 방식
+- **Ice-breaking 2문항**: 경험 수준 + 의사결정 성향
+- **Lazy creation**: 기존 users 대상 data migration 불필요. 첫 접근 시 UPSERT
+- **gpt-4o-mini 요약**: 5턴마다 자동 세션 요약, done SSE 후 백그라운드 실행
+- **하위 호환**: 모든 새 파라미터 default=None → 기존 808 테스트 영향 없음
+- **Activity tracking 비차단**: try/except + rollback, 실패해도 채팅 흐름 유지
 
 ## Context
 - 다음 세션에서는 답변에 한국어를 사용하세요.
-- **Phase F 완료**: 10/10 tasks, 808 tests passed, E2E 검증 완료
-- **Railway 배포 파이프라인**: GitHub push → CI (ruff + pytest) → Railway 자동 배포
-- **피드백 원본**: `docs/post-mvp-feedback.md`
+- **Phase G dev-docs**: `dev/active/phaseG-context/` (4개 파일)
 
 ## Project Status
 
@@ -68,16 +76,13 @@ Phase F E2E 프로덕션 버그 수정 완료. Agentic flow (Classifier → Data
 | Phase B Chatbot | ✅ 완료 | 19/19 tasks |
 | Phase C 상관도 | ✅ 완료 | 12/12 Steps |
 | Phase C-rev 피드백 | ✅ 완료 | 7/7 Tasks |
-| Phase C-rev2 피드백 | ✅ 완료 | 4/4 Tasks + 품질 개선 |
+| Phase C-rev2 피드백 | ✅ 완료 | 4/4 Tasks |
 | Phase D 지표 | ✅ 완료 | 12/12 Tasks |
 | Phase D-rev 피드백 | ✅ 완료 | 13/13 Tasks |
-| Phase D-improve | ✅ 완료 | 7/7 Tasks + E2E 수정 |
+| Phase D-improve | ✅ 완료 | 7/7 Tasks |
 | Phase E 전략 | ✅ 완료 | 10/10 Tasks |
-| Phase F Agentic | ✅ 완료 | 10/10 Tasks + E2E 버그 수정 |
-| Phase G~H | ⬜ 미시작 | Memory/Onboarding |
+| Phase F Agentic | ✅ 완료 | 10/10 Tasks |
+| Phase G Context | 🔨 구현 중 | 14/20 tasks (G-1 ✅, G-2 ✅, G-3 미시작) |
 
 ## Next Action
-**Phase G: Memory + Retrieval** 진입 준비:
-1. Railway PostgreSQL pgvector 지원 확인
-2. `/dev-docs`로 Phase G 상세 기획
-3. 메모리 데이터 타입/embedding 대상 확정
+**Phase G-3 구현**: G.15 (UserContext 구조 + Classifier 프롬프트 수정)부터 시작.

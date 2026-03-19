@@ -2,8 +2,10 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import ChatPanel from "../chat/ChatPanel";
 import { useChatStore } from "../../store/chatStore";
+import { usePageTracking } from "../../hooks/usePageTracking";
 
 export default function Layout() {
+  usePageTracking();
   const togglePanel = useChatStore((s) => s.togglePanel);
   const isPanelOpen = useChatStore((s) => s.isPanelOpen);
 

@@ -246,3 +246,48 @@ class ChatMessage(Base):
     __table_args__ = (
         Index("ix_chat_messages_session_id", "session_id"),
     )
+
+
+# ── Profile 테이블 ────────────────────────────────────────────
+
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    experience_level: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    decision_style: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    onboarding_completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    ice_breaking_raw: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    preferred_depth: Mapped[str] = mapped_column(String(20), default="brief")
+    top_assets: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    top_categories: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    updated_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class UserActivity(Base):
+    __tablename__ = "user_activity"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    activity_data: Mapped[dict] = mapped_column(JSON, default=dict)
+    updated_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ConversationSummary(Base):
+    __tablename__ = "conversation_summaries"
+
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"), primary_key=True
+    )
+    summary_data: Mapped[dict] = mapped_column(JSON, nullable=False)
+    updated_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )

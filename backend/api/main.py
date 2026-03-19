@@ -20,6 +20,7 @@ from api.routers import (
     factors,
     health,
     prices,
+    profile,
     signals,
 )
 from config.settings import settings
@@ -103,3 +104,4 @@ app.include_router(backtests.router)
 app.include_router(dashboard.router)
 app.include_router(correlation.router)
 app.include_router(chat.router)
+app.include_router(profile.router)

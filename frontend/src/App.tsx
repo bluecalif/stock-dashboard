@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import IceBreakingModal from "./components/onboarding/IceBreakingModal";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -10,16 +11,29 @@ import CorrelationPage from "./pages/CorrelationPage";
 import IndicatorSignalPage from "./pages/IndicatorSignalPage";
 import StrategyPage from "./pages/StrategyPage";
 import { useAuthStore } from "./store/authStore";
+import { useProfileStore } from "./store/profileStore";
 
 export default function App() {
   const loadUser = useAuthStore((s) => s.loadUser);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const loadProfile = useProfileStore((s) => s.loadProfile);
+  const profile = useProfileStore((s) => s.profile);
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
+  useEffect(() => {
+    if (accessToken) {
+      loadProfile();
+    }
+  }, [accessToken, loadProfile]);
+
+  const showIceBreaking = !!accessToken && profile !== null && !profile.onboarding_completed;
+
   return (
     <BrowserRouter>
+      {showIceBreaking && <IceBreakingModal />}
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />

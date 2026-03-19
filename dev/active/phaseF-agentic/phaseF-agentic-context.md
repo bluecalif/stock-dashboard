@@ -1,6 +1,6 @@
 # Phase F: Full Agentic Flow — Context
-> Last Updated: 2026-03-18
-> Status: Planning
+> Last Updated: 2026-03-19
+> Status: Complete
 
 ## 1. 핵심 파일
 
@@ -118,7 +118,7 @@
 
 ### 이 Phase에 적용되는 규칙
 - [x] Pydantic v2 스키마 (ClassificationResult, CuratedReport)
-- [x] OpenAI Structured Output (with_structured_output)
+- [x] OpenAI JSON mode (with_structured_output → response_format=json_object 전환)
 - [x] SSE 이벤트 포맷 일관성 (text_delta, ui_action, status, done + follow_up 추가)
 - [x] 한국어 응답 (Reporter 프롬프트에 명시)
 - [x] Router-Service-Repository 패턴 유지 (chat_service.py → agentic 모듈)
@@ -126,10 +126,10 @@
 - [x] 기존 테스트 보호 (hybrid 코드 단계적 정리)
 - [x] 면책조항 포함 (Reporter 프롬프트)
 - [x] 종목 코드 → 종목명 표시 (DataFetcher에서 name_map 포함)
-- [ ] E2E 통합 검증 (F.10)
+- [x] E2E 통합 검증 (F.10) — 프로덕션 배포 + E2E 검증 완료
 
 ### 신규 컨벤션
 - **agentic 패키지 구조**: `backend/api/services/llm/agentic/` 하위에 모듈 배치
-- **Structured Output**: Pydantic 모델을 `with_structured_output()`에 직접 전달
+- **JSON mode**: `response_format=json_object` + 수동 파싱 (with_structured_output 프로덕션 실패로 전환)
 - **confidence threshold**: 0.5 미만 시 LangGraph fallback
 - **SSE follow_up 이벤트**: `{"type": "follow_up", "questions": [...]}`

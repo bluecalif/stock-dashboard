@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-03-17
-> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F 계획 중, Phase G~H 미시작
+> Last Updated: 2026-03-19
+> Status: MVP 완료 (Phase 0~7), Phase A~F 완료, Phase G~H 미시작
 
 ## 핵심 파일
 
@@ -21,7 +21,7 @@
 | `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs — ✅ 완료 |
 | `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs — 12/13 완료 |
 | `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs — ✅ 완료 |
-| `dev/active/phaseF-agentic/` | Phase F (Agentic Flow) dev-docs — 📋 계획 중 |
+| `dev/active/phaseF-agentic/` | Phase F (Agentic Flow) dev-docs — ✅ 완료 |
 
 ## 주요 결정사항
 
@@ -75,6 +75,8 @@
 | is_nudge 하위호환 (F) | 파라미터 유지, 내부 무시 | 프론트/백 배포 시점 불일치 방지 |
 | confidence threshold (F) | 0.5 미만 시 LangGraph fallback | 분류 실패 안전망 |
 | UIActionModel Literal (F) | action 필드를 Literal 타입으로 제한 | LLM hallucination 방지 |
+| with_structured_output 폐기 (F) | JSON mode(`response_format=json_object`) + 수동 파싱 | 프로덕션에서 `with_structured_output` 지속 실패 |
+| DataFetcher asset_ids 방어 (F) | 상관 tool에 2개 미만 자산 시 None 전달 (전체 자산) | LLM 출력 validation 필수 |
 
 ## 자산 목록
 
@@ -235,9 +237,9 @@
 - [x] 하이브리드 분류기 (정규표현식+키워드) (Phase C) ✅
 - [x] 분석 REST API (Phase D~E) ✅
 - [x] LangGraph Tool 확장 (5→9개) (Phase C~E) ✅
-- [ ] Agentic Flow: 2-Step LLM Structured Output (Phase F)
-- [ ] Agentic Flow: 자동 페이지 네비게이션 (Phase F)
-- [ ] Agentic Flow: 동적 follow-up 질문 (Phase F)
+- [x] Agentic Flow: 2-Step LLM JSON mode (Phase F) ✅
+- [x] Agentic Flow: 자동 페이지 네비게이션 (Phase F) ✅
+- [x] Agentic Flow: 동적 follow-up 질문 (Phase F) ✅
 - [ ] 사용자 데이터 user_id 기준 격리
 
 ## 배포 인프라

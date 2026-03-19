@@ -1,6 +1,6 @@
 # Phase F: Full Agentic Flow — Tasks
-> Last Updated: 2026-03-18
-> Status: In Progress (F.1~F.8 완료)
+> Last Updated: 2026-03-19
+> Status: Complete (10/10)
 > Total: 10 tasks (S:5, M:4, L:1)
 
 ## Stage A: 기반 정의
@@ -76,19 +76,18 @@
   - hybrid/templates.py — get_nudge_questions만 유지, 나머지 제거
   - 기존 hybrid 관련 테스트 업데이트/제거
 
-- [x] F.10 통합 검증 `[M]` — depends: F.1~F.9
-  - Backend: python -m pytest 전체 통과
-  - Backend: ruff check . clean
-  - Frontend: tsc --noEmit 0 errors
-  - Frontend: vite build 성공
+- [x] F.10 통합 검증 `[M]` — depends: F.1~F.9 — `9511cf2`
+  - Backend: 808 passed, ruff clean
+  - Frontend: tsc 0 errors, vite build 성공
   - E2E 수동 테스트:
-    - [ ] correlation에서 "유사 자산 추천" → agentic flow + highlight_pair
-    - [ ] prices에서 "상관관계 보여줘" → 자동 navigate(/correlation) + 분석 결과
-    - [ ] "안녕하세요" → LangGraph fallback
-    - [ ] 넛지 클릭 → agentic flow (is_nudge 무관)
-    - [ ] follow-up 버튼 클릭 → 새 질문 전송
-    - [ ] deep mode 토글 → Reporter가 gpt-5 사용
-  - Vercel + Railway 프로덕션 배포
+    - [x] correlation에서 "유사 자산 추천" → agentic flow + highlight_pair
+    - [x] prices에서 "상관관계 보여줘" → 자동 navigate(/correlation) + 분석 결과
+    - [x] "안녕하세요" → LangGraph fallback
+    - [x] 넛지 클릭 → agentic flow (is_nudge 무관)
+    - [x] follow-up 버튼 클릭 → 새 질문 전송
+    - [x] deep mode 토글 → Reporter가 gpt-5 사용
+  - Vercel + Railway 프로덕션 배포 완료
+  - E2E 버그 수정: with_structured_output→JSON mode, DataFetcher asset_ids<2 ValueError
 
 ---
 

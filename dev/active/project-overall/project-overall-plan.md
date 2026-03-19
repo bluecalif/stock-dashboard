@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-03-17
-> Status: MVP 완료 (Phase 0~7), Phase A~E 완료, Phase F 계획 중, Phase G~H 미시작
+> Last Updated: 2026-03-19
+> Status: MVP 완료 (Phase 0~7), Phase A~F 완료, Phase G~H 미시작
 
 ## 1. Summary (개요)
 
@@ -43,7 +43,8 @@
 - **Phase D-rev**: 12/13 완료 — 전략→지표 전환, 탭 통합, 정규화 버그, lookback 확장 (`9073f05`~`d942cfc`)
 - **Phase D-improve**: 7/7 완료 — 지표 설명, T+3 frequency, RSI 해제, 시각구분 강화 (`a4e4c16`~`058a053`)
 - **Phase E 전략**: 10/10 완료 — 전략 백테스트, 연간 성과, 스토리텔링, 매매 마커, 프론트 전면 개편 (`7bd04ca`~`be8ecf1`)
-- **Git**: `master` 브랜치, ruff clean
+- **Phase F Agentic**: 10/10 완료 — 2-Step LLM (Classifier+Reporter), 자동 네비게이션, follow-up, E2E 버그 수정 (`10099ca`~`9511cf2`)
+- **Git**: `master` 브랜치, 808 tests, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -65,7 +66,7 @@
 | **지표 페이지** | 성공률, 예측력 비교, 오버레이 차트, REST 분석 API | ✅ Phase D |
 | **지표 피드백** | 전략→지표 전환, 탭 통합, 레이아웃 개선, 정규화 버그 | ✅ Phase D-rev+improve |
 | **전략 페이지** | 전략 백테스트, 연간 성과, 이벤트 스토리텔링, 매매 마커 | ✅ Phase E |
-| **Agentic Flow** | 2-Step LLM (Classifier+Reporter) + 자동 네비게이션 | 📋 Phase F |
+| **Agentic Flow** | 2-Step LLM (Classifier+Reporter) + 자동 네비게이션 | ✅ Phase F |
 | **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase G |
 | **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase H |
 
@@ -316,10 +317,10 @@
 
 **파일 집계**: 신규 ~8 / 수정 ~8 / Migration 0
 
-#### Phase F: Full Agentic Flow — 📋 계획 중 (10 tasks) [상세 확정]
+#### Phase F: Full Agentic Flow — ✅ 완료 (10/10 tasks) [2026-03-19 완료]
 > dev-docs: `dev/active/phaseF-agentic/`
 
-**목적**: regex 분류기 + 하드코딩 템플릿을 **2-Step LLM Structured Output** (Classifier + Reporter)으로 교체, **자동 페이지 네비게이션** 구현
+**목적**: regex 분류기 + 하드코딩 템플릿을 **2-Step LLM JSON mode** (Classifier + Reporter)으로 교체, **자동 페이지 네비게이션** 구현
 
 **핵심 변경**:
 - LLM Classifier (gpt-5-mini, Structured Output) — regex 대체, 페이지 간 라우팅

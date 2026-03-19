@@ -65,6 +65,27 @@ class TestBuildToolArgs:
         )
         args = _build_tool_args("analyze_correlation_tool", c)
         assert args["target_id"] == "005930"
+        # 1개 자산 → asset_ids=None (전체 활성 자산 사용)
+        assert args["asset_ids"] is None
+
+    def test_analyze_correlation_two_assets(self):
+        c = self._make_classification(
+            asset_ids=["005930", "KS200"],
+            params={"target_id": "005930"},
+        )
+        args = _build_tool_args("analyze_correlation_tool", c)
+        assert args["asset_ids"] == ["005930", "KS200"]
+
+    def test_get_correlation_single_asset_uses_all(self):
+        """asset_ids가 1개일 때 None 전달 (전체 자산 사용)."""
+        c = self._make_classification(asset_ids=["005930"])
+        args = _build_tool_args("get_correlation", c)
+        assert args["asset_ids"] is None
+
+    def test_get_correlation_two_assets(self):
+        c = self._make_classification(asset_ids=["005930", "KS200"])
+        args = _build_tool_args("get_correlation", c)
+        assert args["asset_ids"] == ["005930", "KS200"]
 
     def test_unknown_tool(self):
         c = self._make_classification()

@@ -59,12 +59,24 @@ async def fetch_data(classification: ClassificationResult) -> dict[str, Any]:
 
         try:
             args = _build_tool_args(tool_name, classification)
+            logger.info(
+                "Invoking tool %s with args: %s",
+                tool_name,
+                json.dumps(args, ensure_ascii=False, default=str),
+            )
             raw = tool_fn.invoke(args)
             # Tools return JSON strings — parse them
             results[tool_name] = json.loads(raw) if isinstance(raw, str) else raw
-        except Exception:
-            logger.exception("Tool %s failed — skipping", tool_name)
-            results[tool_name] = {"error": f"{tool_name} 호출 실패"}
+            logger.info("Tool %s succeeded: %d chars", tool_name, len(str(raw)))
+        except Exception as exc:
+            logger.exception(
+                "Tool %s failed with args=%s — %s: %s",
+                tool_name,
+                json.dumps(args, ensure_ascii=False, default=str),
+                type(exc).__name__,
+                exc,
+            )
+            results[tool_name] = {"error": f"{tool_name} 호출 실패: {type(exc).__name__}: {exc}"}
 
     # Always include name_map
     results["name_map"] = _get_name_map(classification.asset_ids)
@@ -96,7 +108,9 @@ def _build_tool_args(
             }
 
         case "get_correlation":
-            return {"asset_ids": asset_ids or None, "days": days}
+            # asset_ids가 2개 미만이면 None → 전체 활성 자산 사용
+            corr_ids = asset_ids if len(asset_ids) >= 2 else None
+            return {"asset_ids": corr_ids, "days": days}
 
         case "get_signals":
             return {
@@ -112,8 +126,10 @@ def _build_tool_args(
             }
 
         case "analyze_correlation_tool":
+            # asset_ids가 2개 미만이면 None → 전체 활성 자산 사용
+            corr_ids = asset_ids if len(asset_ids) >= 2 else None
             return {
-                "asset_ids": asset_ids or None,
+                "asset_ids": corr_ids,
                 "days": days,
                 "threshold": params.get("threshold", 0.7),
                 "target_id": params.get("target_id", default_asset),

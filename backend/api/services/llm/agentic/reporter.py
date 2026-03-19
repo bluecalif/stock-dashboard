@@ -90,9 +90,10 @@ async def generate_report(
         return _fallback_report()
 
     except Exception as exc:
-        logger.error(
-            "LLM Reporter failed (model=%s): %s",
+        logger.exception(
+            "LLM Reporter failed (model=%s) — %s: %s",
             settings.llm_pro_model if deep_mode else settings.llm_lite_model,
+            type(exc).__name__,
             exc,
         )
         return _fallback_report()

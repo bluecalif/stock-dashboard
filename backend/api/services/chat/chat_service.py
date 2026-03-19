@@ -174,14 +174,27 @@ async def stream_chat(
                 classification.should_navigate
                 or classification.target_page != ctx.page_id
             )
+            logger.info(
+                "Navigate check: should_navigate=%s, target=%s, current=%s, will_nav=%s",
+                classification.should_navigate,
+                classification.target_page,
+                ctx.page_id,
+                should_nav and classification.target_page != ctx.page_id,
+            )
             if should_nav and classification.target_page != ctx.page_id:
                 page_path = _page_id_to_path(classification.target_page)
                 if page_path:
+                    logger.info("Sending navigate action: %s → %s", ctx.page_id, page_path)
                     yield _sse({
                         "type": "ui_action",
                         "action": "navigate",
                         "payload": {"path": page_path},
                     })
+                else:
+                    logger.warning(
+                        "Navigate skipped: unknown page_id=%s",
+                        classification.target_page,
+                    )
 
             # ── Step 2: DataFetcher ──
             yield _status_event("fetching", "📊 에이전트가 데이터를 수집하고 있어요...")
@@ -234,10 +247,12 @@ async def stream_chat(
             yield _sse({"type": "done"})
             return
 
-        except Exception:
+        except Exception as exc:
             logger.exception(
-                "Agentic flow failed for session %s — falling back to LangGraph",
+                "Agentic flow failed for session %s — %s: %s — falling back to LangGraph",
                 session_id,
+                type(exc).__name__,
+                exc,
             )
             # agentic 실패 시 LangGraph fallback으로 계속 진행
             full_response = ""
@@ -289,8 +304,13 @@ async def stream_chat(
                     "data": str(raw_output),
                 })
 
-    except Exception:
-        logger.exception("LangGraph stream error for session %s", session_id)
+    except Exception as exc:
+        logger.exception(
+            "LangGraph stream error for session %s — %s: %s",
+            session_id,
+            type(exc).__name__,
+            exc,
+        )
         yield _sse({"type": "error", "content": "응답 생성 중 오류가 발생했습니다."})
 
     # ── LangGraph 후처리: ui_action + follow_up ──

@@ -1,6 +1,6 @@
 # Phase G: User Context & Guided Experience
-> Last Updated: 2026-03-19
-> Status: In Progress — G-1 ✅, G-2 ✅, G-3 미시작
+> Last Updated: 2026-03-20
+> Status: ✅ 완료 — G-1 ✅, G-2 ✅, G-3 ✅
 
 ## 1. Summary (개요)
 
@@ -26,7 +26,7 @@
 - 834 tests passed, ruff clean
 - **G-1 완료**: UserProfile/UserActivity DB + profile_repo + profile router 4 endpoints + Ice-breaking 모달 + usePageTracking + chat_service activity tracking
 - **G-2 완료**: ConversationSummary DB + chat_repo summary CRUD + summarizer.py (gpt-4o-mini) + 5턴 요약 트리거
-- G-3 미시작: Classifier/Reporter 프롬프트 수정, Dynamic Nudge, PageGuide
+- **G-3 완료**: UserContext 빌더 + Classifier/Reporter user_context 주입 + Dynamic Nudge + unsupported 카테고리 + PageGuide + 858 tests passed
 
 ## 3. Target State (목표 상태)
 

@@ -13,6 +13,7 @@ from langchain_core.messages import HumanMessage
 from sqlalchemy.orm import Session
 
 from api.repositories import chat_repo, profile_repo
+from api.services.chat.user_context import UserContext, build_user_context
 from api.services.llm.agentic.classifier import classify_question as llm_classify
 from api.services.llm.agentic.data_fetcher import fetch_data
 from api.services.llm.agentic.reporter import generate_report
@@ -148,6 +149,14 @@ async def stream_chat(
     ctx = PageContext.from_dict(page_context)
     full_response = ""
 
+    # ── UserContext 빌드 (실패 시 기본값) ──
+    try:
+        user_ctx = build_user_context(db, user_id)
+        _ctx_block = user_ctx.prompt_block()
+    except Exception:
+        logger.warning("UserContext build failed for user %s", user_id, exc_info=True)
+        _ctx_block = None
+
     # ── Step 1: LLM Classifier ──
     yield _status_event("analyzing", "🔍 질문을 분석하고 있어요...")
 
@@ -156,6 +165,7 @@ async def stream_chat(
         current_page=ctx.page_id,
         asset_ids=ctx.asset_ids or None,
         params=ctx.params or None,
+        user_context_block=_ctx_block,
     )
 
     logger.info(
@@ -167,6 +177,23 @@ async def stream_chat(
 
     # ── Activity tracking (비차단 — 실패해도 채팅 계속) ──
     _track_activity(db, user_id, classification.category, classification.asset_ids, deep_mode)
+
+    # ── Unsupported 카테고리 처리 ──
+    if classification.category == "unsupported":
+        msg = (
+            "이 질문은 저의 분석 범위를 벗어납니다. "
+            "저는 7개 자산(KOSPI200, 삼성전자, SK하이닉스, SOXL, "
+            "비트코인, 금, 은)의 가격·상관도·지표·전략 분석을 도와드려요.\n\n"
+            "아래 질문을 시도해보세요!"
+        )
+        for chunk in _chunk_text(msg, 80):
+            yield _sse({"type": "text_delta", "content": chunk})
+        nudge = _dynamic_follow_ups(ctx.page_id, user_ctx if _ctx_block else None)
+        yield _sse({"type": "follow_up", "questions": nudge})
+        chat_repo.create_message(db, session_id=session_id, role="assistant", content=msg)
+        db.commit()
+        yield _sse({"type": "done"})
+        return
 
     # ── Agentic flow or LangGraph fallback ──
     use_agentic = (
@@ -215,6 +242,7 @@ async def stream_chat(
                 page_id=classification.target_page,
                 question=content,
                 deep_mode=deep_mode,
+                user_context_block=_ctx_block,
             )
 
             # ── 응답 스트리밍 ──
@@ -231,9 +259,10 @@ async def stream_chat(
             for action in ui_actions:
                 yield _sse({"type": "ui_action", **action.model_dump()})
 
-            # Follow-up 질문 전송 (LLM이 빈 배열이면 기본 질문 사용)
-            follow_ups = report.follow_up_questions or _default_follow_ups(
+            # Follow-up 질문 전송 (LLM이 빈 배열이면 동적 질문 사용)
+            follow_ups = report.follow_up_questions or _dynamic_follow_ups(
                 classification.target_page,
+                user_ctx if _ctx_block else None,
             )
             if follow_ups:
                 logger.info("Sending follow_up SSE: %d questions", len(follow_ups))
@@ -592,3 +621,55 @@ def _default_follow_ups(page_id: str) -> list[str]:
         ],
     }
     return defaults.get(page_id, ["다른 자산에 대해 분석해줘", "더 자세히 설명해줘"])
+
+
+def _dynamic_follow_ups(
+    page_id: str,
+    user_ctx: "UserContext | None" = None,
+) -> list[str]:
+    """사용자 컨텍스트 기반 동적 후속 질문 생성."""
+    if user_ctx is None:
+        return _default_follow_ups(page_id)
+
+    questions: list[str] = []
+
+    # 자주 조회하는 자산 기반 질문
+    fav = user_ctx.top_assets[:2] if user_ctx.top_assets else []
+    asset_name_map = {
+        "KS200": "KOSPI200", "005930": "삼성전자", "000660": "SK하이닉스",
+        "SOXL": "SOXL", "BTC_KRW": "비트코인", "GC_F": "금", "SI_F": "은",
+    }
+
+    if user_ctx.experience_level == "beginner":
+        if page_id == "prices" and fav:
+            name = asset_name_map.get(fav[0], fav[0])
+            questions.append(f"{name}의 최근 가격 추세를 알려줘")
+        elif page_id == "correlation":
+            questions.append("상관관계가 뭔지 쉽게 설명해줘")
+        elif page_id == "indicators":
+            questions.append("RSI가 뭔지 쉽게 알려줘")
+        elif page_id == "strategy":
+            questions.append("가장 안전한 전략이 뭐야?")
+    elif user_ctx.experience_level == "expert":
+        if page_id == "indicators":
+            questions.append("MACD와 RSI 신호가 일치하는 자산은?")
+        elif page_id == "strategy":
+            questions.append("Sharpe 비율 기준 전략 순위를 비교해줘")
+        elif page_id == "correlation":
+            questions.append("Z-Score 극단값을 보이는 자산 쌍은?")
+
+    # 자주 보는 자산 기반 추가 질문
+    for aid in fav:
+        name = asset_name_map.get(aid, aid)
+        if len(questions) < 2:
+            questions.append(f"{name} 분석해줘")
+
+    # 부족하면 기본 질문으로 보충
+    defaults = _default_follow_ups(page_id)
+    for q in defaults:
+        if len(questions) >= 3:
+            break
+        if q not in questions:
+            questions.append(q)
+
+    return questions[:3]

@@ -1,6 +1,6 @@
 # Phase G: User Context & Guided Experience — Context
-> Last Updated: 2026-03-19
-> Status: In Progress (G-1 ✅, G-2 ✅)
+> Last Updated: 2026-03-20
+> Status: ✅ 완료 (G-1 ✅, G-2 ✅, G-3 ✅)
 
 ## 1. 핵심 파일
 
@@ -145,6 +145,6 @@ conversation_summaries
 - [x] JSONB 원자적 연산 (카운터 증가)
 - [x] 하위 호환 (default=None)
 - [x] 인코딩: utf-8 explicit
-- [x] 테스트: 기존 808개 + 신규 26개 = 834개
+- [x] 테스트: 기존 808개 + 신규 50개 = 858개
 - [x] Zustand store 패턴 (프론트)
 - [x] SSE 이벤트 포맷 유지

@@ -82,23 +82,44 @@ def increment_activity(
     """JSONB 카운터 원자적 증가.
 
     path: dot-notation (e.g. "page_visits.dashboard", "total_questions")
+    jsonb_set은 중간 키가 없으면 nested path 생성 불가 → 중간 키 보장 후 증가.
     """
     _ensure_activity(db, user_id)
 
     keys = path.split(".")
-    # PostgreSQL jsonb_set + COALESCE로 원자적 increment
+
+    # 중간 키가 있는 경우 (e.g. "page_visits.dashboard") 상위 키를 먼저 보장
+    if len(keys) > 1:
+        parent_key = keys[0]
+        db.execute(
+            text(
+                "UPDATE user_activity "
+                "SET activity_data = jsonb_set("
+                "  COALESCE(activity_data::jsonb, '{}'::jsonb), "
+                f"  '{{{parent_key}}}'::text[], "
+                f"  COALESCE((activity_data::jsonb)->'{parent_key}', '{{}}'::jsonb), "
+                "  true"
+                ")::json, updated_at = now() "
+                "WHERE user_id = :user_id"
+            ),
+            {"user_id": user_id},
+        )
+
+    # 실제 카운터 증가
     json_path = "{" + ",".join(keys) + "}"
     db.execute(
         text(
             "UPDATE user_activity "
             "SET activity_data = jsonb_set("
-            "  COALESCE(activity_data, '{}')::jsonb, "
-            "  :path, "
-            "  (COALESCE(activity_data #>> :path, '0')::int + :amount)::text::jsonb"
-            "), updated_at = now() "
+            "  COALESCE(activity_data::jsonb, '{}'::jsonb), "
+            f"  '{json_path}'::text[], "
+            f"  (COALESCE(activity_data::jsonb #>> '{json_path}'::text[], '0')::int + :amount)"
+            "  ::text::jsonb, "
+            "  true"
+            ")::json, updated_at = now() "
             "WHERE user_id = :user_id"
         ),
-        {"path": json_path, "amount": amount, "user_id": user_id},
+        {"amount": amount, "user_id": user_id},
     )
     db.flush()
     return get_activity(db, user_id)  # type: ignore[return-value]
@@ -113,15 +134,29 @@ def record_page_visit(
     """페이지 방문 기록 (카운터 증가 + last_page_visit 갱신)."""
     increment_activity(db, user_id=user_id, path=f"page_visits.{page_id}")
 
-    # last_page_visit 타임스탬프 갱신
+    # last_page_visit 상위 키 보장 + 타임스탬프 갱신
     db.execute(
         text(
             "UPDATE user_activity "
             "SET activity_data = jsonb_set("
-            "  COALESCE(activity_data, '{}')::jsonb, "
-            "  '{last_page_visit," + page_id + "}', "
-            "  to_jsonb(now()::text)"
-            "), updated_at = now() "
+            "  COALESCE(activity_data::jsonb, '{}'::jsonb), "
+            "  '{last_page_visit}'::text[], "
+            "  COALESCE((activity_data::jsonb)->'last_page_visit', '{}'::jsonb), "
+            "  true"
+            ")::json, updated_at = now() "
+            "WHERE user_id = :user_id"
+        ),
+        {"user_id": user_id},
+    )
+    db.execute(
+        text(
+            "UPDATE user_activity "
+            "SET activity_data = jsonb_set("
+            "  activity_data::jsonb, "
+            f"  '{{last_page_visit,{page_id}}}'::text[], "
+            "  to_jsonb(now()::text), "
+            "  true"
+            ")::json, updated_at = now() "
             "WHERE user_id = :user_id"
         ),
         {"user_id": user_id},

@@ -1,6 +1,6 @@
 # Project Overall Tasks
-> Last Updated: 2026-03-19
-> Status: MVP 완료 (83/83), Phase A~F 완료, Phase G~H 미시작
+> Last Updated: 2026-03-20
+> Status: MVP 완료 (83/83), Phase A~G 완료
 
 ## Phase 0: 사전 준비 ✅ 완료
 - [x] 마스터플랜 작성 (docs/masterplan-v0.md)
@@ -143,8 +143,8 @@
 
 ## Post-MVP Phases (Phase A~F) — 계획
 
-> 구현 순서: A → B → C → D → E → F → G → H
-> Phase A~E: 완료. Phase F: 상세 확정 (10 tasks). Phase G~H: 진입 시 `/dev-docs`로 상세 기획.
+> 구현 순서: A → B → C → D → E → F → G (G+H 통합)
+> Phase A~G: 모두 완료.
 
 ## Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16)
 > dev-docs: `dev/active/phaseA-auth/`
@@ -356,13 +356,59 @@
 - [x] F.9 레거시 코드 정리 (regex classifier, templates) `[S]`
 - [x] F.10 통합 검증 (pytest + tsc + vite + E2E) `[M]` — `9511cf2`
 
-## Phase G: Memory + Retrieval — ⬜ 미시작
-> 상세 태스크: Phase G dev-docs 생성 시 확정
-> **파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
+## Phase G: User Context & Guided Experience — ✅ 완료 (20/20) [G+H 통합]
+> dev-docs: `dev/active/phaseG-context/`
+> **파일 집계**: 신규 13 / 수정 12 / Migration 2
 
-## Phase H: Onboarding + 운영 안정화 — ⬜ 미시작
-> 상세 태스크: Phase H dev-docs 생성 시 확정
-> **파일 집계 (추정)**: 신규 ~10 / 수정 ~3 / Migration 1
+### Stage G-1: User Profile & Behavior Tracking (9/9) ✅
+
+#### Backend 기반
+- [x] G.1 DB 모델: UserProfile, UserActivity + models.py 추가 `[M]`
+- [x] G.2 Alembic 마이그레이션: user_profiles, user_activity 테이블 `[S]`
+- [x] G.3 Repository: profile_repo.py (CRUD + JSONB increment) `[M]`
+- [x] G.4 Pydantic 스키마: profile.py (IceBreaking + Profile + Activity) `[S]`
+- [x] G.5 API 엔드포인트: profile router (4 endpoints) + main.py 등록 `[M]`
+
+#### Backend 통합
+- [x] G.6 chat_service Activity 통합 (질문 카운터, 자산 조회수, deep_mode) `[M]`
+
+#### Frontend
+- [x] G.7 Frontend: Ice-breaking 모달 + profileStore + API client `[L]`
+- [x] G.8 Frontend: usePageTracking hook + Layout.tsx 통합 `[S]`
+
+#### 테스트
+- [x] G.9 G-1 테스트: profile_repo + profile_router + activity_tracking `[M]` — 18 tests
+
+### Stage G-2: Conversation Memory (5/5) ✅
+
+#### Backend 기반
+- [x] G.10 DB 모델 + 마이그레이션: ConversationSummary 테이블 `[S]`
+- [x] G.11 Repository 확장: chat_repo.py — upsert_summary, get_recent_summaries `[S]`
+
+#### 핵심 서비스
+- [x] G.12 LLM 세션 요약 서비스: summarizer.py (gpt-4o-mini, JSON mode) `[L]`
+- [x] G.13 stream_chat 통합: 5턴 요약 트리거 + user_profile 갱신 `[M]`
+
+#### 테스트
+- [x] G.14 G-2 테스트: summarizer + summary_repo `[M]` — 8 tests
+
+### Stage G-3: Context-Aware Response & Guide (6/6) ✅
+
+#### Backend 프롬프트 수정
+- [x] G.15 UserContext 구조 + Classifier 프롬프트 수정 (user_context 파라미터) `[M]`
+- [x] G.16 Reporter 프롬프트 수정 (톤/깊이 조정 + 이전 맥락 주입) `[M]`
+- [x] G.17 stream_chat UserContext 파이프라인 연결 `[M]`
+
+#### 기능 확장
+- [x] G.18 Dynamic Nudge + "unsupported" 카테고리 `[M]`
+
+#### Frontend
+- [x] G.19 Frontend: PageGuide 컴포넌트 (beginner 첫 방문 안내) `[S]`
+
+#### 통합 검증
+- [x] G.20 G-3 테스트 + 전체 통합 검증 (858 tests, ruff clean) `[M]`
+
+> **Note**: 기존 Phase H(Onboarding)는 Phase G에 통합됨. 별도 Phase H 없음.
 
 ---
 
@@ -380,7 +426,7 @@
 - **MVP Total**: 79 tasks + 4 hotfix = **83 tasks 완료**
 - **Tests**: 409 passed, 7 skipped, ruff clean
 
-### Post-MVP (진행 중)
+### Post-MVP (완료)
 - **Phase A**: 16 tasks (S:6, M:9, L:1) — 16/16 ✅
 - **Phase B**: 19 tasks (S:7, M:7, L:3) — 19/19 ✅
 - **Phase C**: 12 tasks (S:2, M:8, L:2) — 12/12 ✅
@@ -390,7 +436,7 @@
 - **Phase D-improve**: 7 tasks — 7/7 ✅
 - **Phase E**: 10 tasks (S:2, M:3, L:3, XL:1) — 10/10 ✅
 - **Phase F**: 10 tasks (S:5, M:4, L:1) — 10/10 ✅
-- **Phase G~H**: 미정 (각 Phase 진입 시 확정)
+- **Phase G**: 20 tasks (S:5, M:12, L:2) — 20/20 ✅ (G+H 통합)
 - **Post-MVP Phase C~E 파일 영향도**: 신규 ~32 / 수정 ~34 / Migration 0
 
 ### Grand Total
@@ -404,4 +450,4 @@
 - **Post-MVP Phase D-improve**: 7/7 ✅ (지표 추가 개선)
 - **Post-MVP Phase E**: 10/10 ✅ (전략 페이지)
 - **Post-MVP Phase F**: 10/10 ✅ (Agentic Flow)
-- **Post-MVP Phase G~H**: 태스크 상세 미확정
+- **Post-MVP Phase G**: 20/20 ✅ (User Context & Guided Experience, G+H 통합)

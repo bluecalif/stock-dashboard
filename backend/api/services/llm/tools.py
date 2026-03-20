@@ -291,15 +291,30 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
             r = compute_signal_accuracy(
                 db, asset_id, sid, forward_days=forward_days,
             )
-            accuracy_results.append({
+            entry: dict = {
                 "strategy_id": sid,
                 "buy_success_rate": r.buy_success_rate,
                 "sell_success_rate": r.sell_success_rate,
                 "avg_return_after_buy": r.avg_return_after_buy,
                 "avg_return_after_sell": r.avg_return_after_sell,
                 "evaluated_signals": r.evaluated_signals,
+                "buy_count": r.buy_count,
+                "sell_count": r.sell_count,
                 "insufficient_data": r.insufficient_data,
-            })
+            }
+            # null인 항목에 사유 명시 → LLM이 "산출 불가"로 오해하지 않도록
+            notes = []
+            if r.buy_success_rate is None and r.buy_count > 0:
+                notes.append(
+                    f"매수 신호 {r.buy_count}건으로 최소 기준(5건) 미달 → 매수 성공률 미산출"
+                )
+            if r.sell_success_rate is None and r.sell_count > 0:
+                notes.append(
+                    f"매도 신호 {r.sell_count}건으로 최소 기준(5건) 미달 → 매도 성공률 미산출"
+                )
+            if notes:
+                entry["note"] = "; ".join(notes)
+            accuracy_results.append(entry)
 
         # 3. 전략 예측력 비교 (순위)
         comparison = compare_indicator_accuracy(

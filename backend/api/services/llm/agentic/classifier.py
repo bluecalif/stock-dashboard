@@ -25,7 +25,7 @@ _SCHEMA_HINT = """
 {
   "target_page": "prices | correlation | indicators | strategy | home",
   "should_navigate": true/false,
-  "category": "<카테고리 중 하나>",
+  "category": "<카테고리 중 하나 (unsupported 포함)>",
   "required_tools": ["tool_name", ...],
   "asset_ids": ["KS200", ...],
   "params": {"days": 60, ...},
@@ -40,13 +40,14 @@ async def classify_question(
     current_page: str = "home",
     asset_ids: list[str] | None = None,
     params: dict | None = None,
+    user_context_block: str | None = None,
 ) -> ClassificationResult:
     """Classify a user question via LLM JSON mode.
 
     Returns ClassificationResult. On any failure, returns a safe
     general/low-confidence fallback so LangGraph handles it.
     """
-    user_msg = _build_user_message(question, current_page, asset_ids, params)
+    user_msg = _build_user_message(question, current_page, asset_ids, params, user_context_block)
     system_prompt = CLASSIFIER_PROMPT + _SCHEMA_HINT
 
     try:
@@ -106,6 +107,7 @@ def _build_user_message(
     current_page: str,
     asset_ids: list[str] | None,
     params: dict | None,
+    user_context_block: str | None = None,
 ) -> str:
     """Build the user message with context for the classifier."""
     parts = [
@@ -115,5 +117,7 @@ def _build_user_message(
         parts.append(f"선택된 자산: {', '.join(asset_ids)}")
     if params:
         parts.append(f"페이지 파라미터: {params}")
+    if user_context_block:
+        parts.append(f"\n## 사용자 정보\n{user_context_block}")
     parts.append(f"\n질문: {question}")
     return "\n".join(parts)

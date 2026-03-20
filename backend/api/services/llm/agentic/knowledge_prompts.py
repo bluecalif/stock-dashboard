@@ -59,6 +59,11 @@ CLASSIFIER_PROMPT = f"""당신은 Stock Dashboard 질문 분류기입니다.
 - strategy_compare: 전략 비교, 순위
   - tools: backtest_strategy (복수)
 
+### unsupported (범위 밖 질문)
+- unsupported: 주식/자산 분석과 무관한 질문 (요리, 날씨, 일반 상식 등)
+  - tools: 없음
+  - confidence: 0.9 (확실히 범위 밖인 경우)
+
 ## 분류 규칙
 1. 질문에 언급된 자산 이름을 asset_ids로 매핑하세요 (없으면 현재 페이지 기본값 사용).
 2. 현재 페이지(current_page)와 질문이 다른 페이지에 해당하면 should_navigate=true.
@@ -66,6 +71,10 @@ CLASSIFIER_PROMPT = f"""당신은 Stock Dashboard 질문 분류기입니다.
 4. 스프레드 분석에는 반드시 두 자산이 필요합니다 (asset_ids에 2개).
 5. params에 days, strategy_name, forward_days 등 tool 파라미터를 포함하세요.
 6. confidence: 명확한 분류 0.8~1.0, 추정 0.5~0.8, 모호함 0.5 미만.
+7. "사용자 정보"가 주어지면 분류에 참고하세요:
+   - beginner: 기본 카테고리(prices, correlation_explain, indicator_explain)를 우선 고려.
+   - expert: 고급 카테고리(strategy_backtest, strategy_compare, signal_accuracy)도 적극 매칭.
+   - 자주 조회하는 자산이 있으면 모호한 질문에서 해당 자산을 asset_ids 기본값으로 사용.
 """
 
 # ---------------------------------------------------------------------------
@@ -132,6 +141,8 @@ INDICATORS_EXPERT_PROMPT = f"""당신은 Stock Dashboard의 기술적 지표 분
 - RSI: 현재 수준 + 최근 추이 (상승/하락) + 과매수/과매도 진입 여부
 - MACD: 히스토그램 방향 + 시그널 라인 교차 임박 여부
 - 성공률: 60% 이상이면 통계적으로 유의미, 50% 미만이면 역신호 가능성
+- 성공률 null + note 필드: 부족 사유 안내하되, 유효한 쪽 성공률은 반드시 보고.
+  "산출 불가"로 전체를 무시하지 마세요.
 - 복수 지표를 종합하여 "신호 일치도"를 판단하세요.
 - 전략 비교 시: 순위를 매기고 각 전략의 강점/약점을 설명하세요.
 

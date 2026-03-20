@@ -1,6 +1,6 @@
 # Phase G: User Context & Guided Experience — Tasks
-> Last Updated: 2026-03-19
-> Status: In Progress (14/20)
+> Last Updated: 2026-03-20
+> Status: ✅ 완료 (20/20)
 
 ## Stage G-1: User Profile & Behavior Tracking (9/9) ✅
 
@@ -34,21 +34,21 @@
 ### 테스트
 - [x] G.14 G-2 테스트: summarizer + summary_repo `[M]` — 8 tests
 
-## Stage G-3: Context-Aware Response & Guide (0/6)
+## Stage G-3: Context-Aware Response & Guide (6/6) ✅
 
 ### Backend 프롬프트 수정
-- [ ] G.15 UserContext 구조 + Classifier 프롬프트 수정 (user_context 파라미터) `[M]`
-- [ ] G.16 Reporter 프롬프트 수정 (톤/깊이 조정 + 이전 맥락 주입) `[M]`
-- [ ] G.17 stream_chat UserContext 파이프라인 연결 `[M]`
+- [x] G.15 UserContext 구조 + Classifier 프롬프트 수정 (user_context 파라미터) `[M]`
+- [x] G.16 Reporter 프롬프트 수정 (톤/깊이 조정 + 이전 맥락 주입) `[M]`
+- [x] G.17 stream_chat UserContext 파이프라인 연결 `[M]`
 
 ### 기능 확장
-- [ ] G.18 Dynamic Nudge + "unsupported" 카테고리 `[M]`
+- [x] G.18 Dynamic Nudge + "unsupported" 카테고리 `[M]`
 
 ### Frontend
-- [ ] G.19 Frontend: PageGuide 컴포넌트 (beginner 첫 방문 안내) `[S]`
+- [x] G.19 Frontend: PageGuide 컴포넌트 (beginner 첫 방문 안내) `[S]`
 
 ### 통합 검증
-- [ ] G.20 G-3 테스트 + 전체 통합 검증 (808+ tests, ruff, E2E) `[M]`
+- [x] G.20 G-3 테스트 + 전체 통합 검증 (858 tests, ruff clean) `[M]`
 
 ---
 
@@ -58,7 +58,7 @@
 |-----------|-------|-----------|------|
 | G-1 | 9 | S:2, M:5, L:1 | ✅ 완료 (9/9) |
 | G-2 | 5 | S:2, M:2, L:1 | ✅ 완료 (5/5) |
-| G-3 | 6 | S:1, M:5 | ⬜ 미시작 |
-| **Total** | **20** | **S:5, M:12, L:2** | **14/20** |
+| G-3 | 6 | S:1, M:5 | ✅ 완료 (6/6) |
+| **Total** | **20** | **S:5, M:12, L:2** | **20/20 ✅** |
 
 **파일 집계**: 신규 13 / 수정 12 / Migration 2

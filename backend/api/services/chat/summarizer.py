@@ -1,4 +1,4 @@
-"""LLM 세션 요약 서비스 — gpt-4o-mini JSON mode."""
+"""LLM 세션 요약 서비스 — gpt-5-nano JSON mode."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ async def summarize_session(messages: list[dict[str, str]]) -> dict:
     )
 
     llm = ChatOpenAI(
-        model="gpt-4o-mini",
+        model="gpt-5-nano",
         api_key=settings.openai_api_key,
         temperature=0,
         model_kwargs={"response_format": {"type": "json_object"}},

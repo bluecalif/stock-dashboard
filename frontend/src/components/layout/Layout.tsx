@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import ChatPanel from "../chat/ChatPanel";
+import PageGuide from "../onboarding/PageGuide";
 import { useChatStore } from "../../store/chatStore";
 import { usePageTracking } from "../../hooks/usePageTracking";
 
@@ -28,6 +29,7 @@ export default function Layout() {
       </button>
 
       <ChatPanel />
+      <PageGuide />
     </div>
   );
 }

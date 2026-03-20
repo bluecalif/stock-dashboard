@@ -32,6 +32,8 @@ Category = Literal[
     "strategy_compare",
     # Cross-page / fallback
     "general",
+    # Out-of-scope
+    "unsupported",
 ]
 
 ToolName = Literal[

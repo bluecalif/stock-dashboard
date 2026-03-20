@@ -142,3 +142,60 @@ class TestGenerateReport:
         assert "생성하지 못했습니다" in result.summary
         assert result.follow_up_questions == []
         assert result.ui_actions == []
+
+
+class TestUserContextBlock:
+    """user_context_block 파라미터 통합 테스트."""
+
+    def test_system_prompt_with_context_block(self):
+        """user_context_block이 system prompt에 톤/깊이 지침과 함께 포함."""
+        ctx_block = "경험 수준: beginner\n의사결정 성향: feeling"
+        prompt = _build_system_prompt(
+            "indicator_explain", "indicators", ctx_block,
+        )
+        assert "사용자 정보" in prompt
+        assert "beginner" in prompt
+        assert "feeling" in prompt
+        assert "톤과 깊이를 조정" in prompt
+
+    def test_system_prompt_without_context_block(self):
+        """user_context_block=None이면 사용자 정보 섹션 없음."""
+        prompt = _build_system_prompt("indicator_explain", "indicators", None)
+        assert "사용자 정보" not in prompt
+        assert "톤과 깊이" not in prompt
+
+    @pytest.mark.asyncio
+    async def test_report_passes_context_to_system_prompt(self):
+        """generate_report 호출 시 user_context_block이 system prompt에 포함."""
+        mock_report = CuratedReport(
+            summary="RSI 쉽게 설명",
+            analysis="## RSI란?\n주가의 상대적 강도 지표입니다.",
+        )
+        mock_response = AsyncMock()
+        mock_response.content = mock_report.model_dump_json()
+
+        with patch(
+            "api.services.llm.agentic.reporter.ChatOpenAI",
+        ) as mock_cls:
+            mock_llm = mock_cls.return_value
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+
+            await generate_report(
+                category="indicator_explain",
+                tool_results={"rsi": 45},
+                page_id="indicators",
+                question="RSI가 뭐야?",
+                user_context_block="경험 수준: beginner",
+            )
+
+            # ainvoke에 전달된 system prompt 확인
+            call_args = mock_llm.ainvoke.call_args[0][0]
+            system_msg = call_args[0]["content"]
+            assert "beginner" in system_msg
+
+    def test_expert_context_includes_data_guidance(self):
+        """expert 컨텍스트 시 전문 용어/수치 중심 지침 포함."""
+        ctx_block = "경험 수준: expert\n의사결정 성향: logic"
+        prompt = _build_system_prompt("strategy_backtest", "strategy", ctx_block)
+        assert "전문 용어" in prompt
+        assert "수치 중심" in prompt

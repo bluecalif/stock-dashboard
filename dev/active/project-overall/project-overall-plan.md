@@ -1,6 +1,6 @@
 # Project Overall Plan
-> Last Updated: 2026-03-19
-> Status: MVP 완료 (Phase 0~7), Phase A~F 완료, Phase G~H 미시작
+> Last Updated: 2026-03-20
+> Status: MVP 완료 (Phase 0~7), Phase A~G 완료
 
 ## 1. Summary (개요)
 
@@ -8,7 +8,7 @@
 
 **범위**:
 - **MVP (완료)**: Phase 0~7 — 수집 → 분석 → API → 대시보드 → 배포 → 자동 수집
-- **Post-MVP (계획)**: Phase A~H — 인증 → 챗봇 → 상관도 → 지표 → 전략 → **Agentic Flow** → 메모리/벡터 → 온보딩
+- **Post-MVP (계획)**: Phase A~G — 인증 → 챗봇 → 상관도 → 지표 → 전략 → **Agentic Flow** → **User Context & Guided Experience** (G+H 통합)
 
 **MVP 결과물**:
 - FDR 기반 일봉 수집 파이프라인 ✅
@@ -24,8 +24,7 @@
 - 상관도 페이지 완성 (분석+하이브리드 응답+그래프 커스텀)
 - 지표 페이지 완성 (성공률+예측력 비교+오버레이 차트)
 - 전략 페이지 완성 (이벤트 스토리텔링+에쿼티 마커+기간 설정)
-- 사용자 메모리 + pgvector 보조 검색
-- 온보딩 에이전트
+- 사용자 프로필링 + 대화 메모리 + 맥락 기반 개인화 응답 (G+H 통합)
 
 ## 2. Current State (현재 상태)
 
@@ -44,7 +43,8 @@
 - **Phase D-improve**: 7/7 완료 — 지표 설명, T+3 frequency, RSI 해제, 시각구분 강화 (`a4e4c16`~`058a053`)
 - **Phase E 전략**: 10/10 완료 — 전략 백테스트, 연간 성과, 스토리텔링, 매매 마커, 프론트 전면 개편 (`7bd04ca`~`be8ecf1`)
 - **Phase F Agentic**: 10/10 완료 — 2-Step LLM (Classifier+Reporter), 자동 네비게이션, follow-up, E2E 버그 수정 (`10099ca`~`9511cf2`)
-- **Git**: `master` 브랜치, 808 tests, ruff clean
+- **Phase G Context**: 20/20 완료 — User Profile + Ice-breaking, Activity Tracking, Conversation Memory, UserContext 프롬프트 주입, Dynamic Nudge, PageGuide, unsupported 카테고리 (`135fab6`~)
+- **Git**: `master` 브랜치, 858 tests, ruff clean
 - **DB**: price_daily 5,573+ rows, factor_daily 55K+, signal_daily 15K+, backtest 21 runs
 - **인프라**: Railway (backend+DB), Vercel (frontend), GitHub Actions (CI/CD + cron)
 
@@ -67,8 +67,7 @@
 | **지표 피드백** | 전략→지표 전환, 탭 통합, 레이아웃 개선, 정규화 버그 | ✅ Phase D-rev+improve |
 | **전략 페이지** | 전략 백테스트, 연간 성과, 이벤트 스토리텔링, 매매 마커 | ✅ Phase E |
 | **Agentic Flow** | 2-Step LLM (Classifier+Reporter) + 자동 네비게이션 | ✅ Phase F |
-| **메모리/검색** | 사용자 메모리 + pgvector 보조 검색 | ⬜ Phase G |
-| **온보딩** | 관심 자산/전략/알림 수집, 가이드 | ⬜ Phase H |
+| **User Context** | 사용자 프로필 + 대화 메모리 + 맥락 기반 개인화 | ✅ Phase G |
 
 ## 4. Implementation Phases (구현 단계)
 
@@ -104,12 +103,12 @@
 
 ---
 
-### Post-MVP Phases (Phase A~G) — A/B 완료, C~G 계획
+### Post-MVP Phases (Phase A~G) — 모두 완료
 
 > 참조: `docs/post-mvp-implementation-sketch.md` (제품 요구사항)
 > 통합 계획: `docs/post-mvp-phaseCD-detail.md` (Phase C~E 상세)
 
-**구현 순서**: `A (Auth) → B (Chat) → C (상관도) → D (지표) → E (전략) → F (Agentic Flow) → G (Memory+Vector) → H (Onboarding)`
+**구현 순서**: `A (Auth) → B (Chat) → C (상관도) → D (지표) → E (전략) → F (Agentic Flow) → G (User Context, G+H 통합)`
 **설계 원칙**: 기존 Phase C(분석 시나리오)+D(그래프 커스텀)를 **페이지별로 분리** — 각 페이지를 백엔드+프론트+챗봇까지 완결한 뒤 다음 페이지로 이동.
 
 #### Phase A: Auth + 사용자 컨텍스트 — ✅ 완료 (16/16) [상세 확정]
@@ -350,34 +349,38 @@
 
 **파일 집계**: 신규 ~6 / 수정 ~6 / Migration 0
 
-#### Phase G: Memory + Retrieval — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+#### Phase G: User Context & Guided Experience — ✅ 완료 (20/20) [G+H 통합, 2026-03-20 완료]
+> dev-docs: `dev/active/phaseG-context/`
 
-**사전 확인**: Railway PostgreSQL pgvector 지원 여부
-**상세 기획 시점**: Phase F 완료 후, dev-docs로 메모리 데이터 타입/embedding 대상 확정
+**목적**: Phase G(Memory+Retrieval) + Phase H(Onboarding) 통합 — 사용자 프로필링 → 대화 메모리 → 맥락 기반 개인화 응답
+**Stages**: G-1(User Profile & Behavior) → G-2(Conversation Memory) → G-3(Context-Aware Response & Guide)
+**Tasks**: 20개 (S:5, M:12, L:2)
 
-**예상 산출물**:
-- `user_memories`, `retrieval_chunks`, `analysis_snapshots` DB 테이블
-- Memory CRUD API
-- SQL 우선 + pgvector 보조 검색 계층
-- LangGraph retrieval 노드 + 임베딩 인덱싱
-- 패키지: pgvector, langchain-community (pgvector retriever)
+**산출물**:
+- `user_profiles`, `user_activity`, `conversation_summaries` DB 테이블 + Alembic 마이그레이션 2개
+- Profile CRUD + Ice-breaking API (4 endpoints)
+- LLM 기반 5턴마다 자동 세션 요약 (gpt-4o-mini)
+- Classifier/Reporter에 사용자 맥락 주입 → 개인화 응답
+- 동적 nudge 질문 (경험 수준 + 관심 자산 반영)
+- 첫 방문 페이지 가이드 (beginner 전용)
+- "unsupported" 카테고리 (범위 밖 질문 안내)
+- Frontend: Ice-breaking 모달, profileStore, usePageTracking, PageGuide
 
-**기술 결정**: pgvector (Railway 지원 여부 Phase G 전 확인), Embedding 모델 Phase G 진입 시 결정
-**파일 집계 (추정)**: 신규 ~13 / 수정 ~3 / Migration 1
+**핵심 설계 결정**:
+- pgvector 미사용: 7자산×5페이지 한정 도메인에서 구조화 쿼리가 더 정확/빠름
+- JSONB 집계: user_activity는 1 row per user, 카운터 increment 방식
+- Ice-breaking 2문항: 경험 수준(beginner/intermediate/expert) + 의사결정 성향(feeling/logic/balanced)
+- Lazy creation: 기존 users 대상 data migration 불필요. 첫 접근 시 UPSERT
+- gpt-4o-mini 요약: 5턴마다 자동 세션 요약, done SSE 후 백그라운드 실행
+- 하위 호환: 모든 새 파라미터 default=None → 기존 808 테스트 영향 없음
 
-#### Phase H: Onboarding + 운영 안정화 — ⬜ 미시작 [개요 — 상세는 진입 시 dev-docs]
+**E2E 버그 수정**: jsonb nested path, json 타입 캐스트, SSE 401 token refresh, Reporter timeout 45s
+**미해결**: `analyze_indicators` 툴의 signal accuracy 데이터 소스 불일치 (strategy-based vs indicator-based)
 
-**목적**: 사용자 온보딩 + 운영 방어
-**상세 기획 시점**: Phase G 완료 후, dev-docs로 온보딩 메뉴/질문 항목 확정
+**파일 집계**: 신규 13 / 수정 12 / Migration 2
+**테스트**: 858 passed, 7 skipped, ruff clean
 
-**예상 산출물**:
-- `onboarding_profiles` DB 테이블
-- 온보딩 API/UI (관심 자산/전략/알림 수집)
-- Gemini 3.1 Flash Lite (분류/온보딩 경량 모델)
-- 프롬프트 인젝션/권한 우회/비용 한도 방어
-- 품질 모니터링 대시보드
-
-**파일 집계 (추정)**: 신규 ~10 / 수정 ~3 / Migration 1
+> **Note**: 기존 Phase H(Onboarding)는 Phase G에 통합됨. 별도 Phase H 없음.
 
 ## 5. 데이터 흐름
 
@@ -398,15 +401,17 @@ GitHub Actions cron (KST 18:00) → collector (FDR) → price_daily
 ```
 [기존 MVP 흐름] + 아래 추가:
 
-사용자 → Auth (JWT) → Chat API (SSE) → LangGraph (StateGraph)
+사용자 → Auth (JWT) → Chat API (SSE) → Agentic Flow (Classifier → DataFetcher → Reporter)
                                               ↓
                                    Tool 호출: 분석 서비스 (상관/지표/전략)
                                               ↓
-                                   Retrieval: SQL 우선 + pgvector 보조
+                                   UserContext: user_profiles + conversation_summaries → 프롬프트 주입
                                               ↓
-                                   응답: text + citations + ui_actions
+                                   응답: text + follow_up + ui_actions + navigate
                                               ↓
-                                   Frontend: Zustand → 차트 반영 + 메모리 저장
+                                   Frontend: Zustand → 차트 반영 + 네비게이션
+                                              ↓
+                                   백그라운드: activity 카운터 갱신 + 5턴마다 세션 요약
 ```
 
 ## 6. Risks & Mitigation (리스크 및 완화)

@@ -87,3 +87,72 @@ class TestClassifyQuestion:
             )
 
         assert result.asset_ids == ["005930", "000660"]
+
+
+class TestUserContextBlock:
+    """user_context_block 파라미터 통합 테스트."""
+
+    def test_build_user_message_with_context_block(self):
+        """user_context_block이 user message에 포함되는지 확인."""
+        ctx_block = "경험 수준: beginner\n의사결정 성향: feeling"
+        msg = _build_user_message(
+            "RSI가 뭐야?", "indicators", None, None, ctx_block,
+        )
+        assert "사용자 정보" in msg
+        assert "beginner" in msg
+        assert "feeling" in msg
+
+    def test_build_user_message_without_context_block(self):
+        """user_context_block=None이면 사용자 정보 섹션 없음."""
+        msg = _build_user_message("RSI가 뭐야?", "indicators", None, None, None)
+        assert "사용자 정보" not in msg
+
+    @pytest.mark.asyncio
+    async def test_classify_passes_context_to_llm(self):
+        """user_context_block이 LLM 호출 시 user message에 포함."""
+        mock_json = (
+            '{"target_page":"indicators","should_navigate":false,'
+            '"category":"indicator_explain","required_tools":[],'
+            '"asset_ids":[],"params":{},"confidence":0.85}'
+        )
+        mock_response = AsyncMock()
+        mock_response.content = mock_json
+
+        with patch(
+            "api.services.llm.agentic.classifier.ChatOpenAI",
+        ) as mock_cls:
+            mock_llm = mock_cls.return_value
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+
+            await classify_question(
+                "RSI가 뭐야?",
+                current_page="indicators",
+                user_context_block="경험 수준: beginner",
+            )
+
+            # ainvoke에 전달된 user message 확인
+            call_args = mock_llm.ainvoke.call_args[0][0]
+            user_msg = call_args[1]["content"]
+            assert "beginner" in user_msg
+
+    @pytest.mark.asyncio
+    async def test_classify_unsupported_category(self):
+        """unsupported 카테고리가 정상 반환되는지 확인."""
+        mock_json = (
+            '{"target_page":"home","should_navigate":false,'
+            '"category":"unsupported","required_tools":[],'
+            '"asset_ids":[],"params":{},"confidence":0.95}'
+        )
+        mock_response = AsyncMock()
+        mock_response.content = mock_json
+
+        with patch(
+            "api.services.llm.agentic.classifier.ChatOpenAI",
+        ) as mock_cls:
+            mock_llm = mock_cls.return_value
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+
+            result = await classify_question("오늘 날씨 어때?")
+
+        assert result.category == "unsupported"
+        assert result.confidence == 0.95

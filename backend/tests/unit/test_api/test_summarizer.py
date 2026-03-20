@@ -16,7 +16,7 @@ def sample_messages():
         {"role": "user", "content": "삼성전자 최근 주가 어때?"},
         {"role": "assistant", "content": "삼성전자(005930)는 최근 3% 상승했습니다."},
         {"role": "user", "content": "BTC와 비교하면?"},
-        {"role": "assistant", "content": "BTC/KRW는 같은 기간 5% 상승하여 더 높은 수익률을 보입니다."},
+        {"role": "assistant", "content": "BTC/KRW는 같은 기간 5% 상승하여 더 높은 수익률입니다."},
     ]
 
 

@@ -44,13 +44,14 @@ async def generate_report(
     page_id: str,
     question: str,
     deep_mode: bool = False,
+    user_context_block: str | None = None,
 ) -> CuratedReport:
     """Generate a curated report from tool results via LLM JSON mode.
 
     Uses gpt-5 for deep_mode, gpt-5-mini otherwise.
     On failure, returns a minimal fallback report.
     """
-    system_prompt = _build_system_prompt(category, page_id)
+    system_prompt = _build_system_prompt(category, page_id, user_context_block)
     user_msg = _build_user_message(question, tool_results)
 
     try:
@@ -62,7 +63,7 @@ async def generate_report(
             api_key=settings.openai_api_key,
             temperature=0.3,
             max_retries=3,
-            request_timeout=30,
+            request_timeout=45,
             model_kwargs={"response_format": {"type": "json_object"}},
         )
         response = await llm.ainvoke([
@@ -91,8 +92,10 @@ async def generate_report(
 
     except Exception as exc:
         logger.exception(
-            "LLM Reporter failed (model=%s) — %s: %s",
+            "LLM Reporter failed (model=%s, user_msg_len=%d, tools=%s) — %s: %s",
             settings.llm_pro_model if deep_mode else settings.llm_lite_model,
+            len(user_msg),
+            list(tool_results.keys()),
             type(exc).__name__,
             exc,
         )
@@ -111,15 +114,33 @@ def _fallback_report() -> CuratedReport:
     )
 
 
-def _build_system_prompt(category: str, page_id: str) -> str:
-    """Combine knowledge expert prompt with category context."""
+def _build_system_prompt(
+    category: str,
+    page_id: str,
+    user_context_block: str | None = None,
+) -> str:
+    """Combine knowledge expert prompt with category context + user context."""
     expert = get_knowledge_prompt(page_id)
-    return (
-        f"{expert}\n\n"
-        f"## 현재 카테고리: {category}\n"
-        f"이 카테고리에 맞는 분석을 제공하세요."
-        f"{_REPORT_SCHEMA_HINT}"
-    )
+    parts = [
+        expert,
+        f"\n\n## 현재 카테고리: {category}",
+        "\n이 카테고리에 맞는 분석을 제공하세요.",
+    ]
+
+    if user_context_block:
+        parts.append(
+            f"\n\n## 사용자 정보\n{user_context_block}\n"
+            "위 사용자 정보를 참고하여 톤과 깊이를 조정하세요:\n"
+            "- beginner: 쉬운 용어, 짧은 설명, 핵심만 전달.\n"
+            "- expert: 전문 용어 사용, 수치 중심의 깊은 분석.\n"
+            "- feeling 성향: 직관적·서사적 설명 (예: \"시장이 불안해 보입니다\").\n"
+            "- logic 성향: 데이터·지표 중심 (예: \"RSI 28.3으로 과매도\").\n"
+            "- 자주 조회하는 자산이 있으면 해당 자산 관련 예시를 포함.\n"
+            "- 최근 대화 주제가 있으면 연속성 있는 분석 제공."
+        )
+
+    parts.append(_REPORT_SCHEMA_HINT)
+    return "".join(parts)
 
 
 def _build_user_message(question: str, tool_results: dict[str, Any]) -> str:

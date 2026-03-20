@@ -1,6 +1,6 @@
 # Project Overall Context
-> Last Updated: 2026-03-19
-> Status: MVP 완료 (Phase 0~7), Phase A~F 완료, Phase G~H 미시작
+> Last Updated: 2026-03-20
+> Status: MVP 완료 (Phase 0~7), Phase A~G 완료
 
 ## 핵심 파일
 
@@ -22,6 +22,7 @@
 | `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs — 12/13 완료 |
 | `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs — ✅ 완료 |
 | `dev/active/phaseF-agentic/` | Phase F (Agentic Flow) dev-docs — ✅ 완료 |
+| `dev/active/phaseG-context/` | Phase G (User Context & Guided Experience) dev-docs — 📋 설계 완료 |
 
 ## 주요 결정사항
 
@@ -77,6 +78,13 @@
 | UIActionModel Literal (F) | action 필드를 Literal 타입으로 제한 | LLM hallucination 방지 |
 | with_structured_output 폐기 (F) | JSON mode(`response_format=json_object`) + 수동 파싱 | 프로덕션에서 `with_structured_output` 지속 실패 |
 | DataFetcher asset_ids 방어 (F) | 상관 tool에 2개 미만 자산 시 None 전달 (전체 자산) | LLM 출력 validation 필수 |
+| Phase G+H 통합 (G) | H(Onboarding)는 G(Memory)가 선행 조건 | 스키마 1회 변경, 통합 구현 |
+| pgvector 미사용 (G) | 7자산×5페이지 한정 → 구조화 쿼리가 더 정확/빠름 | 나중에 필요 시 추가 |
+| JSONB 집계 (G) | user_activity 1 row/user, 카운터 increment | 이벤트 로그 테이블은 현 규모에서 과도 |
+| Ice-breaking 2문항 (G) | 경험 수준 + 의사결정 성향 | 첫 로그인 마찰 최소화, 행동 기반 progressive profiling |
+| gpt-4o-mini 요약 (G) | 5턴마다 자동 세션 요약, done SSE 후 백그라운드 | 비용 최적화 (분류/보고서 아닌 요약은 경량 모델) |
+| Lazy creation (G) | 첫 접근 시 UPSERT | 기존 users 대상 data migration 불필요 |
+| 모든 파라미터 default=None (G) | 기존 808 테스트 하위 호환 보장 | 새 파라미터 추가 시 기존 코드 무영향 |
 
 ## 자산 목록
 
@@ -107,11 +115,10 @@
 10. `user_sessions` — 리프레시 토큰 세션 (Phase A)
 11. `chat_sessions` — 채팅 세션 (Phase B)
 12. `chat_messages` — 채팅 메시지 (Phase B)
-13. `chart_presets` — 차트 프리셋 (Phase F 이후)
-14. `user_memories` — 사용자 메모리 (Phase G)
-15. `retrieval_chunks` — 벡터 임베딩 (Phase G)
-16. `analysis_snapshots` — 분석 스냅샷 (Phase G)
-17. `onboarding_profiles` — 온보딩 프로필 (Phase H)
+13. `chart_presets` — 차트 프리셋 (향후)
+14. `user_profiles` — 사용자 프로필 (experience_level, decision_style, top_assets, JSONB) (Phase G)
+15. `user_activity` — 사용자 활동 (activity_data JSONB: page_visits, asset_views, question_categories 카운터) (Phase G)
+16. `conversation_summaries` — 세션 요약 (summary_data JSONB: categories, assets, key_findings) (Phase G)
 
 ## API 엔드포인트
 
@@ -165,14 +172,13 @@
 | GET | `/v1/analysis/indicator-comparison` | 지표 예측력 비교 | D |
 | POST | `/v1/analysis/strategy-backtest` | 전략 백테스트 (indicator 시그널 기반, on-the-fly) | E |
 
-#### Memory / Onboarding API (Phase G~H)
-| Method | Path | Phase |
-|--------|------|-------|
-| GET/POST/DELETE | `/v1/memory` | G |
-| POST | `/v1/retrieval/query` | G |
-| POST | `/v1/onboarding/start` | H |
-| POST | `/v1/onboarding/answers` | H |
-| GET | `/v1/onboarding/profile` | H |
+#### Profile API (Phase G)
+| Method | Path | Auth | 설명 |
+|--------|------|------|------|
+| GET | `/v1/profile` | Required | 현재 사용자 프로필 |
+| POST | `/v1/profile/ice-breaking` | Required | 아이스브레이킹 답변 제출 |
+| GET | `/v1/profile/activity` | Required | 활동 데이터 |
+| POST | `/v1/profile/activity/page-visit` | Required | 페이지 방문 기록 |
 
 ## 프론트엔드 페이지
 
@@ -240,7 +246,11 @@
 - [x] Agentic Flow: 2-Step LLM JSON mode (Phase F) ✅
 - [x] Agentic Flow: 자동 페이지 네비게이션 (Phase F) ✅
 - [x] Agentic Flow: 동적 follow-up 질문 (Phase F) ✅
-- [ ] 사용자 데이터 user_id 기준 격리
+- [x] 사용자 데이터 user_id 기준 격리
+- [x] JSONB 원자적 연산 (user_activity 카운터 증가) (Phase G) ✅
+- [x] Lazy creation UPSERT (user_profiles, user_activity) (Phase G) ✅
+- [x] UserContext 프롬프트 주입 (Classifier + Reporter) (Phase G) ✅
+- [x] 백그라운드 세션 요약 (asyncio.create_task, done SSE 후) (Phase G) ✅
 
 ## 배포 인프라
 
@@ -253,4 +263,4 @@
 | 일일 수집 | GitHub Actions cron | ✅ 운영 중 |
 | 알림 | Discord Webhook | ✅ 운영 중 |
 | LLM API | OpenAI GPT-5 / GPT-5 Mini | ✅ 운영 중 |
-| Vector 확장 | pgvector | 계획 (Phase F) |
+| Vector 확장 | pgvector | 보류 (Phase G에서 미사용 결정) |

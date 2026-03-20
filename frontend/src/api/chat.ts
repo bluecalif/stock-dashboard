@@ -39,13 +39,12 @@ export function sendMessageSSE(
   const controller = new AbortController();
   const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-  const response = fetch(
-    `${baseURL}/v1/chat/sessions/${sessionId}/messages`,
-    {
+  const doFetch = (token: string | null) =>
+    fetch(`${baseURL}/v1/chat/sessions/${sessionId}/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         content,
@@ -54,8 +53,41 @@ export function sendMessageSSE(
         is_nudge: isNudge,
       }),
       signal: controller.signal,
-    },
-  );
+    });
+
+  // 401 시 토큰 갱신 후 1회 재시도
+  const response = doFetch(accessToken).then(async (res) => {
+    if (res.status !== 401) return res;
+
+    try {
+      const raw = localStorage.getItem("auth_tokens");
+      if (!raw) return res;
+      const { refreshToken } = JSON.parse(raw);
+
+      const refreshRes = await apiClient.post("/v1/auth/refresh", {
+        refresh_token: refreshToken,
+      });
+
+      const newAccessToken = refreshRes.data.access_token;
+      const newRefreshToken = refreshRes.data.refresh_token;
+
+      localStorage.setItem(
+        "auth_tokens",
+        JSON.stringify({ accessToken: newAccessToken, refreshToken: newRefreshToken }),
+      );
+
+      // zustand store 동기화
+      const { useAuthStore } = await import("../store/authStore");
+      useAuthStore.setState({
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      });
+
+      return doFetch(newAccessToken);
+    } catch {
+      return res; // refresh 실패 시 원래 401 응답 반환
+    }
+  });
 
   return { response, abort: () => controller.abort() };
 }

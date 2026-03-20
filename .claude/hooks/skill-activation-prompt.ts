@@ -35,8 +35,9 @@ interface MatchedSkill {
 
 async function main() {
     try {
-        // Read input from stdin
-        const input = readFileSync(0, 'utf-8');
+        // Read input from stdin (BOM strip)
+        const raw = readFileSync(0, 'utf-8');
+        const input = raw.replace(/^\uFEFF/, '');
         const data: HookInput = JSON.parse(input);
         const prompt = data.prompt.toLowerCase();
 
@@ -121,12 +122,14 @@ async function main() {
 
         process.exit(0);
     } catch (err) {
-        console.error('Error in skill-activation-prompt hook:', err);
-        process.exit(1);
+        // Hook 에러는 채팅 흐름을 방해하지 않도록 조용히 종료
+        if (process.env.DEBUG_HOOKS) {
+            console.error('Error in skill-activation-prompt hook:', err);
+        }
+        process.exit(0);
     }
 }
 
-main().catch(err => {
-    console.error('Uncaught error:', err);
-    process.exit(1);
+main().catch(() => {
+    process.exit(0);
 });

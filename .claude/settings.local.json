@@ -141,7 +141,14 @@
       "Bash(pip install:*)",
       "Bash(pip show:*)",
       "WebFetch(domain:backend-production-e5bc.up.railway.app)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .claude/hooks/post-tool-use-tracker.ps1)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File .claude/hooks/skill-activation-prompt.ps1)",
+      "Bash(npx tsx:*)",
+      "Bash(env)",
+      "Bash(python -c \":*)",
+      "Bash(wmic process:*)",
+      "Bash(python -m json.tool)"
     ]
   }
 }

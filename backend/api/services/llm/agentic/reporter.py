@@ -53,6 +53,8 @@ async def generate_report(
     """
     system_prompt = _build_system_prompt(category, page_id, user_context_block)
     user_msg = _build_user_message(question, tool_results)
+    logger.debug("Reporter system_prompt (first 500): %s", system_prompt[:500])
+    logger.debug("Reporter user_msg (first 1000): %s", user_msg[:1000])
 
     try:
         model_name = (
@@ -72,6 +74,7 @@ async def generate_report(
         ])
 
         raw = response.content.strip()
+        logger.debug("Reporter raw response (first 500): %s", raw[:500])
         data = json.loads(raw)
         result = CuratedReport(**data)
         logger.info(

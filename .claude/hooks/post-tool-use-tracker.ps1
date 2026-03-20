@@ -3,8 +3,14 @@
 
 $ErrorActionPreference = "SilentlyContinue"
 
-# Read tool information from stdin
-$toolInfo = $input | Out-String | ConvertFrom-Json
+try {
+    # Read tool information from stdin
+    $toolInfo = $input | Out-String | ConvertFrom-Json
+} catch {
+    exit 0
+}
+
+if (-not $toolInfo) { exit 0 }
 
 # Extract relevant data
 $toolName = $toolInfo.tool_name

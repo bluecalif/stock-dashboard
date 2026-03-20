@@ -1,6 +1,7 @@
 """FastAPI application — entry point, CORS, error handlers."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -27,6 +28,13 @@ from config.settings import settings
 
 # OS environ에 .env 로드 — LangSmith 등 라이브러리가 os.getenv()로 직접 참조
 load_dotenv()
+
+# 앱 로거 레벨 설정 — LOG_LEVEL 환경변수 또는 기본 INFO
+_log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, _log_level, logging.INFO),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 logger = logging.getLogger(__name__)
 

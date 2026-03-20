@@ -64,6 +64,24 @@
           "(LangGraph|langgraph).*(설정|구현|수정)"
         ]
       }
+    },
+    "skill-developer": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "medium",
+      "promptTriggers": {
+        "keywords": [
+          "skill", "스킬", "skill-rules", "hook", "훅",
+          "트리거", "trigger", "enforcement",
+          "SKILL.md", "skill-rules.json",
+          "skill-activation", "PostToolUse", "UserPromptSubmit"
+        ],
+        "intentPatterns": [
+          "(생성|추가|수정).*(스킬|skill|hook|훅)",
+          "(create|add|modify).*(skill|hook|trigger)",
+          "(hook|훅).*(에러|error|디버그|debug)"
+        ]
+      }
     }
   }
 }

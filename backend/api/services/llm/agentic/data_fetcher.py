@@ -68,6 +68,12 @@ async def fetch_data(classification: ClassificationResult) -> dict[str, Any]:
             # Tools return JSON strings — parse them
             results[tool_name] = json.loads(raw) if isinstance(raw, str) else raw
             logger.info("Tool %s succeeded: %d chars", tool_name, len(str(raw)))
+            if isinstance(results[tool_name], dict) and "indicator_accuracy" in results[tool_name]:
+                logger.info(
+                    "indicator_accuracy found in %s: %d entries",
+                    tool_name,
+                    len(results[tool_name]["indicator_accuracy"]),
+                )
         except Exception as exc:
             logger.exception(
                 "Tool %s failed with args=%s — %s: %s",

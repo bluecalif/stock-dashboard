@@ -201,6 +201,15 @@ async def stream_chat(
         and classification.category != "general"
     )
 
+    logger.info(
+        "Agentic flow: use_agentic=%s, category=%s, confidence=%.2f, page=%s, tools=%s",
+        use_agentic,
+        classification.category,
+        classification.confidence,
+        classification.target_page,
+        classification.required_tools,
+    )
+
     if use_agentic:
         try:
             # Navigate 액션 — LLM 판단 + 결정적 보정 (target != current이면 항상 이동)

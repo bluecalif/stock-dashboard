@@ -20,7 +20,10 @@ from api.services.analysis.interpretation_rules import (
     interpret_correlation,
     interpret_spread_zscore,
 )
-from api.services.analysis.signal_accuracy_service import compute_signal_accuracy
+from api.services.analysis.signal_accuracy_service import (
+    compute_indicator_accuracy,
+    compute_signal_accuracy,
+)
 from api.services.analysis.spread_service import compute_spread
 from api.services.correlation_service import compute_correlation
 from db.session import SessionLocal
@@ -284,7 +287,38 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
             for s in states
         ]
 
-        # 2. 매수/매도 성공률 (3개 전략)
+        # 2-A. 지표별 성공률 (RSI, MACD) — 대시보드 그래프와 동일 데이터 소스
+        indicator_ids = ["rsi_14", "macd"]
+        indicator_accuracy = []
+        for iid in indicator_ids:
+            r = compute_indicator_accuracy(
+                db, asset_id, iid, forward_days=forward_days,
+            )
+            entry: dict = {
+                "indicator_id": iid,
+                "buy_success_rate": r.buy_success_rate,
+                "sell_success_rate": r.sell_success_rate,
+                "avg_return_after_buy": r.avg_return_after_buy,
+                "avg_return_after_sell": r.avg_return_after_sell,
+                "evaluated_signals": r.evaluated_signals,
+                "buy_count": r.buy_count,
+                "sell_count": r.sell_count,
+                "insufficient_data": r.insufficient_data,
+            }
+            notes = []
+            if r.buy_success_rate is None and r.buy_count > 0:
+                notes.append(
+                    f"매수 신호 {r.buy_count}건으로 최소 기준(5건) 미달 → 매수 성공률 미산출"
+                )
+            if r.sell_success_rate is None and r.sell_count > 0:
+                notes.append(
+                    f"매도 신호 {r.sell_count}건으로 최소 기준(5건) 미달 → 매도 성공률 미산출"
+                )
+            if notes:
+                entry["note"] = "; ".join(notes)
+            indicator_accuracy.append(entry)
+
+        # 2-B. 전략별 성공률 (3개 전략, 기존 유지)
         strategy_ids = ["momentum", "trend", "mean_reversion"]
         accuracy_results = []
         for sid in strategy_ids:
@@ -336,6 +370,7 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
                 "asset_id": asset_id,
                 "forward_days": forward_days,
                 "indicator_states": indicator_states,
+                "indicator_accuracy": indicator_accuracy,
                 "signal_accuracy": accuracy_results,
                 "strategy_ranking": ranking,
             },

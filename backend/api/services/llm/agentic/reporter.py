@@ -45,6 +45,7 @@ async def generate_report(
     question: str,
     deep_mode: bool = False,
     user_context_block: str | None = None,
+    chat_history: list[dict[str, str]] | None = None,
 ) -> CuratedReport:
     """Generate a curated report from tool results via LLM JSON mode.
 
@@ -52,7 +53,7 @@ async def generate_report(
     On failure, returns a minimal fallback report.
     """
     system_prompt = _build_system_prompt(category, page_id, user_context_block)
-    user_msg = _build_user_message(question, tool_results)
+    user_msg = _build_user_message(question, tool_results, chat_history)
     logger.debug("Reporter system_prompt (first 500): %s", system_prompt[:500])
     logger.debug("Reporter user_msg (first 1000): %s", user_msg[:1000])
 
@@ -146,8 +147,28 @@ def _build_system_prompt(
     return "".join(parts)
 
 
-def _build_user_message(question: str, tool_results: dict[str, Any]) -> str:
-    """Format question + tool data for the reporter."""
+def _build_user_message(
+    question: str,
+    tool_results: dict[str, Any],
+    chat_history: list[dict[str, str]] | None = None,
+) -> str:
+    """Format question + tool data + conversation history for the reporter."""
+    parts: list[str] = []
+
+    # 이전 대화 맥락 (최근 N턴)
+    if chat_history:
+        parts.append("## 이전 대화\n")
+        for msg in chat_history:
+            role = "사용자" if msg["role"] == "user" else "AI"
+            # 이전 응답은 200자로 요약해서 토큰 절약
+            content = msg["content"]
+            if msg["role"] == "assistant" and len(content) > 200:
+                content = content[:200] + "…"
+            parts.append(f"{role}: {content}")
+        parts.append("")
+
+    parts.append(f"사용자 질문: {question}\n")
+
     try:
         data_str = json.dumps(
             tool_results, ensure_ascii=False, default=str,
@@ -155,8 +176,7 @@ def _build_user_message(question: str, tool_results: dict[str, Any]) -> str:
     except Exception:
         data_str = str(tool_results)
 
-    return (
-        f"사용자 질문: {question}\n\n"
-        f"## 수집된 데이터\n```json\n{data_str}\n```\n\n"
-        f"위 데이터를 바탕으로 분석 리포트를 JSON으로 생성하세요."
-    )
+    parts.append(f"## 수집된 데이터\n```json\n{data_str}\n```\n")
+    parts.append("위 데이터를 바탕으로 분석 리포트를 JSON으로 생성하세요.")
+
+    return "\n".join(parts)

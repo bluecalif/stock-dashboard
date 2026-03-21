@@ -191,7 +191,7 @@ async def test_stream_chat_success(
 async def test_stream_chat_unsupported(
     mock_repo, mock_classify, mock_build_ctx, mock_profile_repo, mock_db,
 ):
-    """unsupported 카테고리 → 안내 메시지 + follow_up + done."""
+    """unsupported 카테고리 → LangGraph fallback으로 라우팅 (거부 메시지 아님)."""
     uid = uuid.uuid4()
     fake = _make_session(user_id=uid)
     mock_repo.get_session.return_value = fake
@@ -209,26 +209,19 @@ async def test_stream_chat_unsupported(
     events = []
     gen = stream_chat(
         mock_db, session_id=fake.id, user_id=uid,
-        content="오늘 날씨 어때?",
+        content="한국의 수도는?",
     )
     async for event in gen:
         events.append(event)
 
-    # status(analyzing) + text_delta(안내 메시지) + follow_up + done
+    # unsupported → LangGraph fallback (thinking status + done)
+    # LangGraph는 API 키 없으면 에러 → error 이벤트 발생하지만, 거부 메시지는 아님
     assert any('"status"' in e for e in events)
-    assert any('"text_delta"' in e for e in events)
-    assert any('"follow_up"' in e for e in events)
     assert any('"done"' in e for e in events)
-
-    # 안내 메시지에 핵심 문구 포함
+    # 하드코딩 거부 메시지가 없어야 함
     text_events = [e for e in events if '"text_delta"' in e]
     combined = "".join(text_events)
-    assert "분석 범위를 벗어납니다" in combined
-
-    # assistant 메시지 DB 저장
-    calls = mock_repo.create_message.call_args_list
-    roles = [c.kwargs.get("role") or c[1].get("role") for c in calls]
-    assert "assistant" in roles
+    assert "분석 범위를 벗어납니다" not in combined
 
 
 # --- _dynamic_follow_ups ---

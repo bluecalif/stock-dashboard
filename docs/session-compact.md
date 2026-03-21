@@ -47,7 +47,6 @@
 - [ ] 프로덕션 배포 테스트
 
 ### 채팅 품질
-- [ ] 채팅 대화 컨텍스트: 요약 생성 이전에 이전 대화가 LLM 인풋에 포함되는지 확인
 - [ ] 대시보드-채팅 일치성: 지표/시그널 페이지에서 시그널+성공률 탭 통합 설명 정책 결정
 - [ ] 대시보드-채팅 일치성: 종목/기간/시점을 응답에 항상 명시하도록 개선
 
@@ -59,6 +58,8 @@
 - [x] G-2 대화 요약 검증: _run_summary DB 세션 버그 수정 → 5턴 후 요약 생성 + top_assets/top_categories 갱신 확인
 - [x] G-3 Context-Aware 검증: beginner vs expert 프로필 변경 시 응답 톤/깊이 차이 브라우저 E2E 확인
 - [x] 이번 세션 디버그 로깅 변경 커밋 여부 결정 (3af6033에서 이미 커밋됨 확인)
+- [x] 채팅 대화 컨텍스트: Classifier+Reporter에 최근 3턴 히스토리 전달 (이전 대화 참조 가능)
+- [x] unsupported 질문 라우팅: 거부 메시지 → LangGraph fallback으로 일반 대화 처리
 
 ## Key Decisions
 - **전략 기반 signal_accuracy 전체가 dead code**: signal_daily 테이블 데이터 0건, run_research 미실행 → tool 출력에서 제거 (서비스/API는 유지)

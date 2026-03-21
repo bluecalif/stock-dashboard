@@ -157,6 +157,15 @@ async def stream_chat(
         logger.warning("UserContext build failed for user %s", user_id, exc_info=True)
         _ctx_block = None
 
+    # ── 이전 대화 히스토리 (Classifier + Reporter 공유) ──
+    _MAX_HISTORY = 6  # 최근 3턴 (user+assistant 쌍)
+    _all_msgs = chat_repo.list_messages_by_session(db, session_id)
+    _history = [
+        {"role": m.role, "content": m.content or ""}
+        for m in _all_msgs[:-1]  # 현재 user 메시지 제외
+        if m.content
+    ][-_MAX_HISTORY:] or None
+
     # ── Step 1: LLM Classifier ──
     yield _status_event("analyzing", "🔍 질문을 분석하고 있어요...")
 
@@ -166,6 +175,7 @@ async def stream_chat(
         asset_ids=ctx.asset_ids or None,
         params=ctx.params or None,
         user_context_block=_ctx_block,
+        chat_history=_history,
     )
 
     logger.info(
@@ -178,27 +188,11 @@ async def stream_chat(
     # ── Activity tracking (비차단 — 실패해도 채팅 계속) ──
     _track_activity(db, user_id, classification.category, classification.asset_ids, deep_mode)
 
-    # ── Unsupported 카테고리 처리 ──
-    if classification.category == "unsupported":
-        msg = (
-            "이 질문은 저의 분석 범위를 벗어납니다. "
-            "저는 7개 자산(KOSPI200, 삼성전자, SK하이닉스, SOXL, "
-            "비트코인, 금, 은)의 가격·상관도·지표·전략 분석을 도와드려요.\n\n"
-            "아래 질문을 시도해보세요!"
-        )
-        for chunk in _chunk_text(msg, 80):
-            yield _sse({"type": "text_delta", "content": chunk})
-        nudge = _dynamic_follow_ups(ctx.page_id, user_ctx if _ctx_block else None)
-        yield _sse({"type": "follow_up", "questions": nudge})
-        chat_repo.create_message(db, session_id=session_id, role="assistant", content=msg)
-        db.commit()
-        yield _sse({"type": "done"})
-        return
-
     # ── Agentic flow or LangGraph fallback ──
+    # unsupported/general → LangGraph fallback (일반 대화 처리 가능)
     use_agentic = (
         classification.confidence >= _CONFIDENCE_THRESHOLD
-        and classification.category != "general"
+        and classification.category not in ("general", "unsupported")
     )
 
     logger.info(
@@ -252,6 +246,7 @@ async def stream_chat(
                 question=content,
                 deep_mode=deep_mode,
                 user_context_block=_ctx_block,
+                chat_history=_history,
             )
 
             # ── 응답 스트리밍 ──

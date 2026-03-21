@@ -54,12 +54,8 @@ app = FastAPI(
 )
 
 # --- CORS ---
-_origins = [
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:5174",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-]
+# localhost 모든 포트 허용 (Vite가 5173, 5174, ... 동적 할당)
+_origins: list[str] = []
 if settings.cors_origins:
     _origins.extend(
         o.strip().rstrip("/") for o in settings.cors_origins.split(",") if o.strip()
@@ -68,6 +64,7 @@ if settings.cors_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

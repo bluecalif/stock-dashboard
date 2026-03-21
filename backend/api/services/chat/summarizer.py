@@ -47,7 +47,8 @@ async def summarize_session(messages: list[dict[str, str]]) -> dict:
     llm = ChatOpenAI(
         model="gpt-5-nano",
         api_key=settings.openai_api_key,
-        temperature=0,
+        max_retries=2,
+        request_timeout=60,
         model_kwargs={"response_format": {"type": "json_object"}},
     )
 

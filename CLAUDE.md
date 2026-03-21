@@ -77,6 +77,11 @@ Skills in `.claude/skills/` — see each `SKILL.md` for details:
 - **uvicorn --reload 불안정**: 코드 변경 미반영 시 `tasklist | grep python`으로 좀비 프로세스 확인 → `taskkill //F //PID <pid>` 전부 종료 → 재시작
 - **백그라운드 태스크 DB 세션**: `asyncio.ensure_future()`에 요청 스코프 DB 세션 전달 금지. 자체 `SessionLocal()` 생성 필수
 
+## LLM Models
+
+- **reasoning** (gpt-5-mini/nano): `temperature`, `max_tokens` 미지원 → `max_completion_tokens` 사용
+- **non-reasoning** (gpt-4.1-mini): `temperature=0` 가능. Reporter 전용 (`llm_report_model`)
+
 ## Key Design Decisions
 
 - Kiwoom OpenAPI dropped (2026-02-10): 32-bit Python, DLL lock issues

@@ -14,6 +14,7 @@ from langchain_openai import ChatOpenAI
 
 from config.settings import settings
 
+from .compressor import compress_tool_results
 from .knowledge_prompts import get_knowledge_prompt
 from .schemas import CuratedReport
 
@@ -53,20 +54,19 @@ async def generate_report(
     On failure, returns a minimal fallback report.
     """
     system_prompt = _build_system_prompt(category, page_id, user_context_block)
-    user_msg = _build_user_message(question, tool_results, chat_history)
+    compressed = compress_tool_results(tool_results)
+    user_msg = _build_user_message(question, compressed, chat_history)
     logger.debug("Reporter system_prompt (first 500): %s", system_prompt[:500])
     logger.debug("Reporter user_msg (first 1000): %s", user_msg[:1000])
 
     try:
-        model_name = (
-            settings.llm_pro_model if deep_mode else settings.llm_lite_model
-        )
+        model_name = settings.llm_report_model
         llm = ChatOpenAI(
             model=model_name,
             api_key=settings.openai_api_key,
-            temperature=0.3,
-            max_retries=3,
-            request_timeout=45,
+            temperature=0,
+            max_retries=2,
+            request_timeout=30,
             model_kwargs={"response_format": {"type": "json_object"}},
         )
         response = await llm.ainvoke([
@@ -97,7 +97,7 @@ async def generate_report(
     except Exception as exc:
         logger.exception(
             "LLM Reporter failed (model=%s, user_msg_len=%d, tools=%s) — %s: %s",
-            settings.llm_pro_model if deep_mode else settings.llm_lite_model,
+            settings.llm_report_model,
             len(user_msg),
             list(tool_results.keys()),
             type(exc).__name__,

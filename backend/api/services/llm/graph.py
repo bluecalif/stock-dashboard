@@ -17,8 +17,8 @@ def _build_model(deep_mode: bool = False) -> ChatOpenAI:
     return ChatOpenAI(
         model=model_name,
         api_key=settings.openai_api_key,
-        max_retries=3,
-        request_timeout=30,
+        max_retries=2,
+        request_timeout=60,
     )
 
 

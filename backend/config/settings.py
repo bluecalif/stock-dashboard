@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     llm_pro_model: str = "gpt-5"
     llm_lite_model: str = "gpt-5-mini"
+    llm_report_model: str = "gpt-4.1-mini"
 
     # Auth / JWT
     jwt_secret_key: str = ""

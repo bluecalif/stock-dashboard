@@ -76,7 +76,8 @@ class TestGenerateReport:
         assert len(result.ui_actions) == 1
 
     @pytest.mark.asyncio
-    async def test_deep_mode_uses_pro_model(self):
+    async def test_uses_report_model(self):
+        """Reporter는 항상 llm_report_model을 사용."""
         mock_report = CuratedReport(
             summary="심층 분석",
             analysis="상세 내용",
@@ -98,32 +99,8 @@ class TestGenerateReport:
                 deep_mode=True,
             )
 
-            # ChatOpenAI should be called with pro model
             call_kwargs = mock_cls.call_args[1]
-            assert call_kwargs["model"] == "gpt-5"
-
-    @pytest.mark.asyncio
-    async def test_lite_mode_uses_lite_model(self):
-        mock_report = CuratedReport(summary="요약", analysis="분석")
-        mock_response = AsyncMock()
-        mock_response.content = mock_report.model_dump_json()
-
-        with patch(
-            "api.services.llm.agentic.reporter.ChatOpenAI",
-        ) as mock_cls:
-            mock_llm = mock_cls.return_value
-            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
-
-            await generate_report(
-                category="general",
-                tool_results={},
-                page_id="home",
-                question="안녕",
-                deep_mode=False,
-            )
-
-            call_kwargs = mock_cls.call_args[1]
-            assert call_kwargs["model"] == "gpt-5-mini"
+            assert call_kwargs["model"] == "gpt-4.1-mini"
 
     @pytest.mark.asyncio
     async def test_fallback_on_error(self):

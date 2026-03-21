@@ -112,6 +112,61 @@
 - `backend/api/services/llm/agentic/reporter.py`
 - `backend/tests/unit/test_agentic_data_fetcher.py`
 
+## 성능 최적화: Reporter 타임아웃 근본 원인 진단 및 모델 교체
+
+### PERF-1: gpt-5-mini `temperature=0` 미지원 — 심층 분석
+
+**증상:**
+- Reporter가 간헐적으로 APITimeoutError 발생 → fallback_report("분석 결과를 생성하지 못했습니다") 반환
+- 단순 API 테스트(curl)로는 2.26초 정상 → 외부 원인이 아님
+
+**초기 오진:**
+- "API 서버 느림" 또는 "JSON mode + 프롬프트 조합 문제"로 추정
+- ❌ 실제로는 **모델 호환성 문제**
+
+**근본 원인:**
+- gpt-5-mini는 **reasoning 모델** (o1/o3 계열) — 발견 사실:
+  1. `temperature=0` 미지원 → `BadRequestError 400` 즉시 발생
+  2. langchain `ChatOpenAI`가 이 에러를 자동 재시도(max_retries=3) → 25초+ 소요
+  3. `max_tokens` → `max_completion_tokens` 필요 (completion에 reasoning_tokens 포함)
+  4. gpt-5-nano도 reasoning 모델 (reasoning_tokens=3,328, 36.9초)
+
+**모델 벤치마크 (실제 tool_results, JSON mode):**
+
+| 모델 | 시간 | reasoning tokens | 출력 품질 |
+|------|------|-----------------|----------|
+| gpt-5-mini | 34.8s | 2,240 | 1,135자 |
+| gpt-5-nano | 36.9s | 3,328 | 921자 |
+| gpt-4.1-mini | **4.5s** | 0 | 259자 |
+| gpt-4o-mini | 4.9s | 0 | 195자 |
+
+**수정:**
+- Reporter 모델을 `gpt-4.1-mini`로 분리 (settings.py에 `llm_report_model` 추가)
+- non-reasoning 모델이므로 `temperature=0` 복원, `request_timeout=30`
+- Classifier는 gpt-5-mini(reasoning) 유지 — 질문 의도 파악에 적합
+- Summarizer(gpt-5-nano) — `temperature=0` 제거 (reasoning 모델 호환)
+- graph.py — timeout=60s, retries=2로 조정
+
+**DataFetcher 캐시 효과 검증:**
+
+| 시나리오 | 시간 | 비고 |
+|----------|------|------|
+| Cold (첫 요청) | 12.4s | DB 쿼리 |
+| Warm (캐시 히트) | 1.3s | 9.2배 개선 |
+
+**최종 E2E 실측:**
+- Cold: Classifier 8s + Fetch 12s + Reporter 5.8s = **~26s**
+- Warm: Classifier 8s + Fetch 1.3s + Reporter 5.8s = **~15s** (목표 달성)
+
+**영향 파일:**
+- `backend/config/settings.py` — `llm_report_model` 추가
+- `backend/api/services/llm/agentic/reporter.py` — 모델 분리 + temperature=0
+- `backend/api/services/llm/agentic/classifier.py` — temperature 제거, timeout/retries 조정
+- `backend/api/services/llm/graph.py` — timeout/retries 조정
+- `backend/api/services/chat/summarizer.py` — temperature=0 제거 (gpt-5-nano 호환)
+- `backend/.env.example` — LLM_REPORT_MODEL 추가
+- `backend/tests/unit/test_agentic_reporter.py` — 모델 분기 테스트 → 단일 모델 테스트로 변경
+
 ## Modified Files Summary
 
 ### Backend
@@ -163,7 +218,12 @@ frontend/src/
 - 모든 LLM 호출에 `max_retries=3`, `request_timeout=10` 명시적 설정 필수
 - MemorySaver 사용 시 메시지 트리밍 로직 필수
 
-### L3: with_structured_output → JSON mode
+### L3: reasoning 모델 호환성 반드시 확인
+- gpt-5-mini, gpt-5-nano는 **reasoning 모델** → `temperature`, `max_tokens` 파라미터 미지원
+- langchain은 400 에러를 자동 재시도하므로 즉시 에러가 아닌 **느려짐**으로 나타남
+- **교훈**: 새 모델 적용 시 reasoning/non-reasoning 여부 먼저 확인. reasoning 모델은 JSON 리포트 생성 같은 단순 작업에 과잉 — non-reasoning 모델이 4-7배 빠름
+
+### L4: with_structured_output → JSON mode
 - LangChain `with_structured_output(Pydantic)` 프로덕션에서 지속 실패
 - `response_format=json_object` + 수동 `json.loads` + `Pydantic(**data)`로 전환하면 안정적
 - **교훈**: LangChain 고수준 추상화가 프로덕션에서 실패할 수 있음. 저수준 직접 제어 선호

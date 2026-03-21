@@ -55,9 +55,9 @@ async def classify_question(
         llm = ChatOpenAI(
             model=settings.llm_lite_model,
             api_key=settings.openai_api_key,
-            temperature=0,
-            max_retries=3,
-            request_timeout=10,
+            max_retries=2,
+            request_timeout=30,
+            max_completion_tokens=1000,
             model_kwargs={"response_format": {"type": "json_object"}},
         )
         response = await llm.ainvoke([

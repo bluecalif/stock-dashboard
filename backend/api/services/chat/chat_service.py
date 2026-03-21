@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 import uuid
 from collections.abc import AsyncGenerator
 
@@ -168,6 +169,7 @@ async def stream_chat(
 
     # ── Step 1: LLM Classifier ──
     yield _status_event("analyzing", "🔍 질문을 분석하고 있어요...")
+    _t0 = time.perf_counter()
 
     classification = await llm_classify(
         question=content,
@@ -178,11 +180,13 @@ async def stream_chat(
         chat_history=_history,
     )
 
+    _t1 = time.perf_counter()
     logger.info(
-        "Classifier result: category=%s confidence=%.2f target_page=%s",
+        "Classifier result: category=%s confidence=%.2f target_page=%s (%.1fs)",
         classification.category,
         classification.confidence,
         classification.target_page,
+        _t1 - _t0,
     )
 
     # ── Activity tracking (비차단 — 실패해도 채팅 계속) ──
@@ -235,7 +239,10 @@ async def stream_chat(
 
             # ── Step 2: DataFetcher ──
             yield _status_event("fetching", "📊 에이전트가 데이터를 수집하고 있어요...")
+            _t2 = time.perf_counter()
             tool_results = await fetch_data(classification)
+            _t3 = time.perf_counter()
+            logger.info("DataFetcher done: %.1fs", _t3 - _t2)
 
             # ── Step 3: LLM Reporter ──
             yield _status_event("generating", "📝 에이전트가 리포트를 작성하고 있어요...")
@@ -247,6 +254,12 @@ async def stream_chat(
                 deep_mode=deep_mode,
                 user_context_block=_ctx_block,
                 chat_history=_history,
+            )
+
+            _t4 = time.perf_counter()
+            logger.info(
+                "Timing: classify=%.1fs fetch=%.1fs report=%.1fs total=%.1fs",
+                _t1 - _t0, _t3 - _t2, _t4 - _t3, _t4 - _t0,
             )
 
             # ── 응답 스트리밍 ──

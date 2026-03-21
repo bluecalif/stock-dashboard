@@ -6,6 +6,7 @@ with parameters from the classification result.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Any
@@ -25,6 +26,7 @@ from api.services.llm.tools import (
 from db.session import SessionLocal
 
 from .schemas import ClassificationResult
+from .tool_cache import get_cached, set_cached
 
 logger = logging.getLogger(__name__)
 
@@ -43,46 +45,66 @@ _TOOL_MAP = {
 
 
 async def fetch_data(classification: ClassificationResult) -> dict[str, Any]:
-    """Invoke required tools and return aggregated results.
+    """Invoke required tools in parallel and return aggregated results.
 
     Each tool is called with parameters from the classification.
+    Tools run concurrently via run_in_executor (each tool creates its own DB session).
     Individual tool failures are logged and skipped (partial results).
     Always includes name_map for asset display names.
     """
-    results: dict[str, Any] = {}
+    loop = asyncio.get_event_loop()
 
-    for tool_name in classification.required_tools:
+    async def _invoke(tool_name: str) -> tuple[str, Any]:
         tool_fn = _TOOL_MAP.get(tool_name)
         if tool_fn is None:
             logger.warning("Unknown tool: %s — skipping", tool_name)
-            continue
+            return tool_name, None
 
-        try:
-            args = _build_tool_args(tool_name, classification)
+        args = _build_tool_args(tool_name, classification)
+
+        # 캐시 확인
+        cached = get_cached(tool_name, args)
+        if cached is not None:
+            logger.info("Tool %s cache HIT", tool_name)
+            return tool_name, cached
+
+        logger.info(
+            "Invoking tool %s with args: %s",
+            tool_name,
+            json.dumps(args, ensure_ascii=False, default=str),
+        )
+        raw = await loop.run_in_executor(None, tool_fn.invoke, args)
+        parsed = json.loads(raw) if isinstance(raw, str) else raw
+        logger.info("Tool %s succeeded: %d chars", tool_name, len(str(raw)))
+        if isinstance(parsed, dict) and "indicator_accuracy" in parsed:
             logger.info(
-                "Invoking tool %s with args: %s",
+                "indicator_accuracy found in %s: %d entries",
                 tool_name,
-                json.dumps(args, ensure_ascii=False, default=str),
+                len(parsed["indicator_accuracy"]),
             )
-            raw = tool_fn.invoke(args)
-            # Tools return JSON strings — parse them
-            results[tool_name] = json.loads(raw) if isinstance(raw, str) else raw
-            logger.info("Tool %s succeeded: %d chars", tool_name, len(str(raw)))
-            if isinstance(results[tool_name], dict) and "indicator_accuracy" in results[tool_name]:
-                logger.info(
-                    "indicator_accuracy found in %s: %d entries",
-                    tool_name,
-                    len(results[tool_name]["indicator_accuracy"]),
-                )
-        except Exception as exc:
+
+        # 캐시 저장
+        set_cached(tool_name, args, parsed)
+        return tool_name, parsed
+
+    results: dict[str, Any] = {}
+    tasks = [_invoke(t) for t in classification.required_tools]
+    outcomes = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for i, outcome in enumerate(outcomes):
+        tool_name = classification.required_tools[i]
+        if isinstance(outcome, Exception):
             logger.exception(
-                "Tool %s failed with args=%s — %s: %s",
+                "Tool %s failed — %s: %s",
                 tool_name,
-                json.dumps(args, ensure_ascii=False, default=str),
-                type(exc).__name__,
-                exc,
+                type(outcome).__name__,
+                outcome,
             )
-            results[tool_name] = {"error": f"{tool_name} 호출 실패: {type(exc).__name__}: {exc}"}
+            results[tool_name] = {"error": f"{tool_name} 호출 실패: {type(outcome).__name__}: {outcome}"}
+        else:
+            name, parsed = outcome
+            if parsed is not None:
+                results[name] = parsed
 
     # Always include name_map
     results["name_map"] = _get_name_map(classification.asset_ids)

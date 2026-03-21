@@ -402,23 +402,27 @@ def _maybe_trigger_summary(
                 {"role": m.role, "content": m.content or ""}
                 for m in messages
             ]
-            asyncio.ensure_future(_run_summary(db, session_id, user_id, msg_dicts))
+            # 요청 스코프 db 세션은 스트리밍 종료 시 닫히므로,
+            # 백그라운드 태스크는 자체 세션을 생성해야 함
+            asyncio.ensure_future(_run_summary(session_id, user_id, msg_dicts))
     except Exception:
         logger.warning("Summary trigger check failed for session %s", session_id, exc_info=True)
 
 
 async def _run_summary(
-    db: Session,
     session_id: uuid.UUID,
     user_id: uuid.UUID,
     messages: list[dict[str, str]],
 ) -> None:
     """백그라운드 요약 실행 + DB 저장 + user_profile 갱신."""
+    from db.session import SessionLocal
+
+    bg_db = SessionLocal()
     try:
         from api.services.chat.summarizer import summarize_session
 
         summary_data = await summarize_session(messages)
-        chat_repo.upsert_summary(db, session_id=session_id, summary_data=summary_data)
+        chat_repo.upsert_summary(bg_db, session_id=session_id, summary_data=summary_data)
 
         # user_profile의 top_assets, top_categories 갱신
         assets = summary_data.get("assets_discussed", [])
@@ -430,17 +434,19 @@ async def _run_summary(
             if categories:
                 update_kwargs["top_categories"] = categories
             if update_kwargs:
-                profile_repo.upsert_profile(db, user_id=user_id, **update_kwargs)
+                profile_repo.upsert_profile(bg_db, user_id=user_id, **update_kwargs)
 
-        db.commit()
+        bg_db.commit()
         turns = summary_data.get("turn_count", 0)
         logger.info("Session %s summary saved (%d turns)", session_id, turns)
     except Exception:
         logger.warning("Background summary failed for session %s", session_id, exc_info=True)
         try:
-            db.rollback()
+            bg_db.rollback()
         except Exception:
             pass
+    finally:
+        bg_db.close()
 
 
 # ---------------------------------------------------------------------------

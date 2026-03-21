@@ -90,16 +90,25 @@ export default function SignalPage() {
   const loadMatrix = useCallback(async () => {
     if (!assetId) return;
     try {
+      // 최근 30일 시그널을 가져와 마지막(최신)을 사용 (repo가 asc 정렬)
+      const recentStart = new Date();
+      recentStart.setDate(recentStart.getDate() - 30);
+      const startStr = recentStart.toISOString().slice(0, 10);
       const results = await Promise.all(
         STRATEGIES.map((s) =>
           fetchSignals({
             asset_id: assetId,
             strategy_id: s.id,
-            limit: 1,
+            start_date: startStr,
+            end_date: today(),
           }),
         ),
       );
-      setMatrixSignals(results.flat());
+      // 각 전략에서 마지막(최신) 시그널만 추출
+      const latestPerStrategy = results
+        .map((arr) => (arr.length > 0 ? arr[arr.length - 1] : null))
+        .filter((s): s is SignalDailyResponse => s !== null);
+      setMatrixSignals(latestPerStrategy);
     } catch {
       // 매트릭스 실패해도 메인 차트는 유지
     }

@@ -28,9 +28,9 @@ def get_dashboard_summary(db: Session) -> DashboardSummaryResponse:
         # Latest price + change %
         latest_price = None
         price_change_pct = None
-        prices = price_repo.get_prices(db, asset.asset_id, limit=2, offset=0)
+        prices = price_repo.get_latest_prices(db, asset.asset_id, n=2)
         if prices:
-            latest_price = prices[0].close
+            latest_price = prices[0].close  # desc: [0]=최신, [1]=전일
             if len(prices) >= 2:
                 prev = prices[1].close
                 if prev != 0:

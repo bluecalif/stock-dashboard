@@ -83,7 +83,7 @@ class TestDashboardSummary:
     def test_summary_basic(self, mock_asset, mock_price, mock_signal, mock_bt, client):
         """Returns assets with latest price and change %."""
         mock_asset.get_all.return_value = [_make_asset("KS200", "KOSPI200")]
-        mock_price.get_prices.return_value = [
+        mock_price.get_latest_prices.return_value = [
             _make_price("KS200", date(2026, 2, 10), 300.0),
             _make_price("KS200", date(2026, 2, 9), 290.0),
         ]
@@ -107,7 +107,7 @@ class TestDashboardSummary:
     def test_summary_no_prices(self, mock_asset, mock_price, mock_signal, mock_bt, client):
         """Asset with no prices → null values."""
         mock_asset.get_all.return_value = [_make_asset("BTC", "비트코인")]
-        mock_price.get_prices.return_value = []
+        mock_price.get_latest_prices.return_value = []
         mock_signal.get_latest_signal.return_value = None
         mock_bt.get_runs.return_value = []
 
@@ -124,7 +124,7 @@ class TestDashboardSummary:
     def test_summary_single_price(self, mock_asset, mock_price, mock_signal, mock_bt, client):
         """Only one price record → change is null."""
         mock_asset.get_all.return_value = [_make_asset("SOXL", "SOXL")]
-        mock_price.get_prices.return_value = [
+        mock_price.get_latest_prices.return_value = [
             _make_price("SOXL", date(2026, 2, 10), 50.0),
         ]
         mock_signal.get_latest_signal.return_value = None
@@ -142,7 +142,7 @@ class TestDashboardSummary:
     def test_summary_with_signals(self, mock_asset, mock_price, mock_signal, mock_bt, client):
         """Signals are included per strategy."""
         mock_asset.get_all.return_value = [_make_asset("005930", "삼성전자")]
-        mock_price.get_prices.return_value = [
+        mock_price.get_latest_prices.return_value = [
             _make_price("005930", date(2026, 2, 10), 70000.0),
             _make_price("005930", date(2026, 2, 9), 69000.0),
         ]
@@ -206,7 +206,7 @@ class TestDashboardSummary:
             _make_asset("005930", "삼성전자"),
             _make_asset("BTC", "비트코인"),
         ]
-        mock_price.get_prices.return_value = []
+        mock_price.get_latest_prices.return_value = []
         mock_signal.get_latest_signal.return_value = None
         mock_bt.get_runs.return_value = []
 
@@ -220,7 +220,7 @@ class TestDashboardSummary:
     def test_summary_response_schema(self, mock_asset, mock_price, mock_signal, mock_bt, client):
         """Response matches DashboardSummaryResponse schema."""
         mock_asset.get_all.return_value = [_make_asset("GC=F", "Gold")]
-        mock_price.get_prices.return_value = [
+        mock_price.get_latest_prices.return_value = [
             _make_price("GC=F", date(2026, 2, 10), 2000.0),
         ]
         mock_signal.get_latest_signal.return_value = None

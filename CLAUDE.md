@@ -72,6 +72,11 @@ Skills in `.claude/skills/` — see each `SKILL.md` for details:
 - **Branches**: `feature/[task-name]`
 - **Convention checks**: OHLCV schema rules (data code), Router-Service-Repo separation (API code)
 
+## Server Management (Windows)
+
+- **uvicorn --reload 불안정**: 코드 변경 미반영 시 `tasklist | grep python`으로 좀비 프로세스 확인 → `taskkill //F //PID <pid>` 전부 종료 → 재시작
+- **백그라운드 태스크 DB 세션**: `asyncio.ensure_future()`에 요청 스코프 DB 세션 전달 금지. 자체 `SessionLocal()` 생성 필수
+
 ## Key Design Decisions
 
 - Kiwoom OpenAPI dropped (2026-02-10): 32-bit Python, DLL lock issues

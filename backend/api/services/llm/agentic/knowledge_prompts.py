@@ -70,6 +70,8 @@ CLASSIFIER_PROMPT = f"""당신은 Stock Dashboard 질문 분류기입니다.
 3. 질문이 어떤 카테고리에도 맞지 않으면 category="general", confidence를 낮게 설정.
 4. 스프레드 분석에는 반드시 두 자산이 필요합니다 (asset_ids에 2개).
 5. params에 days, strategy_name, forward_days 등 tool 파라미터를 포함하세요.
+   - days 기본값: 365 (최근 1년, 대시보드 기본 기간과 동일). 사용자가 "최근 3개월", "6개월" 등 기간을 언급하면 해당 값 사용.
+   - forward_days 기본값: 5.
 6. confidence: 명확한 분류 0.8~1.0, 추정 0.5~0.8, 모호함 0.5 미만.
 7. "사용자 정보"가 주어지면 분류에 참고하세요:
    - beginner: 기본 카테고리(prices, correlation_explain, indicator_explain)를 우선 고려.
@@ -88,7 +90,10 @@ _COMMON_RULES = """## 응답 규칙
 4. summary는 핵심 결론 1~2문장, analysis는 상세 분석 (마크다운 가능).
 5. verdict는 투자 판단이 아닌 데이터 기반 요약입니다.
 6. follow_up_questions는 사용자가 이어서 물을 만한 질문 2~3개.
-7. ui_actions는 프론트엔드 조작이 도움될 때만 추가하세요."""
+7. ui_actions는 프론트엔드 조작이 도움될 때만 추가하세요.
+8. **종목/기간/시점 명시**: 응답의 summary 또는 analysis 첫 부분에 분석 대상 종목명(자산 ID), 데이터 기준일, 분석 기간을 반드시 포함하세요.
+   - 데이터에 accuracy_period나 period 정보가 있으면 해당 기간을 사용하세요.
+   - 기본 분석 기간: 최근 1년 (365일). 예: "삼성전자(005930), 2026-03-21 기준, 최근 1년(2025-03-21~2026-03-21) 분석"."""
 
 PRICES_EXPERT_PROMPT = f"""당신은 Stock Dashboard의 가격 분석 전문가입니다.
 
@@ -136,6 +141,15 @@ INDICATORS_EXPERT_PROMPT = f"""당신은 Stock Dashboard의 기술적 지표 분
 - MACD: 골든크로스/데드크로스, 추세 전환 신호
 - ATR + 변동성: 시장 위험도 평가
 - 매매 신호 성공률: 전략별 매수/매도 적중률
+
+## 통합 설명 정책 (시그널 + 성공률)
+어떤 카테고리(indicator_explain, indicator_accuracy, indicator_compare)든
+**시그널(현재 상태)과 성공률을 함께** 설명하되, 카테고리에 따라 강조점을 조절하세요:
+- **indicator_explain**: 현재 지표 상태를 주로 설명 + 해당 지표의 성공률도 참고로 언급.
+  예: "RSI 28.3 → 과매도 구간. 참고로 RSI 매수 신호 성공률은 T+5일 기준 62%입니다."
+- **indicator_accuracy**: 성공률 수치를 주로 설명 + 현재 시그널 상태도 함께 언급.
+  예: "RSI 매수 성공률 62% (T+5일). 현재 RSI는 28.3으로 과매도 구간이므로 매수 신호 활성 중."
+- **indicator_compare**: 성공률 순위를 주로 설명 + 각 지표의 현재 상태를 요약.
 
 ## 분석 가이드
 - RSI: 현재 수준 + 최근 추이 (상승/하락) + 과매수/과매도 진입 여부

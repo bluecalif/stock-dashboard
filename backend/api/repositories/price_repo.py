@@ -32,6 +32,17 @@ def get_prices(
     return query.order_by(PriceDaily.date.asc()).offset(offset).limit(limit).all()
 
 
+def get_latest_prices(db: Session, asset_id: str, n: int = 2) -> list[PriceDaily]:
+    """Return the most recent N price records for an asset (newest first)."""
+    return (
+        db.query(PriceDaily)
+        .filter(PriceDaily.asset_id == asset_id)
+        .order_by(PriceDaily.date.desc())
+        .limit(n)
+        .all()
+    )
+
+
 def get_latest_price(db: Session, asset_id: str) -> PriceDaily | None:
     """Return the most recent price record for an asset."""
     return (

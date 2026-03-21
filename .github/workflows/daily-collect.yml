@@ -35,6 +35,8 @@ jobs:
         working-directory: backend
         run: pip install -e .
 
+      # 초기 3년 백데이터 적재: workflow_dispatch로 수동 실행
+      # start_date: 3년 전 (예: 2023-03-21), end_date: 오늘 (예: 2026-03-21)
       - name: Compute date range
         id: dates
         run: |

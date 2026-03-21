@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from langchain_core.tools import tool
 
@@ -51,23 +51,30 @@ def _serialize_rows(rows: list, fields: list[str]) -> str:
 
 
 @tool
-def get_prices(asset_id: str, days: int = 30) -> str:
-    """자산의 최근 N일 OHLCV 조회. asset_id: KS200, 005930, 000660, SOXL, BTC/KRW, GC=F, SI=F"""
+def get_prices(asset_id: str, days: int = 365) -> str:
+    """자산의 최근 N일 OHLCV 조회. asset_id: KS200, 005930, 000660, SOXL, BTC/KRW, GC=F, SI=F.
+    days: 조회 기간 (기본 365일=1년, 대시보드 기본 기간과 동일)."""
     db = next(_get_db())
     try:
-        rows = price_repo.get_prices(db, asset_id, limit=days)
+        end = date.today()
+        start = end - timedelta(days=days)
+        rows = price_repo.get_prices(db, asset_id, start_date=start, end_date=end, limit=5000)
         return _serialize_rows(rows, ["date", "open", "high", "low", "close", "volume"])
     finally:
         db.close()
 
 
 @tool
-def get_factors(asset_id: str, factor_name: str | None = None, days: int = 30) -> str:
-    """자산의 팩터 데이터 조회. factor_name 예시: return_1d, volatility_20d, rsi_14 등."""
+def get_factors(asset_id: str, factor_name: str | None = None, days: int = 365) -> str:
+    """자산의 팩터 데이터 조회. factor_name 예시: return_1d, volatility_20d, rsi_14 등.
+    days: 조회 기간 (기본 365일=1년)."""
     db = next(_get_db())
     try:
+        end = date.today()
+        start = end - timedelta(days=days)
         rows = factor_repo.get_factors(
-            db, asset_id=asset_id, factor_name=factor_name, limit=days,
+            db, asset_id=asset_id, factor_name=factor_name,
+            start_date=start, end_date=end, limit=5000,
         )
         return _serialize_rows(rows, ["date", "asset_id", "factor_name", "value"])
     finally:
@@ -97,12 +104,16 @@ def get_correlation(asset_ids: list[str] | None = None, days: int = 60) -> str:
 
 
 @tool
-def get_signals(asset_id: str, strategy_id: str | None = None, days: int = 30) -> str:
-    """자산의 매매 시그널 조회. strategy_id 예시: momentum, trend, mean_reversion."""
+def get_signals(asset_id: str, strategy_id: str | None = None, days: int = 365) -> str:
+    """자산의 매매 시그널 조회. strategy_id 예시: momentum, trend, mean_reversion.
+    days: 조회 기간 (기본 365일=1년)."""
     db = next(_get_db())
     try:
+        end = date.today()
+        start = end - timedelta(days=days)
         rows = signal_repo.get_signals(
-            db, asset_id=asset_id, strategy_id=strategy_id, limit=days,
+            db, asset_id=asset_id, strategy_id=strategy_id,
+            start_date=start, end_date=end, limit=5000,
         )
         return _serialize_rows(
             rows, ["date", "asset_id", "strategy_id", "signal", "score"],
@@ -205,8 +216,6 @@ def get_spread(asset_a: str, asset_b: str, days: int = 60) -> str:
     asset_a, asset_b: 자산 ID (예: KS200, 005930). days: 분석 기간."""
     db = next(_get_db())
     try:
-        from datetime import timedelta
-
         end = date.today()
         start = end - timedelta(days=days)
         result = compute_spread(db, asset_a, asset_b, start_date=start, end_date=end)
@@ -239,24 +248,24 @@ def get_spread(asset_a: str, asset_b: str, days: int = 60) -> str:
 
 
 @tool
-def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
+def analyze_indicators(asset_id: str, forward_days: int = 5, days: int = 365) -> str:
     """자산의 지표 분석 종합: 현재 상태 해석(RSI/MACD/ATR/vol) + 지표별 매수매도 성공률.
     asset_id: KS200, 005930, 000660, SOXL, BTC/KRW, GC=F, SI=F.
-    forward_days: 성공률 평가 기간 (기본 5일)."""
+    forward_days: 성공률 평가 기간 (기본 5일).
+    days: 성공률 산출 대상 기간 (기본 365일=1년, 대시보드 그래프와 동일)."""
     db = next(_get_db())
     try:
         # 1. 현재 지표 상태 해석 — 최신 팩터 값 조회
         factor_names = ["rsi_14", "macd", "macd_signal", "vol_20", "atr_14"]
         latest: dict[str, float] = {}
         for fname in factor_names:
-            rows = factor_repo.get_factors(
-                db, asset_id=asset_id, factor_name=fname, limit=1,
-            )
-            if rows:
-                latest[fname] = float(rows[0].value)
+            row = factor_repo.get_latest_factor(db, asset_id, fname)
+            if row:
+                latest[fname] = float(row.value)
 
         # 최신 close 가격 (ATR/Price ratio 계산용)
-        price_rows = price_repo.get_prices(db, asset_id, limit=1)
+        latest_price_row = price_repo.get_latest_price(db, asset_id)
+        price_rows = [latest_price_row] if latest_price_row else []
         close = float(price_rows[0].close) if price_rows else None
 
         # 단일값 해석용 dict
@@ -286,11 +295,15 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
         ]
 
         # 2-A. 지표별 성공률 (RSI, MACD) — 대시보드 그래프와 동일 데이터 소스
+        acc_end = date.today()
+        acc_start = acc_end - timedelta(days=days)
+
         indicator_ids = ["rsi_14", "macd"]
         indicator_accuracy = []
         for iid in indicator_ids:
             r = compute_indicator_accuracy(
                 db, asset_id, iid, forward_days=forward_days,
+                start_date=acc_start, end_date=acc_end,
             )
             entry: dict = {
                 "indicator_id": iid,
@@ -316,9 +329,18 @@ def analyze_indicators(asset_id: str, forward_days: int = 5) -> str:
                 entry["note"] = "; ".join(notes)
             indicator_accuracy.append(entry)
 
+        # 기준일: 최신 가격 데이터 날짜
+        data_date = str(price_rows[0].date) if price_rows else None
+
         return json.dumps(
             {
                 "asset_id": asset_id,
+                "data_date": data_date,
+                "accuracy_period": {
+                    "start": acc_start.isoformat(),
+                    "end": acc_end.isoformat(),
+                    "days": days,
+                },
                 "forward_days": forward_days,
                 "indicator_states": indicator_states,
                 "indicator_accuracy": indicator_accuracy,

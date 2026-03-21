@@ -85,13 +85,45 @@
 
 **수정 계획**: `analyze_indicators`에 `compute_indicator_accuracy("rsi_14"/"macd")` 호출 추가 → `indicator_accuracy` 키로 반환. plan 파일 참조.
 
+## Post-Phase: Timeframe & Sorting 버그 (7건)
+
+| Bug # | Page/Module | Issue | Fix | File |
+|-------|-------------|-------|-----|------|
+| TF-1 | dashboard_service | `get_prices(limit=2)` → asc 정렬로 가장 오래된 2개 반환 → 대시보드 홈 가격이 3년 전 데이터 | `get_latest_prices(n=2)` 신규 함수 (desc 정렬) 사용 | `price_repo.py`, `dashboard_service.py` |
+| TF-2 | tools.py | `get_prices(limit=1)` → asc 정렬로 가장 오래된 1개 반환 → ATR/Price 비율 계산에 과거 가격 사용 | `get_latest_price()` (이미 존재, desc 정렬) 사용 | `tools.py` |
+| TF-3 | tools.py | `get_factors(limit=1)` → asc 정렬로 가장 오래된 팩터 반환 → RSI/MACD 현재 상태가 3년 전 | `get_latest_factor()` 신규 함수 (desc 정렬) 사용 | `factor_repo.py`, `tools.py` |
+| TF-4 | tools.py | `get_prices(limit=days)` → date 필터 없이 limit만 → 오래된 N개 반환 | `start_date`/`end_date` 필터 추가 (`today - days ~ today`) | `tools.py` |
+| TF-5 | tools.py | `get_factors(limit=days)` → 동일 문제 | `start_date`/`end_date` 필터 추가 | `tools.py` |
+| TF-6 | tools.py | `get_signals(limit=days)` → 동일 문제 | `start_date`/`end_date` 필터 추가 | `tools.py` |
+| TF-7 | SignalPage.tsx | `fetchSignals({limit:1})` → asc 정렬로 가장 오래된 시그널 → 매트릭스에 과거 시그널 표시 | 최근 30일 fetch → 마지막 요소(최신) 사용 | `SignalPage.tsx` |
+
+### TF-1~7: Repository order_by(asc) + limit=N 조합 버그
+
+**증상**: 대시보드 홈 가격이 3년 전 데이터 표시. 채팅 "삼성전자 RSI 현재 상태" → 2023년 데이터 기반 분석. 시그널 매트릭스도 과거 시그널 표시.
+
+**근본 원인**: `price_repo.get_prices()`, `factor_repo.get_factors()`, `signal_repo.get_signals()` 모두 `order_by(date.asc())` 고정. `limit=N`만 사용하면 SQL이 **가장 오래된 N개**를 반환. 시계열 차트에는 asc 정렬이 맞지만, "최신 N개" 용도에는 desc 정렬이 필요.
+
+**영향 범위**: 전수조사 결과 7개 호출 지점에서 버그 확인. date 필터를 함께 사용하는 호출(correlation_service, spread_service, indicator_signal_service)과 desc 정렬을 사용하는 호출(get_latest_price, get_latest_signal), `.all()` 호출(signal_accuracy_service)은 정상.
+
+**수정 전략**:
+1. **최신 단일/소수 값 조회** (TF-1,2,3): desc 정렬 전용 함수 추가 (`get_latest_prices`, `get_latest_factor`)
+2. **시계열 조회** (TF-4,5,6): `start_date = today - timedelta(days)`, `end_date = today` 필터 추가, limit을 5000으로 완화
+3. **프론트엔드** (TF-7): 최근 30일 fetch → 마지막 요소(asc 정렬의 끝 = 최신) 사용
+
+**검증**: 858 tests 전체 통과. E2E API 테스트로 `data_date: 2026-03-20` (최신 거래일) 반환 확인.
+
 ## Modified Files Summary
 
 ```
 backend/
 ├── api/
-│   ├── repositories/profile_repo.py        — jsonb nested path + json 캐스트 수정
+│   ├── repositories/
+│   │   ├── profile_repo.py                 — jsonb nested path + json 캐스트 수정
+│   │   ├── price_repo.py                   — get_latest_prices(n) 추가 (TF-1)
+│   │   └── factor_repo.py                  — get_latest_factor() 추가 (TF-3)
+│   ├── routers/analysis.py                 — strategy_id 경로에 start_date/end_date 전달
 │   ├── services/
+│   │   ├── dashboard_service.py            — get_latest_prices() 사용 (TF-1)
 │   │   ├── chat/
 │   │   │   ├── chat_service.py             — activity tracking, 요약 트리거, user_context 파이프
 │   │   │   ├── summarizer.py               — gpt-4o-mini 요약 수정
@@ -101,19 +133,21 @@ backend/
 │   │       │   ├── classifier.py           — user_context + chat_history 파라미터 추가
 │   │       │   ├── reporter.py             — user_context + chat_history + timeout 45s
 │   │       │   ├── schemas.py              — unsupported 카테고리
-│   │       │   └── knowledge_prompts.py    — 동적 프롬프트 + 성공률 가이드
+│   │       │   └── knowledge_prompts.py    — 동적 프롬프트 + 성공률 가이드 + days 기본값 365
 │   │       ├── prompts.py                  — 일반 대화 도구 없이 답변 허용
-│   │       └── tools.py                    — signal accuracy note 필드
+│   │       └── tools.py                    — date 필터 추가 + get_latest 사용 (TF-2~6)
 │   └── tests/unit/
 │       ├── test_agentic_classifier.py      — user_context 테스트 추가
 │       ├── test_agentic_reporter.py        — user_context 테스트 추가
 │       └── test_api/
 │           ├── test_chat_service.py        — activity + 요약 테스트 추가
+│           ├── test_dashboard.py           — mock 대상 get_latest_prices로 변경 (TF-1)
 │           ├── test_summarizer.py          — 수정
 │           └── test_user_context.py        — 신규: UserContext 테스트
 frontend/
 ├── src/
 │   ├── api/chat.ts                         — SSE 401 token refresh
+│   ├── pages/SignalPage.tsx                — 매트릭스 최신 시그널 로직 수정 (TF-7)
 │   ├── components/
 │   │   ├── layout/Layout.tsx               — PageGuide 통합
 │   │   └── onboarding/PageGuide.tsx        — 신규: 첫 방문 안내
@@ -130,3 +164,5 @@ frontend/
 6. **요청 스코프 DB 세션을 백그라운드 태스크에 전달 금지**: `asyncio.ensure_future()`로 넘긴 db 세션은 요청 종료 시 닫힘. 백그라운드 태스크는 자체 `SessionLocal()` 생성 필수.
 7. **Windows uvicorn --reload 신뢰성**: 간헐적 파일 변경 감지 실패. 코드 변경 후 서버 응답이 예전과 동일하면 `tasklist`로 좀비 프로세스 확인 → 전부 `taskkill` 후 재시작.
 8. **Agentic 단일 턴 LLM 호출의 한계**: system+user 2개 메시지만 보내면 대화 맥락 없음. 최근 N턴을 user_msg에 포함시켜 연속성 확보 (토큰 절약 위해 요약/truncate).
+9. **order_by(asc) + limit=N 함정**: 시계열 데이터 repo가 asc 정렬 고정이면, `limit=N`은 "가장 오래된 N개"를 반환. "최신 N개"가 필요한 곳에서는 반드시 (1) desc 정렬 전용 함수 사용 또는 (2) date 필터로 범위 한정. 신규 조회 함수 추가 시 "이 limit은 어느 쪽 끝에서 자르는가?" 항상 확인.
+10. **전수조사 패턴**: 동일 근본 원인의 버그는 1건 수정이 아닌 전체 호출 지점 전수조사 필수. grep으로 `limit=` 패턴 전체 검색 → 안전/위험 분류 → 위험한 곳만 수정.

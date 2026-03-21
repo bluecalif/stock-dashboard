@@ -9,6 +9,20 @@ from sqlalchemy.orm import Session
 from db.models import FactorDaily
 
 
+def get_latest_factor(
+    db: Session,
+    asset_id: str,
+    factor_name: str,
+) -> FactorDaily | None:
+    """Return the most recent factor record for an asset+factor."""
+    return (
+        db.query(FactorDaily)
+        .filter(FactorDaily.asset_id == asset_id, FactorDaily.factor_name == factor_name)
+        .order_by(FactorDaily.date.desc())
+        .first()
+    )
+
+
 def get_factors(
     db: Session,
     *,

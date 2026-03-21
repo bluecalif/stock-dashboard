@@ -78,6 +78,8 @@ def get_signal_accuracy(
         result = compute_signal_accuracy(
             db, asset_id, strategy_id,
             forward_days=forward_days,
+            start_date=start_date,
+            end_date=end_date,
             include_details=include_details,
         )
 

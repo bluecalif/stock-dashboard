@@ -1,76 +1,76 @@
 # Session Compact
 
-> Generated: 2026-03-21 (세션 2)
+> Generated: 2026-03-21 (세션 3)
 > Source: Conversation compaction via /compact-and-go
 
 ## Goal
-`signal_accuracy` 용어 모호성 해결 — 전략 기반 dead code 정리 + `indicator_accuracy` 카테고리 명확화.
+G-2/G-3 검증 + 채팅 품질 개선 (대화 히스토리, unsupported 라우팅, 서버 관리 디버깅)
 
 ## Completed
-- [x] **signal_accuracy 모호성 해결** (`19c4dcd`)
-  - `analyze_indicators` 툴에서 전략 기반 dead 블록 제거 (signal_accuracy, strategy_ranking 필드 삭제, compute_signal_accuracy/compare_indicator_accuracy import 제거)
-  - Classifier/Templates/Schemas 카테고리: `signal_accuracy` → `indicator_accuracy`
-  - `_signal_accuracy_template` → `_indicator_accuracy_template` (indicator 데이터 참조로 변경)
-  - 프론트엔드 dead export 제거 (`fetchSignalAccuracy`, `fetchIndicatorComparison`, `SignalAccuracyByStrategyParams`)
-  - `knowledge_prompts.py`: 전략 비교 라우팅 라인 삭제
-  - 테스트 업데이트: 858 tests passed, 0 failed
-  - 문서 업데이트 + 커밋 + push 완료
+- [x] **G-2 대화 요약 검증** (`70d125b`)
+  - `_run_summary()` 요청 스코프 DB 세션 버그 수정 → 자체 `SessionLocal()` 생성
+  - E2E: 5턴 후 `conversation_summaries` 1건 생성, `user_profiles.top_assets`/`top_categories` 갱신 확인
+- [x] **G-3 Context-Aware 검증** (`70d125b`)
+  - beginner vs expert 프로필 변경 시 응답 톤/깊이 차이 브라우저 E2E 확인
+- [x] **채팅 대화 히스토리 전달** (`ca162dd`)
+  - Classifier + Reporter에 최근 3턴(6개 메시지) `chat_history` 전달
+  - Classifier: 이전 대화 100자 요약으로 토큰 절약
+  - Reporter: 이전 대화 200자 요약으로 토큰 절약
+  - "아까 그 종목" 등 이전 대화 참조 가능
+- [x] **unsupported 질문 라우팅 개선** (`ca162dd`)
+  - 하드코딩 거부 메시지 제거 → LangGraph fallback으로 일반 대화 처리
+  - LangGraph 시스템 프롬프트: 일반 질문은 도구 없이 직접 답변 허용
+  - "한국의 수도는" 같은 일반 질문 정상 답변 확인
+- [x] **디버그 이력 상세화** (`ca162dd`)
+  - debug-history.md: G2-1, E2E-5~8 상세 기록
+  - Lessons Learned: DB 세션 누출, Windows uvicorn 좀비 프로세스, Agentic 단일턴 한계
 
 ## Current State
 
 ### Git 상태
-- 최신 커밋: `19c4dcd` (master, pushed) — signal_accuracy 모호성 해결
-- 미커밋 변경: 없음 (clean working tree, `_context.md`와 `bash.exe.stackdump`만 untracked)
+- 최신 커밋: `ca162dd` (master, pushed)
+- 미커밋 변경: 없음 (clean, `_context.md`와 `bash.exe.stackdump`만 untracked)
 
-### 변경된 파일 (이번 세션, 9 files, +38/-132)
-- `backend/api/services/llm/tools.py` — strategy dead 블록 삭제 + import 정리
-- `backend/api/services/llm/hybrid/classifier.py` — SIGNAL_ACCURACY → INDICATOR_ACCURACY
-- `backend/api/services/llm/hybrid/templates.py` — _indicator_accuracy_template + _INDICATOR_DISPLAY 매핑 추가
-- `backend/api/services/llm/agentic/knowledge_prompts.py` — 카테고리명 + 프롬프트 업데이트
-- `backend/api/services/llm/agentic/schemas.py` — Category Literal 업데이트
-- `frontend/src/api/analysis.ts` — dead export 3개 삭제
-- `backend/tests/unit/test_hybrid_classifier.py` — indicator_accuracy 기반 테스트 데이터
-- `backend/tests/unit/test_knowledge_prompts.py` — 카테고리명 업데이트
-- `docs/session-compact.md` — TODO 완료 처리
-
-### 유지한 것 (향후 복구 가능)
-- `compute_signal_accuracy()`, `compute_accuracy_all_strategies()` 함수
-- `compare_indicator_accuracy()` 함수
-- `/v1/analysis/signal-accuracy?strategy_id=X` API 엔드포인트
-- `signal_daily` 테이블, `SignalDaily` 모델
-- 관련 테스트 파일들
+### 변경된 파일 (이번 세션 전체, 커밋 2건)
+- `backend/api/services/chat/chat_service.py` — _run_summary DB 세션 수정 + 대화 히스토리 전달 + unsupported 거부 제거
+- `backend/api/services/llm/agentic/classifier.py` — chat_history 파라미터 + 이전 대화 섹션
+- `backend/api/services/llm/agentic/reporter.py` — chat_history 파라미터 + 이전 대화 섹션
+- `backend/api/services/llm/prompts.py` — 일반 대화 도구 없이 답변 허용
+- `backend/tests/unit/test_api/test_chat_service.py` — unsupported 테스트 업데이트
+- `dev/active/phaseG-context/debug-history.md` — G2-1, E2E-5~8 + Lessons Learned
+- `docs/session-compact.md` — TODO 업데이트
 
 ## Remaining / TODO
 
-### 성능/배포
-- [ ] Reporter LLM 응답 시간 ~22초 성능 최적화 검토
-- [ ] 프로덕션 배포 테스트
-
 ### 채팅 품질
-- [ ] 대시보드-채팅 일치성: 지표/시그널 페이지에서 시그널+성공률 탭 통합 설명 정책 결정
-- [ ] 대시보드-채팅 일치성: 종목/기간/시점을 응답에 항상 명시하도록 개선
+- [x] 대시보드-채팅 일치성: 지표/시그널 페이지에서 시그널+성공률 탭 통합 설명 정책 결정
+- [x] 대시보드-채팅 일치성: 종목/기간/시점을 응답에 항상 명시하도록 개선
+- [x] 타임프레임 정렬: 대시보드/백테스트/지표/채팅 간 기본 기간 일치 (성공률 기본 1년) — TF-1~7 수정
 
 ### 기타
 - [ ] 회원 탈퇴 기능 추가
-- [ ] 대시보드(홈) 데이터가 현재 기준으로 업데이트 안 되는 문제 수정
+- [x] 대시보드(홈) 데이터가 현재 기준으로 업데이트 안 되는 문제 수정 — TF-1 (get_latest_prices)
 
-### 완료
-- [x] G-2 대화 요약 검증: _run_summary DB 세션 버그 수정 → 5턴 후 요약 생성 + top_assets/top_categories 갱신 확인
-- [x] G-3 Context-Aware 검증: beginner vs expert 프로필 변경 시 응답 톤/깊이 차이 브라우저 E2E 확인
-- [x] 이번 세션 디버그 로깅 변경 커밋 여부 결정 (3af6033에서 이미 커밋됨 확인)
-- [x] 채팅 대화 컨텍스트: Classifier+Reporter에 최근 3턴 히스토리 전달 (이전 대화 참조 가능)
-- [x] unsupported 질문 라우팅: 거부 메시지 → LangGraph fallback으로 일반 대화 처리
+### 후순위
+- [ ] Reporter LLM 응답 시간 ~22초 성능 최적화 검토
+- [ ] 프로덕션 배포 테스트
+
+### 프로젝트 마무리
+- [ ] README.md 작성
+- [ ] project-wrapup 스킬 생성 (프로젝트 히스토리, 성과, 핵심 교훈, 유사 프로젝트 가이드)
+- [ ] project-wrapup 실행
 
 ## Key Decisions
-- **전략 기반 signal_accuracy 전체가 dead code**: signal_daily 테이블 데이터 0건, run_research 미실행 → tool 출력에서 제거 (서비스/API는 유지)
-- **카테고리명 indicator_accuracy로 통일**: 실제 동작하는 것이 지표 성공률뿐이므로 이름을 실체에 맞게 변경
-- **_STRATEGY_DISPLAY 유지**: `_indicator_compare_template`에서 여전히 strategy 데이터 표시에 사용하므로 삭제하지 않음
+- **unsupported → LangGraph fallback**: 일반 대화도 처리 가능하도록 거부 메시지 대신 LangGraph로 라우팅
+- **대화 히스토리 3턴 제한**: 토큰 비용 vs 맥락 유지 균형. Classifier 100자, Reporter 200자로 요약
+- **백그라운드 태스크 자체 DB 세션**: asyncio.ensure_future로 넘기는 태스크는 요청 스코프 세션 사용 금지
 
 ## Context
 - 다음 세션에서는 답변에 한국어를 사용하세요.
 - **프로젝트 상태**: 전 Phase 완료 (MVP~Phase G, 858 tests)
 - **E2E 플로우**: Classifier(2s) → DataFetcher(8s) → Reporter(22s) → 응답
-- **핵심 참조**: `dev/active/phaseG-context/e2e-debug-report.md` (E2E 디버깅 리포트)
+- **핵심 참조**: `dev/active/phaseG-context/debug-history.md` (상세 디버그 이력)
+- **서버 관리 주의**: Windows uvicorn --reload 간헐적 실패. 코드 변경 미반영 시 `tasklist`로 좀비 프로세스 확인 → 전부 `taskkill` → 재시작
 
 ## Project Status
 
@@ -91,6 +91,6 @@
 
 ## Next Action
 다음 세션에서 유저의 구체적 지시를 기다린 후 진행. 우선 후보:
-1. Reporter 성능 최적화 (~22초 → 목표 10초 이내)
-2. G-2/G-3 기능 검증 (대화 요약, 개인화 응답)
-3. 프로덕션 배포 테스트
+1. 대시보드-채팅 일치성 (지표/시그널 설명 정책 + 종목/기간 명시)
+2. 회원 탈퇴 기능
+3. 대시보드 데이터 갱신 문제

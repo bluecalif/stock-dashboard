@@ -121,6 +121,16 @@ def refresh(db: Session, *, refresh_token: str) -> dict:
     }
 
 
+def withdraw(db: Session, *, user: User, password: str) -> None:
+    if not verify_password(password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password",
+        )
+    user_repo.delete_user(db, user.id)
+    db.commit()
+
+
 def decode_access_token(token: str) -> UUID:
     try:
         payload = jwt.decode(

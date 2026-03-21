@@ -23,6 +23,10 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class WithdrawRequest(BaseModel):
+    password: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str

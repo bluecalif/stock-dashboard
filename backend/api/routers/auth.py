@@ -12,6 +12,7 @@ from api.schemas.auth import (
     SignupRequest,
     TokenResponse,
     UserResponse,
+    WithdrawRequest,
 )
 from api.services import auth_service
 from db.models import User
@@ -42,3 +43,12 @@ def refresh_token(body: RefreshRequest, db: Session = Depends(get_db)) -> TokenR
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
     return UserResponse.model_validate(current_user)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def withdraw(
+    body: WithdrawRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    auth_service.withdraw(db, user=current_user, password=body.password)

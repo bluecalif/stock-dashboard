@@ -11,6 +11,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, nickname?: string) => Promise<void>;
   logout: () => void;
+  withdraw: (password: string) => Promise<void>;
   refreshTokens: () => Promise<boolean>;
   loadUser: () => Promise<void>;
   setTokens: (tokens: TokenResponse) => void;
@@ -80,6 +81,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: () => {
+    clearTokens();
+    set({ user: null, accessToken: null, refreshToken: null });
+  },
+
+  withdraw: async (password: string) => {
+    await authApi.withdraw(password);
     clearTokens();
     set({ user: null, accessToken: null, refreshToken: null });
   },

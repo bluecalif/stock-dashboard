@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import WithdrawModal from "../account/WithdrawModal";
 
 const NAV_ITEMS = [
   { to: "/", label: "홈", icon: "📊" },
@@ -11,6 +13,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
+  const [showWithdraw, setShowWithdraw] = useState(false);
 
   return (
     <aside className="w-56 bg-gray-900 text-gray-100 flex flex-col min-h-screen">
@@ -44,13 +47,25 @@ export default function Sidebar() {
             {user.nickname || user.email}
           </p>
           <p className="text-xs text-gray-400 truncate">{user.email}</p>
-          <button
-            onClick={logout}
-            className="mt-2 w-full text-xs text-gray-400 hover:text-white py-1.5 px-2 rounded hover:bg-gray-800 transition-colors text-left"
-          >
-            로그아웃
-          </button>
+          <div className="mt-2 flex gap-1">
+            <button
+              onClick={logout}
+              className="flex-1 text-xs text-gray-400 hover:text-white py-1.5 px-2 rounded hover:bg-gray-800 transition-colors text-left"
+            >
+              로그아웃
+            </button>
+            <button
+              onClick={() => setShowWithdraw(true)}
+              className="text-xs text-gray-500 hover:text-red-400 py-1.5 px-2 rounded hover:bg-gray-800 transition-colors"
+            >
+              탈퇴
+            </button>
+          </div>
         </div>
+      )}
+
+      {showWithdraw && (
+        <WithdrawModal onClose={() => setShowWithdraw(false)} />
       )}
     </aside>
   );

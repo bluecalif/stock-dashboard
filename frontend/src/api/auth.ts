@@ -27,3 +27,7 @@ export async function getMe(): Promise<User> {
   const res = await apiClient.get<User>("/v1/auth/me");
   return res.data;
 }
+
+export async function withdraw(password: string): Promise<void> {
+  await apiClient.delete("/v1/auth/me", { data: { password } });
+}

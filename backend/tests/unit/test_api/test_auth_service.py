@@ -17,6 +17,7 @@ from api.services.auth_service import (
     refresh,
     signup,
     verify_password,
+    withdraw,
 )
 
 
@@ -143,3 +144,31 @@ def test_refresh_invalid_token(mock_session_repo):
     with pytest.raises(HTTPException) as exc_info:
         refresh(db, refresh_token="bad-token")
     assert exc_info.value.status_code == 401
+
+
+# --- withdraw ---
+
+
+@patch("api.services.auth_service.user_repo")
+def test_withdraw_success(mock_user_repo):
+    db = MagicMock(spec=Session)
+    fake_user = MagicMock()
+    fake_user.id = uuid.uuid4()
+    fake_user.password_hash = hash_password("correct")
+
+    withdraw(db, user=fake_user, password="correct")
+    mock_user_repo.delete_user.assert_called_once_with(db, fake_user.id)
+    db.commit.assert_called_once()
+
+
+@patch("api.services.auth_service.user_repo")
+def test_withdraw_wrong_password(mock_user_repo):
+    db = MagicMock(spec=Session)
+    fake_user = MagicMock()
+    fake_user.id = uuid.uuid4()
+    fake_user.password_hash = hash_password("correct")
+
+    with pytest.raises(HTTPException) as exc_info:
+        withdraw(db, user=fake_user, password="wrong")
+    assert exc_info.value.status_code == 401
+    mock_user_repo.delete_user.assert_not_called()

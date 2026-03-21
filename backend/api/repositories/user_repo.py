@@ -24,3 +24,8 @@ def get_by_email(db: Session, email: str) -> User | None:
 
 def get_by_id(db: Session, user_id: UUID) -> User | None:
     return db.query(User).filter(User.id == user_id).first()
+
+
+def delete_user(db: Session, user_id: UUID) -> None:
+    db.query(User).filter(User.id == user_id).delete()
+    db.flush()

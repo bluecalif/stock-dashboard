@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
@@ -129,3 +130,39 @@ def test_me_with_valid_token(client, mock_db):
     assert data["email"] == "test@example.com"
 
     del app.dependency_overrides[get_current_user]
+
+
+# --- DELETE /v1/auth/me (withdraw) ---
+
+
+@patch("api.routers.auth.auth_service")
+def test_withdraw_success(mock_service, client, mock_db):
+    from api.dependencies import get_current_user
+
+    fake_user = _make_user()
+
+    def _override_user():
+        return fake_user
+
+    app.dependency_overrides[get_current_user] = _override_user
+
+    resp = client.request(
+        "DELETE", "/v1/auth/me",
+        content=json.dumps({"password": "pass123"}),
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code == 204
+    mock_service.withdraw.assert_called_once_with(
+        mock_db, user=fake_user, password="pass123",
+    )
+
+    del app.dependency_overrides[get_current_user]
+
+
+def test_withdraw_no_token(client):
+    resp = client.request(
+        "DELETE", "/v1/auth/me",
+        content=json.dumps({"password": "pass123"}),
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code == 401

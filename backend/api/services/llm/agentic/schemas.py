@@ -24,7 +24,7 @@ Category = Literal[
     "spread_analysis",
     # Indicator page
     "indicator_explain",
-    "signal_accuracy",
+    "indicator_accuracy",
     "indicator_compare",
     # Strategy page
     "strategy_explain",

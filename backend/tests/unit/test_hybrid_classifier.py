@@ -12,7 +12,7 @@ from api.services.llm.hybrid.classifier import (
     CORRELATION_EXPLAIN,
     INDICATOR_COMPARE,
     INDICATOR_EXPLAIN,
-    SIGNAL_ACCURACY,
+    INDICATOR_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
     classify_question,
@@ -126,7 +126,7 @@ class TestClassifyIndicators:
         "시그널 적중률이 궁금해요",
     ])
     def test_signal_accuracy(self, ind_ctx, question):
-        assert classify_question(question, ind_ctx) == SIGNAL_ACCURACY
+        assert classify_question(question, ind_ctx) == INDICATOR_ACCURACY
 
     @pytest.mark.parametrize("question", [
         "어떤 전략의 예측력이 가장 높나요?",
@@ -254,15 +254,15 @@ class TestTemplates:
         assert "과매수" in text
         assert len(actions) >= 1
 
-    def test_signal_accuracy_template(self):
+    def test_indicator_accuracy_template(self):
         ctx = PageContext(page_id="indicators")
         data = {
             "asset_id": "005930",
             "name_map": {"005930": "삼성전자"},
             "forward_days": 5,
-            "signal_accuracy": [
+            "indicator_accuracy": [
                 {
-                    "strategy_id": "momentum",
+                    "indicator_id": "rsi_14",
                     "buy_success_rate": 0.65,
                     "sell_success_rate": 0.55,
                     "avg_return_after_buy": 0.012,
@@ -272,7 +272,7 @@ class TestTemplates:
                 },
             ],
         }
-        result = get_template_response(SIGNAL_ACCURACY, ctx, data)
+        result = get_template_response(INDICATOR_ACCURACY, ctx, data)
         assert result is not None
         text, _ = result
         assert "성공률" in text

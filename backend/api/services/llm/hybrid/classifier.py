@@ -20,7 +20,7 @@ SPREAD_ANALYSIS = "spread_analysis"
 
 # (Future) Indicator page categories
 INDICATOR_EXPLAIN = "indicator_explain"
-SIGNAL_ACCURACY = "signal_accuracy"
+INDICATOR_ACCURACY = "indicator_accuracy"
 INDICATOR_COMPARE = "indicator_compare"
 
 # Strategy page categories
@@ -100,19 +100,19 @@ _INDICATOR_PATTERNS: list[tuple[re.Pattern, str]] = [
         re.IGNORECASE,
     ), INDICATOR_COMPARE),
 
-    # signal_accuracy — 성공률 관련
+    # indicator_accuracy — 성공률 관련
     (re.compile(
         r"(성공률|적중률|정중률|승률)",
         re.IGNORECASE,
-    ), SIGNAL_ACCURACY),
+    ), INDICATOR_ACCURACY),
     (re.compile(
         r"(매수|매도).*(신호|시그널).*(성공|정확|맞)",
         re.IGNORECASE,
-    ), SIGNAL_ACCURACY),
+    ), INDICATOR_ACCURACY),
     (re.compile(
         r"(신호|시그널).*(성공|적중|정확)",
         re.IGNORECASE,
-    ), SIGNAL_ACCURACY),
+    ), INDICATOR_ACCURACY),
 
     # indicator_explain — 가장 넓은 매칭
     (re.compile(

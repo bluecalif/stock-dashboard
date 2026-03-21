@@ -37,7 +37,7 @@
 - `/tmp/uvicorn_e2e.log`에 로그 출력 중
 
 ## Remaining / TODO
-- [ ] **`signal_accuracy` 용어 모호성 해결** (아래 상세)
+- [x] **`signal_accuracy` 용어 모호성 해결** — dead code 정리 + `indicator_accuracy` 카테고리 명확화 완료
 - [ ] 이번 세션 디버그 로깅 변경 커밋 여부 결정
 - [ ] 디버그 로그를 프로덕션에서 유지할지 결정 (현재 DEBUG 레벨이므로 기본 실행 시 안 보임)
 - [ ] Reporter LLM 응답 시간 ~22초 성능 최적화 검토
@@ -45,23 +45,12 @@
 - [ ] G-2 대화 요약 검증: 5턴 이상 채팅 후 conversation_summaries 테이블에 요약 저장 확인
 - [ ] G-3 Context-Aware 검증: beginner vs expert 응답 톤/깊이 차이 확인
 
-### signal_accuracy 모호성 이슈
-`signal_accuracy`라는 개념이 페이지에 따라 의미가 달라지는 문제:
-
-| 페이지 | 의미 | 데이터 소스 | 현재 상태 |
-|--------|------|------------|-----------|
-| **지표/시그널** (indicators) | RSI/MACD 개별 지표의 매수/매도 성공률 | `indicator_accuracy` (rsi_14, macd) | ✅ d834c97에서 추가, 정상 동작 |
-| **전략** (strategy) | momentum/trend/mean_reversion 전략의 성공률 | `signal_accuracy` (strategy 기반) | ⚠️ 데이터 0건, insufficient_data=true |
-
-**현재 문제점**:
-1. Classifier가 "MACD 성공률"을 `category=signal_accuracy`로 분류 → 이름이 전략 기반처럼 보이지만 실제로는 indicator 성공률을 원함
-2. `analyze_indicators` 툴이 `indicator_accuracy`와 `signal_accuracy`를 **동시에** 반환 → LLM이 어느 것을 참조할지 knowledge_prompt에 의존
-3. 전략 페이지에서 "전략 성공률"을 물으면 `signal_accuracy`(모두 insufficient_data)만 참조해야 하는데, `indicator_accuracy`와 혼동 가능
-
-**검토 필요 사항**:
-- Classifier의 카테고리 이름을 `indicator_accuracy` vs `strategy_accuracy`로 분리할지
-- 페이지 컨텍스트에 따라 반환 데이터를 필터링할지
-- 또는 knowledge_prompt 가이드만으로 충분한지 (현재 방식)
+### signal_accuracy 모호성 이슈 — ✅ 해결 완료
+**해결 방법**: 전략 기반 성공률(signal_accuracy) 파이프라인 전체가 dead code임을 확인 → dead code 제거 + 카테고리명을 `indicator_accuracy`로 변경.
+- `analyze_indicators` 툴에서 `signal_accuracy`/`strategy_ranking` 필드 제거 (strategy 기반 dead 블록 삭제)
+- Classifier/Templates/Schemas 카테고리: `signal_accuracy` → `indicator_accuracy`
+- 프론트엔드 dead export 제거 (`fetchSignalAccuracy`, `fetchIndicatorComparison`)
+- 백엔드 서비스/API 엔드포인트는 유지 (향후 signal_daily 데이터 생성 시 복구 가능)
 
 ## Key Decisions
 - **루트 로거 수정**: `main.py`에 `logging.basicConfig(level=LOG_LEVEL)` 추가 — uvicorn `--log-level`은 앱 로거에 영향 없음

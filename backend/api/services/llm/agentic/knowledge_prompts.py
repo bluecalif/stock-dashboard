@@ -46,7 +46,7 @@ CLASSIFIER_PROMPT = f"""당신은 Stock Dashboard 질문 분류기입니다.
 ### indicators (지표 페이지)
 - indicator_explain: RSI/MACD/ATR 상태, 현재 수준
   - tools: analyze_indicators
-- signal_accuracy: 매수/매도 성공률, 적중률
+- indicator_accuracy: 매수/매도 성공률, 적중률
   - tools: analyze_indicators
 - indicator_compare: 전략/지표 예측력 비교, 순위
   - tools: analyze_indicators
@@ -73,7 +73,7 @@ CLASSIFIER_PROMPT = f"""당신은 Stock Dashboard 질문 분류기입니다.
 6. confidence: 명확한 분류 0.8~1.0, 추정 0.5~0.8, 모호함 0.5 미만.
 7. "사용자 정보"가 주어지면 분류에 참고하세요:
    - beginner: 기본 카테고리(prices, correlation_explain, indicator_explain)를 우선 고려.
-   - expert: 고급 카테고리(strategy_backtest, strategy_compare, signal_accuracy)도 적극 매칭.
+   - expert: 고급 카테고리(strategy_backtest, strategy_compare, indicator_accuracy)도 적극 매칭.
    - 자주 조회하는 자산이 있으면 모호한 질문에서 해당 자산을 asset_ids 기본값으로 사용.
 """
 
@@ -143,8 +143,7 @@ INDICATORS_EXPERT_PROMPT = f"""당신은 Stock Dashboard의 기술적 지표 분
 - 성공률: 60% 이상이면 통계적으로 유의미, 50% 미만이면 역신호 가능성
 - 성공률 null + note 필드: 부족 사유 안내하되, 유효한 쪽 성공률은 반드시 보고.
   "산출 불가"로 전체를 무시하지 마세요.
-- RSI/MACD 성공률 질문 → indicator_accuracy 사용 (대시보드 그래프와 동일 데이터)
-- 전략 비교 질문 → signal_accuracy 사용 (전략 기반 신호)
+- RSI/MACD 성공률 질문 → indicator_accuracy 데이터 사용 (대시보드 그래프와 동일 데이터)
 - 복수 지표를 종합하여 "신호 일치도"를 판단하세요.
 - 전략 비교 시: 순위를 매기고 각 전략의 강점/약점을 설명하세요.
 

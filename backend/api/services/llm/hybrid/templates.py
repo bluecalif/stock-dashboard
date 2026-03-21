@@ -10,7 +10,7 @@ from .classifier import (
     CORRELATION_EXPLAIN,
     INDICATOR_COMPARE,
     INDICATOR_EXPLAIN,
-    SIGNAL_ACCURACY,
+    INDICATOR_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
     STRATEGY_BACKTEST,
@@ -169,6 +169,13 @@ def _spread_analysis_template(
 # ---------------------------------------------------------------------------
 
 _SIGNAL_MAP = {"buy": "매수", "sell": "매도", "neutral": "중립"}
+_INDICATOR_DISPLAY = {
+    "rsi_14": "RSI (14일)",
+    "macd": "MACD",
+    "macd_signal": "MACD 시그널",
+    "vol_20": "변동성 (20일)",
+    "atr_14": "ATR (14일)",
+}
 _STRATEGY_DISPLAY = {
     "momentum": "모멘텀 (MACD)",
     "trend": "추세 (SMA)",
@@ -205,24 +212,24 @@ def _indicator_explain_template(
     return "\n".join(lines), actions
 
 
-def _signal_accuracy_template(
+def _indicator_accuracy_template(
     ctx: PageContext,
     data: dict,
 ) -> tuple[str, list[UIAction]]:
-    """매수/매도 성공률 템플릿."""
-    results = data.get("signal_accuracy", [])
+    """지표별 매수/매도 성공률 템플릿."""
+    results = data.get("indicator_accuracy", [])
     asset_id = data.get("asset_id", "?")
     forward_days = data.get("forward_days", 5)
     nm = data.get("name_map", {})
     dn = lambda x: nm.get(x, x)  # noqa: E731
 
     lines = [
-        f"## {dn(asset_id)} 매매 신호 성공률\n",
+        f"## {dn(asset_id)} 지표 성공률\n",
         f"신호 발생 후 **{forward_days}거래일** 뒤 수익률 기준입니다.\n",
     ]
 
     for r in results:
-        name = _STRATEGY_DISPLAY.get(r["strategy_id"], r["strategy_id"])
+        name = _INDICATOR_DISPLAY.get(r["indicator_id"], r["indicator_id"])
         if r["insufficient_data"]:
             lines.append(f"### {name}\n- 데이터 부족 (신호 {r['evaluated_signals']}개)\n")
             continue
@@ -423,7 +430,7 @@ _TEMPLATE_REGISTRY: dict[str, callable] = {
     SIMILAR_ASSETS: _similar_assets_template,
     SPREAD_ANALYSIS: _spread_analysis_template,
     INDICATOR_EXPLAIN: _indicator_explain_template,
-    SIGNAL_ACCURACY: _signal_accuracy_template,
+    INDICATOR_ACCURACY: _indicator_accuracy_template,
     INDICATOR_COMPARE: _indicator_compare_template,
     STRATEGY_EXPLAIN: _strategy_explain_template,
     STRATEGY_BACKTEST: _strategy_backtest_template,

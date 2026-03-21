@@ -21,7 +21,7 @@ class TestClassifierPrompt:
             "similar_assets",
             "spread_analysis",
             "indicator_explain",
-            "signal_accuracy",
+            "indicator_accuracy",
             "indicator_compare",
             "strategy_explain",
             "strategy_backtest",

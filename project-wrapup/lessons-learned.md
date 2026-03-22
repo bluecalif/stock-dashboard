@@ -1,7 +1,7 @@
 # Lessons Learned — Stock Dashboard
 
-> Generated: 2026-03-21
-> Source: Phase 5~7, A~G debug-history.md + core-critical-lessons.md
+> Generated: 2026-03-22
+> Source: Phase 5~7, A~G debug-history.md + core-critical-lessons.md + 성능 최적화 PERF-1
 
 ## 기술적 교훈 (Technical)
 
@@ -19,6 +19,7 @@
 | T-10 | ai | LangChain `with_structured_output(Pydantic)` 프로덕션 지속 실패 | `response_format=json_object` + 수동 `json.loads` + Pydantic 파싱 | F |
 | T-11 | ai | LangChain 0.3→1.x 메이저 업그레이드 시 `on_tool_end` 반환 타입 변경 | 메이저 업그레이드 시 반환 타입 확인 필수 | B |
 | T-12 | ai | LLM 기본 재시도가 과도 → 토큰 폭발 | `max_retries=3`, `request_timeout=10` 명시적 설정 | F |
+| T-23 | ai | reasoning 모델(gpt-5-mini/nano)은 `temperature`, `max_tokens` 미지원 → 400 에러 → langchain 자동 재시도로 **느려짐** 발현 | 새 모델 적용 시 reasoning/non-reasoning 확인 필수. JSON 리포트엔 non-reasoning이 4-7배 빠름 | F |
 | T-13 | ai | Agentic 단일 턴 LLM 호출 — 대화 맥락 없음 | 최근 N턴을 user_msg에 요약 포함 (토큰 절약) | G |
 | T-14 | frontend | SSE `fetch`는 axios 인터셉터 범위 밖 → 401 갱신 안 됨 | `sendMessageSSE` 내 별도 401 감지 + refresh + 재시도 | G |
 | T-15 | frontend | TypeScript `tsc --noEmit` 통과하지만 `tsc -b`(Vercel)는 더 엄격 | 로컬에서 `tsc -b`도 확인 | E |
@@ -41,7 +42,7 @@
 | A-05 | api | Router-Service-Repository 3계층 분리 | 테스트 용이성, 관심사 분리 | 858+ 테스트 달성 |
 | A-06 | auth | JWT + Refresh Token Rotation | 외부 서비스 의존 없이 완전 제어 | passlib 제거, bcrypt 직접 사용 |
 | A-07 | ai | 하이브리드 분류 (정규표현식 + LLM fallback) | 레이턴시 최소화 + 안전 | Classifier 2초 내 응답 |
-| A-08 | ai | 2-Step LLM (Classifier + Reporter) | LLM 최대 2회로 비용/레이턴시 최소화 | E2E 32초 (2+8+22) |
+| A-08 | ai | 2-Step LLM + 모델 분리 (reasoning/non-reasoning) | Reporter를 gpt-4.1-mini(non-reasoning)로 분리 → 34.8s→5.8s | E2E cold ~26s, warm ~15s |
 | A-09 | db | CASCADE FK로 사용자 삭제 시 관련 데이터 자동 정리 | 수동 삭제 로직 불필요 | 회원 탈퇴 구현 간소화 |
 | A-10 | infra | Minimum Viable Deploy 전략 | 디버깅 변수 많을 때 모든 복잡성 제거 → 최소 배포 → 점진 복원 | 5회 실패 후 1회 만에 근본 원인 특정 |
 

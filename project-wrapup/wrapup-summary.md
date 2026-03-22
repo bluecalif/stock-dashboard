@@ -1,6 +1,6 @@
 # Project Wrapup — Stock Dashboard
 
-> Generated: 2026-03-21
+> Generated: 2026-03-22
 
 ## 프로젝트 개요
 
@@ -9,15 +9,15 @@
 ## 최종 상태
 
 - **Phase**: 12/12 Phase 완료 (MVP 0~7 + Post-MVP A~G)
-- **테스트**: 869개
-- **커밋**: 193개
-- **기간**: 2026-02-10 ~ 2026-03-21
+- **테스트**: 874개
+- **커밋**: 194개
+- **기간**: 2026-02-10 ~ 2026-03-22
 - **태스크**: MVP 83 + Post-MVP 112 = 195 tasks 완료
 
 ## 핵심 성과
 
 1. **풀스택 파이프라인**: 수집 → DB → 분석 → API → 대시보드 → AI 채팅 전 구간 구현
-2. **Agentic AI 채팅**: 2-Step LLM (Classifier 2초 + Reporter 22초) + 사용자 맥락 인식
+2. **Agentic AI 채팅**: 2-Step LLM (Classifier 8초 + Reporter 5.8초) + 사용자 맥락 인식 + 모델 분리 최적화
 3. **869개 테스트**: Router-Service-Repository 3계층 분리로 높은 테스트 커버리지
 4. **프로덕션 배포**: Railway(Backend) + Vercel(Frontend) + GitHub Actions(CI/CD + Daily Cron)
 5. **사용자 경험**: Ice-breaking 온보딩, 대화 메모리, 프로필 기반 응답 톤 조절
@@ -30,6 +30,7 @@
 | T-05 | `order_by(asc) + limit=N` 함정 — 전수조사 필수 | High |
 | T-09 | OpenAI 529 에러 → 서버 문제로 단정 금지, 클라이언트 측 먼저 확인 | High |
 | T-10 | LangChain `with_structured_output` 대신 JSON Mode 사용 | High |
+| T-23 | reasoning 모델(gpt-5-mini/nano) 호환성 — temperature 미지원, 느려짐으로 발현 | High |
 | A-01 | UX와 데이터 Flow 정합성 — Canonical Form으로 중앙 관리 | High |
 
 → 상세: [lessons-learned.md](lessons-learned.md)
@@ -71,7 +72,7 @@
 
 ## 후속 과제
 
-- [ ] Reporter LLM 응답 시간 ~22초 → 성능 최적화
+- [x] ~~Reporter LLM 응답 시간 ~22초 → 성능 최적화~~ — **완료** (gpt-4.1-mini 분리, 34.8s→5.8s, `ec2995b`)
 - [ ] 프로덕션 배포 테스트 (최종 확인)
 - [ ] 실시간 데이터 (WebSocket 스트리밍)
 - [ ] 자산 확장 (ETF, 추가 암호화폐)

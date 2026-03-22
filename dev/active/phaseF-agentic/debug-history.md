@@ -1,5 +1,5 @@
 # Phase F: Full Agentic Flow — Debug History
-> Last Updated: 2026-03-19
+> Last Updated: 2026-03-22
 
 ## Step F.1: Pydantic 스키마 정의
 
@@ -228,7 +228,7 @@ frontend/src/
 - `response_format=json_object` + 수동 `json.loads` + `Pydantic(**data)`로 전환하면 안정적
 - **교훈**: LangChain 고수준 추상화가 프로덕션에서 실패할 수 있음. 저수준 직접 제어 선호
 
-### L4: correlation tool에 자산 개수 방어
+### L5: correlation tool에 자산 개수 방어
 - `compute_correlation`은 2개 이상 자산 필요
 - Classifier가 1개만 반환할 수 있으므로 `_build_tool_args`에서 방어 필요
 - **교훈**: 외부 입력(LLM 출력)을 tool에 전달 전 반드시 validation

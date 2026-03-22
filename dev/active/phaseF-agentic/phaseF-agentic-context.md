@@ -1,5 +1,5 @@
 # Phase F: Full Agentic Flow — Context
-> Last Updated: 2026-03-19
+> Last Updated: 2026-03-22
 > Status: Complete
 
 ## 1. 핵심 파일
@@ -103,8 +103,8 @@
 | 항목 | 결정 | 근거 |
 |------|------|------|
 | LLM 호출 횟수 | 최대 2회 (Classifier + Reporter) | 다단계 에이전트 대비 레이턴시/비용 최소화 |
-| Classifier 모델 | 항상 gpt-5-mini | 분류는 저비용 모델로 충분, 레이턴시 절감 |
-| Reporter 모델 | deep_mode에 따라 gpt-5/gpt-5-mini | 기존 심층모드 UX 유지 |
+| Classifier 모델 | gpt-5-mini (reasoning) 유지 | 질문 의도 파악에 chain-of-thought 유효. temperature 미지원 주의 |
+| Reporter 모델 | gpt-4.1-mini (non-reasoning) 분리 | JSON 리포트에 reasoning 불필요. 34.8s → 5.8s (6배 개선) |
 | regex classifier | 제거 (LLM 완전 대체) | 확장성 + 페이지 간 라우팅 가능 |
 | 하드코딩 템플릿 | 제거 (Reporter 대체) | 자연스러운 분석 + 동적 follow-up |
 | 자동 네비게이션 | 즉시 이동 (확인 없음) | Agentic AI UX 극대화 |
@@ -113,6 +113,8 @@
 | UIAction 검증 | Literal 타입 + Pydantic 검증 | LLM hallucination 방지 |
 | 기존 넛지 질문 | 정적 넛지 유지 (초기 로드) + 동적 follow-up 추가 | 첫 질문은 정적, 이후는 동적 |
 | hybrid/context.py | 유지 | PageContext 구조는 agentic flow에서도 사용 |
+| reasoning 모델 호환 | gpt-5-mini/nano는 temperature, max_tokens 미지원 | langchain 400→자동재시도로 "느려짐"으로 나타남. max_completion_tokens 사용 |
+| LLM timeout/retry | 모든 ChatOpenAI에 max_retries=2~3, request_timeout=30~60s 명시 | 기본값의 과도한 재시도 방지 |
 
 ## 4. 컨벤션 체크리스트
 
@@ -127,6 +129,17 @@
 - [x] 면책조항 포함 (Reporter 프롬프트)
 - [x] 종목 코드 → 종목명 표시 (DataFetcher에서 name_map 포함)
 - [x] E2E 통합 검증 (F.10) — 프로덕션 배포 + E2E 검증 완료
+
+### 성능 최적화 관련 변경 파일 (Post-Phase)
+| 파일 | 변경 내용 | 커밋 |
+|------|-----------|------|
+| `backend/config/settings.py` | `llm_report_model` 설정 추가 | `ec2995b` |
+| `backend/api/services/llm/agentic/reporter.py` | gpt-4.1-mini 분리 + temperature=0 복원 | `ec2995b` |
+| `backend/api/services/llm/agentic/classifier.py` | temperature 제거, timeout=30s, retries=2 | `ec2995b` |
+| `backend/api/services/llm/graph.py` | timeout=60s, retries=2 | `ec2995b` |
+| `backend/api/services/chat/summarizer.py` | gpt-5-nano temperature=0 제거 | `ec2995b` |
+| `backend/.env.example` | LLM_REPORT_MODEL 추가 | `ec2995b` |
+| `backend/tests/unit/test_agentic_reporter.py` | 단일 모델 테스트로 변경 | `ec2995b` |
 
 ### 신규 컨벤션
 - **agentic 패키지 구조**: `backend/api/services/llm/agentic/` 하위에 모듈 배치

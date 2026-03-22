@@ -1,14 +1,12 @@
 """Tests for tool result compressor."""
 
-import pytest
 
 from api.services.llm.agentic.compressor import (
-    compress_tool_results,
     _compress_factors,
     _compress_prices,
     _compress_signals,
+    compress_tool_results,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

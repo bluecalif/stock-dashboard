@@ -10,9 +10,9 @@ from api.services.llm.hybrid.actions import (
 )
 from api.services.llm.hybrid.classifier import (
     CORRELATION_EXPLAIN,
+    INDICATOR_ACCURACY,
     INDICATOR_COMPARE,
     INDICATOR_EXPLAIN,
-    INDICATOR_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
     classify_question,

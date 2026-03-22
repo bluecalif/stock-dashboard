@@ -48,7 +48,10 @@ async def classify_question(
     Returns ClassificationResult. On any failure, returns a safe
     general/low-confidence fallback so LangGraph handles it.
     """
-    user_msg = _build_user_message(question, current_page, asset_ids, params, user_context_block, chat_history)
+    user_msg = _build_user_message(
+        question, current_page, asset_ids, params,
+        user_context_block, chat_history,
+    )
     system_prompt = CLASSIFIER_PROMPT + _SCHEMA_HINT
 
     try:
@@ -129,6 +132,6 @@ def _build_user_message(
             if len(content) > 100:
                 content = content[:100] + "…"
             lines.append(f"{role}: {content}")
-        parts.append(f"\n## 이전 대화\n" + "\n".join(lines))
+        parts.append("\n## 이전 대화\n" + "\n".join(lines))
     parts.append(f"\n질문: {question}")
     return "\n".join(parts)

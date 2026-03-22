@@ -100,7 +100,8 @@ async def fetch_data(classification: ClassificationResult) -> dict[str, Any]:
                 type(outcome).__name__,
                 outcome,
             )
-            results[tool_name] = {"error": f"{tool_name} 호출 실패: {type(outcome).__name__}: {outcome}"}
+            err = f"{type(outcome).__name__}: {outcome}"
+            results[tool_name] = {"error": f"{tool_name} 호출 실패: {err}"}
         else:
             name, parsed = outcome
             if parsed is not None:

@@ -8,9 +8,9 @@ from __future__ import annotations
 from .actions import UIAction, highlight_pair, set_filter
 from .classifier import (
     CORRELATION_EXPLAIN,
+    INDICATOR_ACCURACY,
     INDICATOR_COMPARE,
     INDICATOR_EXPLAIN,
-    INDICATOR_ACCURACY,
     SIMILAR_ASSETS,
     SPREAD_ANALYSIS,
     STRATEGY_BACKTEST,

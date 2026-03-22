@@ -73,9 +73,11 @@ def _compress_prices(rows: list[dict]) -> dict:
     }
 
     if highs:
-        result["high_stats"] = {"max": max(highs), "min_30d": min(highs[:30]) if len(highs) >= 30 else min(highs)}
+        min_30d_high = min(highs[:30]) if len(highs) >= 30 else min(highs)
+        result["high_stats"] = {"max": max(highs), "min_30d": min_30d_high}
     if lows:
-        result["low_stats"] = {"min": min(lows), "max_30d": max(lows[:30]) if len(lows) >= 30 else max(lows)}
+        max_30d_low = max(lows[:30]) if len(lows) >= 30 else max(lows)
+        result["low_stats"] = {"min": min(lows), "max_30d": max_30d_low}
     if volumes:
         result["volume_stats"] = {
             "avg_20d": _avg(volumes[:20]),

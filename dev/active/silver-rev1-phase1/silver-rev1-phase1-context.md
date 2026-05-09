@@ -85,7 +85,7 @@
 | D-2 | padding = 일별 수익률 cyclic + reverse-cumprod | Q1-2 | `padding.py` 알고리즘 — 가격 직접 복제 X |
 | D-3 | USD/KRW 신규 테이블 | Q1-3 | `fx_daily` 테이블 + `fx_collector.py` |
 | D-4 | 배당 = 공시률 / 252 | Q1-4 | `asset_master.annual_yield` 컬럼 + fixture 시드 |
-| D-5 | WBI = GBM σ=1%/일, 시드 42, KRW | Q2-5/6 | `wbi.py` `default_rng(42)`, fixture pre-compute |
+| D-5 | WBI (Warren Buffett Index) = GBM σ=1%/일, 시드 42, KRW | Q2-5/6 | `wbi.py` `default_rng(42)`, fixture pre-compute |
 | D-22 | fractional 정밀도 12자리 (가정) | 후속 | Phase 1은 영향 없음 — Phase 2에서 사용자 확인 |
 
 ### 3.1 Phase 1에서 결정해야 할 (Phase 2/3 영향 X)

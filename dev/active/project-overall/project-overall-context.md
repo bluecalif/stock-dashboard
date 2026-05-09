@@ -121,7 +121,7 @@ Agentic LangGraph state machine (Bronze 유지)
 | D-2 | history padding = **일별 수익률 cyclic 복제** (가격 점프 X) | Q1-2 | `padding.py` 알고리즘 + 차트 회색 영역 |
 | D-3 | USD/KRW 신규 테이블 `fx_daily` | Q1-3 | Phase 1 migration + fx_collector |
 | D-4 | 배당 = 공시 연 배당률 / 252 균등 분할 | Q1-4 | `replay.py` 보유분에 매일 (1+rate) 적용 |
-| D-5 | WBI = 거래일 등비 + GBM(σ=1%/일, drift 보정), 시드 42, **KRW 자산** | Q2-5/6 | `wbi.py` reproducibility 보장 |
+| D-5 | WBI (Warren Buffett Index) = 거래일 등비 + GBM(σ=1%/일, drift 보정), 시드 42, **KRW 자산** | Q2-5/6 | `wbi.py` reproducibility 보장 |
 | D-6 | 트리거 통화 = **현지통화 가격 기준** | Q3-9 | `strategy_a.py` 60거래일 ratio는 USD 가격으로 |
 | D-7 | 전략 A: 강제 재매수 = **매도일 + 365일** (draft 12월 X) | Q4-11 | `strategy_a.py` `forced = date >= sell_date + 365d` |
 | D-8 | 전략 A: lock 범위 = **매도해 ~ 재매수해 포함** | Q4-13 | `lock_until_year` state, 같은 해 매도 시그널 무시 |

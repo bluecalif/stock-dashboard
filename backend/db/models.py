@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
@@ -9,9 +10,11 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -30,6 +33,16 @@ class AssetMaster(Base):
     category: Mapped[str] = mapped_column(String(20), nullable=False)
     source_priority: Mapped[dict] = mapped_column(JSON, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Silver gen 추가 (마스터플랜 §2.7)
+    currency: Mapped[str] = mapped_column(String(8), nullable=False, server_default="KRW")
+    annual_yield: Mapped[Decimal] = mapped_column(
+        Numeric(6, 4), nullable=False, server_default="0"
+    )
+    history_start_date: Mapped["Date | None"] = mapped_column(Date, nullable=True)
+    allow_padding: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    display_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class PriceDaily(Base):
@@ -52,6 +65,18 @@ class PriceDaily(Base):
     __table_args__ = (
         Index("ix_price_daily_asset_date", "asset_id", date.desc()),
         Index("ix_price_daily_date", "date"),
+    )
+
+
+class FxDaily(Base):
+    """USD/KRW 일별 환율 (Silver gen, 마스터플랜 §2.3)."""
+
+    __tablename__ = "fx_daily"
+
+    date: Mapped["Date"] = mapped_column(Date, primary_key=True)
+    usd_krw_close: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
+    created_at: Mapped["DateTime"] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 

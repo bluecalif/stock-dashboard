@@ -1,7 +1,7 @@
 # Project Overall Plan — Silver Gen
 > Gen: silver
 > Last Updated: 2026-05-09
-> Status: Planning (Phase 1 dev-docs 작성 완료, 코딩 진입 가능)
+> Status: In Progress (Phase 1 ✅ 완료, Phase 2 진입 가능)
 
 ## 1. Summary (개요)
 
@@ -20,7 +20,19 @@
 - `pages/silver/CompareMainPage.tsx` + 10개 컴포넌트 + `SignalDetailPage.tsx`
 - 빅뱅 cut-over 완료 (`v-bronze-final` tag로 보존)
 
-## 2. Current State (Bronze gen 종료 시점 인계 사항)
+## 2. Current State (Phase 1 완료 시점)
+
+### Phase 1 산출물 (2026-05-09)
+- `asset_master` 10컬럼 (5+5), 15행 (Bronze 7 + Silver 8), alembic head `d8334483342c`
+- `fx_daily` 2,603행 (2016~2026 USD/KRW)
+- `price_daily` 37,671행 / 15자산 (전체 10년 backfill)
+- `fdr_client.py` 15종 SYMBOL_MAP + int32 overflow / high-low swap 버그 수정
+- `fx_collector.py` + `seed_silver_assets.py` + `backfill_silver_phase1.py` 신규
+- `research_engine/simulation/` 패키지 초기화: `padding.py` + `wbi.py` + fixtures 2종
+- 16 unit tests PASSED (test_padding 8 + test_wbi 8)
+- verification/ 6 evidence 파일 + 3 PNG
+
+## 2b. Original Current State (Bronze gen 종료 시점 인계 사항)
 
 - **Bronze 운영중**: master 배포 + GitHub Actions 일일 자동 수집 + Agentic chat 운영
 - **자산 7종**: KS200/005930/000660/SOXL/BTC/GC=F/SI=F (FDR 기반)

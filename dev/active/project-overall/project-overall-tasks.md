@@ -1,18 +1,18 @@
 # Project Overall Tasks — Silver Gen
 > Gen: silver
 > Last Updated: 2026-05-09
-> Status: Planning (Phase 1 dev-docs 작성 완료, 코딩 진입 가능 — 0/29)
+> Status: In Progress (Phase 1 완료 — 6/29)
 
 ## Summary
 
 | Phase | 폴더 | 태스크 수 | Size 분포 | 상태 |
 |---|---|---|---|---|
-| Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | 진행 중 (P1-1 완료, 7d457a2) |
+| Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | 미착수 |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 미착수 |
 | Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
-| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 1/29 |
+| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 6/29 |
 
 > 각 Phase 상세 태스크는 해당 Phase 폴더의 `-tasks.md`에 commit hash 포함하여 추적. 본 파일은 Phase 단위 요약만.
 
@@ -29,26 +29,25 @@
 
 ---
 
-## Phase 1 — 데이터 인프라 (Bronze 영향 0)
+## Phase 1 — 데이터 인프라 ✅ 완료
 
-진입 조건: ✅ `dev/active/silver-rev1-phase1/` dev-docs 작성 완료 (plan/context/tasks/debug-history)
-권장 순서: **P1-1 → (P1-2 ∥ P1-3) → P1-4 → (P1-5 ∥ P1-6)**
 상세: `dev/active/silver-rev1-phase1/silver-rev1-phase1-tasks.md`
+Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
-- [ ] **P1-1 (M)** Alembic migration 작성 — `asset_master` 5컬럼 추가 (currency / annual_yield / history_start_date / allow_padding / display_name) + `fx_daily` 신규 테이블 (마스터플랜 §5.1, down_revision = `c4d2e5f6a789`)
-- [ ] **P1-2 (S)** `backend/collector/fdr_client.py:14` SYMBOL_MAP에 8종 추가 (QQQ/SPY/SCHD/JEPI/TLT/NVDA/GOOGL/TSLA, dict-of-dicts 패턴 유지)
-- [ ] **P1-3 (M)** USD/KRW collector 신규 작성 (`backend/collector/fx_collector.py`) — FDR `USD/KRW` 일봉 + UPSERT 함수
-- [ ] **P1-4 (L)** 신규 자산 10년 backfill (staging) — `seed_silver_assets.py` 13행 + 신규 8자산 + USD/KRW
-- [ ] **P1-5 (M)** padding 알고리즘 (`research_engine/simulation/padding.py`) + JEPI 5년 fixture + unit test (cyclic + reverse-cumprod)
-- [ ] **P1-6 (S)** WBI synthetic (`simulation/wbi.py`) 시드 42 fixture (`fixtures/wbi_seed42_10y.npz`) + unit test (평균 연 20% ±0.5%)
+- [x] **P1-1 (M)** Alembic migration `d8334483342c` — `asset_master` 5컬럼 + `fx_daily` → `7d457a2`
+- [x] **P1-2 (S)** SYMBOL_MAP 15종 (8 신규 추가, JEPI D-1) → `0eea282`
+- [x] **P1-3 (M)** `fx_collector.py` USD/KRW 일봉 UPSERT → `ba574c0`
+- [x] **P1-4 (L)** `seed_silver_assets.py` 15행 + 37,671행 backfill (15자산 10년) + fx_daily 2,603행 → `7d24d68` + `63ecb80`
+- [x] **P1-5 (M)** `padding.py` cyclic+reverse-cumprod + JEPI fixture + 8 tests PASSED → `391f27f`
+- [x] **P1-6 (S)** `wbi.py` (Warren Buffett Index) GBM seed=42 + fixture + 8 tests PASSED → `391f27f`
 
-검증: row 수 (10년 ≈ 2520 거래일), padding 평균 수익률 보존(±0.1%), USD/KRW 결측일 처리, alembic upgrade/downgrade 라운드트립.
+버그 수정: `fdr_client.py` volume int32 overflow(`astype(int64)`) + BTC high/low swap
 
 ---
 
 ## Phase 2 — 시뮬레이션 엔진 (Bronze 영향 0)
 
-진입 조건: Phase 1 완료 + `dev/active/silver-rev1-phase2/` 작성
+진입 조건: ✅ Phase 1 완료 → **`/dev-docs create phase 2 silver-rev1-phase2`로 시작**
 
 - [ ] **P2-1 (S)** `backend/research_engine/simulation/` 디렉터리 + `__init__.py`
 - [ ] **P2-2 (M)** `padding.py` (cyclic returns) + `wbi.py` (GBM 시드 42) + `fx.py` (USD↔KRW forward-fill) + `mdd.py` (캘린더 연도) — utility 4종

@@ -3,6 +3,59 @@
 > Last Updated: 2026-05-09
 > Note: Phase 1 dev-docs 작성됨 (`dev/active/silver-rev1-phase1/`) — Phase 1 상세 컨텍스트는 해당 폴더 참조
 
+## 0. 핵심 원칙 — "Show, don't claim" (Silver gen 전 phase 공통)
+
+> **검증 게이트의 체크박스는 evidence가 본 dev-docs 또는 `verification/step-N.md`에 paste됐을 때만 표시 가능.**
+> Claude의 "PASS / 통과" 주장만으로는 mark complete 금지. 사용자가 출력물을 직접 볼 수 있어야 한다.
+
+### 0.1 적용 범위
+모든 Phase (1~5) tasks.md의 검증 게이트, Stage 종료 조건, Phase Definition of Done에 일괄 적용.
+
+### 0.2 게이트 작성 표준 (3단 형식, A: Evidence-required)
+
+```markdown
+- [ ] <검증 항목>
+  - 명령: <실행 가능한 1줄 명령 또는 SQL>
+  - Evidence: <어떤 형식의 출력을 어디에 paste할지 명시 — markdown 표 / SQL dump / pytest 출력 / PNG 경로>
+  - 통과 기준: <PASS/FAIL을 가르는 구체적 임계 — 숫자, 형식, 일치 여부>
+```
+
+### 0.3 verification/ 서브디렉터리 (B: 누적 evidence)
+
+각 Phase 폴더 안에 `verification/` 생성, step별 evidence를 markdown으로 누적.
+
+```
+dev/active/silver-rev1-phaseN/
+└── verification/
+    ├── step-1-<topic>.md      # 명령 + raw output + 해석 3단
+    ├── step-2-<topic>.md
+    └── ...
+```
+
+각 Phase tasks.md의 step 종료 항목에 **`verification/step-N-<topic>.md` 작성 완료**를 sub-step으로 의무화.
+
+### 0.4 시각 산출물 (D: PNG 의무화)
+
+수치/시계열/분포 검증이 포함된 step은 **PNG 차트** 의무. 위치: `verification/figures/<step>-<topic>.png` 또는 fixture 디렉터리.
+
+대상 예시 (Phase별 적용 시점):
+- Phase 1: padding 시계열, WBI 가격 시계열 + 일별 수익률 히스토그램, backfill 자산별 row count bar chart
+- Phase 2: KPI cross-check (QQQ 10년 적립 결과 vs 외부 도구), strategy A lock 사이클 시각화, MDD 연도별 bar chart
+- Phase 3: UI screenshot (모바일 768px / 데스크탑), drawer 동작 캡처
+- Phase 4: cut-over 전후 라우트 redirect 캡처, smoke test API 응답 dump
+- Phase 5: 사용자 피드백 차트, latency P95 분포
+
+### 0.5 게이트 체크 권한 규칙 (E: Show, don't claim 명문화)
+
+- ✅ **체크 가능**: evidence가 dev-docs 또는 `verification/`에 paste됐고, 사용자가 그 내용을 본 경우
+- ❌ **체크 금지**: Claude가 명령을 실행했지만 출력을 사용자에게 노출하지 않은 경우
+- ❌ **체크 금지**: "정상", "통과", "smoke OK" 같은 주장만 있고 raw output이 없는 경우
+- ⚠️ **회색 영역**: 같은 세션에서 사용자가 직접 본 출력은 evidence로 인정. 그러나 step 종료 시 `verification/` 파일에 정리해 사후 회고 가능하게 보존.
+
+---
+
+
+
 ## 1. 핵심 참조 파일 (코딩 진입 시 즉시 열어야 함)
 
 ### 1.1 기획·명세 (single source of truth)
@@ -121,6 +174,12 @@ Agentic LangGraph state machine (Bronze 유지)
 - OHLCV: schema 검증 (collector)
 - Pydantic schemas for all I/O
 - FastAPI DI for services
+
+### 4.8 검증 게이트 형식 (Silver gen 표준 — §0 참조)
+- 모든 게이트 = **명령 / Evidence 형식 / 통과 기준** 3단
+- 각 step 종료 시 `verification/step-N-<topic>.md` 작성 의무
+- 수치·시계열·분포 step = PNG 차트 의무 (`verification/figures/`)
+- 체크 표시는 evidence가 paste되고 사용자가 본 경우에만 가능
 
 ## 5. 미해결 후속 결정 (마스터플랜 §11.3 발췌)
 

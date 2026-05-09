@@ -7,14 +7,25 @@
 
 | Phase | 폴더 | 태스크 수 | Size 분포 | 상태 |
 |---|---|---|---|---|
-| Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | 미착수 |
+| Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | 진행 중 (P1-1 완료, 7d457a2) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | 미착수 |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 미착수 |
 | Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
-| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 0/29 |
+| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 1/29 |
 
 > 각 Phase 상세 태스크는 해당 Phase 폴더의 `-tasks.md`에 commit hash 포함하여 추적. 본 파일은 Phase 단위 요약만.
+
+### "Show, don't claim" 정책 (전 Phase 공통)
+
+> 출처: project-overall-context.md §0. Phase dev-docs 작성 시 다음을 반드시 반영.
+
+1. **모든 검증 게이트 = 3단 형식** — 명령 / Evidence 형식 / 통과 기준
+2. **`verification/step-N-<topic>.md` 작성**을 step별 sub-step으로 의무화
+3. **수치·시계열·분포 step = PNG 의무** — `verification/figures/<step>-<topic>.png`
+4. **체크 표시 권한** — evidence paste + 사용자 노출 후에만 가능. Claude의 PASS 주장만으로는 금지
+
+위 4항목이 누락된 Phase dev-docs는 정합성 검증 FAIL — 작성/리뷰 시 차단.
 
 ---
 

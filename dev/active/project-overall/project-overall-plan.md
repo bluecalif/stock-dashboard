@@ -50,6 +50,12 @@
 | D | `silver-rev1-phase4` | **빅뱅 cut-over** (코드/DB drop + redirect) | **다운타임 수 분** |
 | E | `silver-rev1-phase5` | 후속 안정화 (배당락 데이터, 캐시) | 없음 |
 
+### 4.1 모든 Stage 공통 종료 조건 — "Show, don't claim" (context.md §0)
+- 모든 검증 게이트 = 명령 / Evidence / 통과 기준 3단 형식
+- 각 step 종료 시 `dev/active/silver-rev1-phaseN/verification/step-K-<topic>.md` 작성
+- 수치·시계열·분포 step = PNG 차트 의무 (`verification/figures/`)
+- 체크 표시는 evidence paste + 사용자 노출 시에만 가능
+
 ## 5. Task Breakdown (Phase별 요약)
 
 > 상세 태스크는 `project-overall-tasks.md` + 각 Phase의 `-tasks.md`. 여기는 Phase 단위 사이즈만 표기.

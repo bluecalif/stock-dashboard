@@ -2,6 +2,16 @@
 > Gen: silver
 > Last Updated: 2026-05-09
 
+## 0. 핵심 원칙 — "Show, don't claim" (project-overall-context.md §0 적용)
+
+> 검증 게이트 체크는 **evidence가 본 dev-docs 또는 `verification/step-N-<topic>.md`에 paste되고 사용자가 본 후에만** 가능.
+> 모든 게이트 = 명령 / Evidence 형식 / 통과 기준 3단.
+> 수치·시계열·분포 step (P1-4 / P1-5 / P1-6) = PNG 차트 의무 (`verification/figures/`).
+> 자세한 규칙·범위는 `project-overall-context.md` §0 / §4.8 참조.
+
+---
+
+
 ## 1. 핵심 파일 (Phase 1에서 매번 열어야 함)
 
 ### 1.1 기준 문서

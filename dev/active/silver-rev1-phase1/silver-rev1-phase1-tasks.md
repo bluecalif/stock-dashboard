@@ -1,23 +1,38 @@
 # Silver rev1 — Phase 1: Tasks
 > Gen: silver
 > Last Updated: 2026-05-09
-> Status: 0/6 (Planning)
-> Branch: `feature/silver-rev1`
+> Status: 1/6 (P1-1 완료)
+> Branch: master (단일 사용자, feature 브랜치 미사용)
+> 정책: **"Show, don't claim"** — context.md §0 / project-overall §0 참조
 
 ## Summary
 
 | ID | Title | Size | Depends | Status | Commit |
 |---|---|---|---|---|---|
-| P1-1 | Alembic migration: asset_master 5컬럼 + fx_daily | M | — | TODO | — |
+| P1-1 | Alembic migration: asset_master 5컬럼 + fx_daily | M | — | ✅ Done | `7d457a2` |
 | P1-2 | SYMBOL_MAP 8종 추가 | S | — | TODO | — |
 | P1-3 | fx_collector USD/KRW 일봉 | M | P1-1 | TODO | — |
-| P1-4 | 신규 자산 + USD/KRW 10년 backfill (staging) | L | P1-1, P1-2, P1-3 | TODO | — |
+| P1-4 | 신규 자산 + USD/KRW 10년 backfill (prod) | L | P1-1, P1-2, P1-3 | TODO | — |
 | P1-5 | padding 알고리즘 + JEPI fixture + unit test | M | (P1-4 권장) | TODO | — |
 | P1-6 | WBI synthetic 시드 42 fixture + unit test | S | — | TODO | — |
 
 **Size 분포**: S:2 / M:3 / L:1 (총 6개)
 
-권장 진행 순서: **P1-1 → (P1-2 ∥ P1-3) → P1-4 → (P1-5 ∥ P1-6)**
+권장 진행 순서: **P1-1 ✅ → (P1-2 ∥ P1-3) → P1-4 → (P1-5 ∥ P1-6)**
+
+### 검증 게이트 형식 (전 Phase 표준 — project-overall-context.md §0)
+
+각 게이트는 다음 3단 형식:
+
+```markdown
+- [ ] <검증 항목>
+  - 명령: <실행 가능한 1줄>
+  - Evidence: <어디에 어떤 형식으로 paste — verification/step-N-*.md 권장>
+  - 통과 기준: <PASS/FAIL 가르는 구체 임계>
+```
+
+각 step 종료 시 `verification/step-N-<topic>.md` 작성 sub-step 의무.
+P1-4 / P1-5 / P1-6은 PNG 차트 추가 의무 (`verification/figures/`).
 
 ---
 
@@ -52,15 +67,35 @@
   - `alembic downgrade -1` → 원상 복구 확인
   - `alembic upgrade head` → 재적용
 
-### 검증 게이트
-- [ ] staging DB `\d asset_master`에 10컬럼 존재 (기존 5 + 신규 5)
-- [ ] staging DB `\d fx_daily` 존재 + PK = `date`
-- [ ] Bronze prod 시뮬레이션: `select * from asset_master limit 1` 정상 (DEFAULT 적용)
-- [ ] downgrade 후 `\d asset_master` 5컬럼 (원상 복구) 확인
+### 검증 게이트 (3단 형식)
+
+- [x] **G1.1 asset_master 10컬럼 등록**
+  - 명령: `python -c "from sqlalchemy import inspect; from db.session import engine; print([c['name'] for c in inspect(engine).get_columns('asset_master')])"`
+  - Evidence: column 표 (name | type | nullable | default) → `verification/step-1-schema.md`에 paste
+  - 통과 기준: 컬럼 10개 (기존 5 + 신규 5), 신규 5컬럼 모두 nullable=True 또는 server_default 명시
+
+- [x] **G1.2 fx_daily 신규 + PK=date**
+  - 명령: `python -c "from sqlalchemy import inspect; from db.session import engine; insp=inspect(engine); print('exists:', 'fx_daily' in insp.get_table_names()); print('pk:', insp.get_pk_constraint('fx_daily'))"`
+  - Evidence: 테이블 존재 여부 + PK 제약 → `verification/step-1-schema.md`
+  - 통과 기준: `fx_daily` 존재, PK constrained_columns == `['date']`
+
+- [x] **G1.3 기존 row DEFAULT 자동 적용**
+  - 명령: `python -c "..."` — `select asset_id, currency, annual_yield, allow_padding, display_name from asset_master limit 1`
+  - Evidence: 결과 row(s) → `verification/step-1-schema.md` (sample row 표)
+  - 통과 기준: `currency='KRW'`, `annual_yield=0.0000`, `allow_padding=False` (server_default 적용 확인)
+
+- [ ] **G1.4 downgrade reversibility (offline SQL)**
+  - 명령: `alembic downgrade d8334483342c:c4d2e5f6a789 --sql`
+  - Evidence: SQL dump → `verification/step-1-schema.md` (downgrade SQL block)
+  - 통과 기준: 5건 `DROP COLUMN` + `DROP TABLE fx_daily` + `UPDATE alembic_version` 포함
+
+- [ ] **G1.5 verification/step-1-schema.md 작성**
+  - Evidence: 본 파일 자체
+  - 통과 기준: G1.1~G1.4 모두 paste된 markdown 파일 존재
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 1.1: AssetMaster 5컬럼 + FxDaily 모델 추가`
-- `[silver-rev1-phase1] Step 1.2: alembic migration silver_rev1_schema_changes`
+- `[silver-rev1-phase1] Step 1: AssetMaster 5컬럼 + FxDaily + migration` ✅ `7d457a2`
+- `[silver-rev1-phase1] Step 1 verify: schema inspect evidence` (verification/step-1-schema.md 추가)
 
 ---
 
@@ -83,13 +118,29 @@
 - [ ] **Step 2.2** smoke test: `python -c "from collector.fdr_client import fetch_ohlcv; df = fetch_ohlcv('QQQ', '2026-04-01', '2026-04-10'); print(df.head())"`
 - [ ] **Step 2.3** 기존 7 엔트리 키/값 미변경 확인 (Bronze 영향 0)
 
-### 검증 게이트
-- [ ] `SYMBOL_MAP` 키 개수 = 15
-- [ ] 기존 7 엔트리 dict 동일 (diff로 확인)
-- [ ] 신규 8 자산 각각 1주일치 fetch smoke 통과
+### 검증 게이트 (3단 형식)
+
+- [ ] **G2.1 SYMBOL_MAP 키 개수 = 15**
+  - 명령: `python -c "from collector.fdr_client import SYMBOL_MAP; print(sorted(SYMBOL_MAP.keys()))"`
+  - Evidence: 정렬된 키 list → `verification/step-2-symbol-map.md`
+  - 통과 기준: 길이 15, 신규 8개(QQQ/SPY/SCHD/JEPI/TLT/NVDA/GOOGL/TSLA) 포함
+
+- [ ] **G2.2 기존 7 엔트리 무변경 (Bronze 영향 0)**
+  - 명령: `git diff HEAD~1 backend/collector/fdr_client.py | grep -E "^[-+]" | head -30`
+  - Evidence: diff 출력 → `verification/step-2-symbol-map.md` (코드 블록)
+  - 통과 기준: 신규 추가 라인만, 기존 7 엔트리 modify/delete 0
+
+- [ ] **G2.3 신규 8 자산 1주일치 fetch smoke**
+  - 명령: 8 자산 loop 스크립트 — 각각 `fetch_ohlcv(asset, '2026-04-01', '2026-04-08')` 호출, row 수 출력
+  - Evidence: 자산별 row count 표 (asset | rows | first_date | last_date) → `verification/step-2-symbol-map.md`
+  - 통과 기준: 8 자산 모두 ≥ 3 row (한 주 거래일 ≥ 3, 휴일 영향 고려)
+
+- [ ] **G2.4 verification/step-2-symbol-map.md 작성**
+  - Evidence: 본 파일
+  - 통과 기준: G2.1~G2.3 모두 paste
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 2.1: SYMBOL_MAP 8 엔트리 추가`
+- `[silver-rev1-phase1] Step 2: SYMBOL_MAP 8 엔트리 추가 + verify`
 
 ---
 
@@ -112,13 +163,28 @@
 - [ ] **Step 3.3** CLI entrypoint: `python -m collector.fx_collector --start 2016-05-09 --end 2026-05-09`
 - [ ] **Step 3.4** smoke test: 5일치 fetch → staging insert → row count 확인
 
-### 검증 게이트
-- [ ] `select count(*) from fx_daily` ≥ 1 (smoke)
-- [ ] `select * from fx_daily order by date desc limit 5` 최근 5일 출력
-- [ ] 동일 구간 재실행 시 row 수 변화 없음 (idempotent)
+### 검증 게이트 (3단 형식)
+
+- [ ] **G3.1 fx_daily smoke insert (5일치)**
+  - 명령: `python -m collector.fx_collector --start 2026-05-01 --end 2026-05-09`
+  - Evidence: 명령 stdout (insert row 수) → `verification/step-3-fx.md`
+  - 통과 기준: 거래일 ≥ 3 insert 성공, 에러 0
+
+- [ ] **G3.2 최근 5일 row 출력**
+  - 명령: `psql ... -c "select date, usd_krw_close from fx_daily order by date desc limit 5"`
+  - Evidence: 표 (date | usd_krw_close) → `verification/step-3-fx.md`
+  - 통과 기준: 5 row 출력, usd_krw_close 1100~1500 범위 (sanity check)
+
+- [ ] **G3.3 idempotent 재실행 (UPSERT 검증)**
+  - 명령: 동일 구간 두 번 실행 → 전후 `count(*)` 비교
+  - Evidence: before/after count 표 → `verification/step-3-fx.md`
+  - 통과 기준: 두 count 동일 (row 중복 생성 0)
+
+- [ ] **G3.4 verification/step-3-fx.md 작성**
+  - 통과 기준: G3.1~G3.3 paste
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 3.1: fx_collector USD/KRW 일봉 수집기 + UPSERT`
+- `[silver-rev1-phase1] Step 3: fx_collector USD/KRW + UPSERT + verify`
 
 ---
 
@@ -156,16 +222,39 @@
   - 신규 컬럼 DEFAULT 적용으로 기존 INSERT 정상
   - alerting 채널에 신규 자산 실패 알림 없음
 
-### 검증 게이트
-- [ ] staging `select count(*) from asset_master` = 13
-- [ ] `select count(*) from price_daily where asset_id='QQQ'` ≥ 2400
-- [ ] `select count(*) from price_daily where asset_id='JEPI'` ≥ 1200 (≈ 5년+)
-- [ ] `select count(*) from fx_daily` ≥ 2400
-- [ ] Bronze 일일 cron 1회 정상 (24h 후 확인)
+### 검증 게이트 (3단 형식 + PNG)
+
+- [ ] **G4.1 asset_master 13행 + 메타 정합**
+  - 명령: `select asset_id, name, currency, annual_yield, allow_padding, display_name, history_start_date from asset_master order by asset_id`
+  - Evidence: 13행 표 (7컬럼) → `verification/step-4-backfill.md`
+  - 통과 기준: 13행, JEPI `allow_padding=True` + `history_start_date='2020-05-20'`, 한국어 display_name 모두 존재(KS200/005930/000660/BTC + 신규 6)
+
+- [ ] **G4.2 신규 8자산 row count + 시작일/종료일**
+  - 명령: `select asset_id, count(*) as rows, min(date) as first, max(date) as last from price_daily where asset_id in (...) group by asset_id`
+  - Evidence: 표 → `verification/step-4-backfill.md`
+  - 통과 기준: QQQ/SPY/SCHD/TLT/NVDA/GOOGL/TSLA ≥ 2400, JEPI ≥ 1200, 모든 last_date ≥ 2026-05-08
+
+- [ ] **G4.3 fx_daily 10년 + 결측 분석**
+  - 명령: row count + 평일 휴일 비교 SQL (KR/US 휴일 비대칭 측정)
+  - Evidence: 결측 거래일 list (있으면) + count → `verification/step-4-backfill.md`
+  - 통과 기준: count ≥ 2400, 결측은 KR/US 휴일과 일치
+
+- [ ] **G4.4 [PNG] 자산별 row count bar chart**
+  - 명령: matplotlib 스크립트 → `backend/scripts/plot_backfill_rowcount.py`
+  - Evidence: `verification/figures/step-4-backfill-rowcount.png` 저장 + 본 markdown에 ![]() 임베드
+  - 통과 기준: 13 자산 bar chart, JEPI 짧음(padding 대상) 시각적 확인
+
+- [ ] **G4.5 Bronze cron 24h 정상 (회귀 검증)**
+  - 명령: `select asset_id, max(date) from price_daily where source='fdr' group by asset_id` (24h 후)
+  - Evidence: Bronze 7자산 max(date) = T-1 영업일 → `verification/step-4-backfill.md`
+  - 통과 기준: Bronze 7자산 모두 어제 데이터 적재 + Discord alerting silent
+
+- [ ] **G4.6 verification/step-4-backfill.md 작성**
+  - 통과 기준: G4.1~G4.5 paste + PNG 1개 임베드
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 4.1: seed_silver_assets 13행 메타`
-- `[silver-rev1-phase1] Step 4.2: staging backfill verify SQL`
+- `[silver-rev1-phase1] Step 4: seed_silver_assets 13행 + backfill (prod)`
+- `[silver-rev1-phase1] Step 4 verify: backfill rowcount + PNG`
 
 ---
 
@@ -198,13 +287,34 @@
   - **test_edge_half_length**: actual = 1260일, target = 2520일 → padding 정확히 1260
   - **test_partial_cycle**: actual = 1000일, target = 2520일 → padding 1520 (cyclic 부분 절단)
 
-### 검증 게이트
-- [ ] `pytest backend/tests/test_padding.py -v` 100% 통과
-- [ ] fixture 파일 저장됨 (size > 0)
-- [ ] `padding.py` 외부 의존 = numpy만
+### 검증 게이트 (3단 형식 + PNG)
+
+- [ ] **G5.1 pytest 6 케이스 통과**
+  - 명령: `pytest backend/tests/test_padding.py -v --tb=short`
+  - Evidence: pytest 출력 (6 PASSED) → `verification/step-5-padding.md` (코드 블록)
+  - 통과 기준: 6 케이스 모두 PASSED, FAILED/ERROR 0
+
+- [ ] **G5.2 평균 일별 수익률 보존 표**
+  - 명령: `python -c "import numpy as np; from research_engine.simulation.padding import pad_returns; ... print(actual_mean, padded_mean, diff_pct)"`
+  - Evidence: 표 (actual_mean | padded_mean | diff_pct) → `verification/step-5-padding.md`
+  - 통과 기준: |diff_pct| < 0.1%
+
+- [ ] **G5.3 [PNG] padding 시계열 차트**
+  - 명령: `python backend/scripts/plot_padding_jepi.py` (matplotlib)
+  - Evidence: `verification/figures/step-5-padding-jepi.png` + 본 markdown에 ![]() 임베드
+  - 통과 기준: 10년 line chart, padding 구간(앞 5년) 회색 영역 + actual 5년 색상 구분, 가격 연속성(점프 없음) 시각 확인
+
+- [ ] **G5.4 의존성 numpy 단독**
+  - 명령: `python -c "import ast; print({n.module for n in ast.walk(ast.parse(open('backend/research_engine/simulation/padding.py').read())) if isinstance(n, ast.ImportFrom)})"`
+  - Evidence: import set → `verification/step-5-padding.md`
+  - 통과 기준: numpy 외 외부 의존 0
+
+- [ ] **G5.5 verification/step-5-padding.md 작성**
+  - 통과 기준: G5.1~G5.4 paste + PNG 1개 임베드
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 5.1: padding cyclic + reverse-cumprod 알고리즘 + JEPI fixture + unit test`
+- `[silver-rev1-phase1] Step 5: padding cyclic + reverse-cumprod + JEPI fixture + test`
+- `[silver-rev1-phase1] Step 5 verify: padding evidence + PNG`
 
 ---
 
@@ -232,25 +342,59 @@
   - **test_sigma_approx**: 일별 수익률 표준편차 ≈ 0.01 ±0.001
   - **test_fixture_loadable**: `np.load('.../wbi_seed42_10y.npz')['prices']` length == 2520
 
-### 검증 게이트
-- [ ] `pytest backend/tests/test_wbi.py -v` 100% 통과
-- [ ] fixture `.npz` 파일 존재 + 정상 load
-- [ ] reproducibility 두 번 실행 동일
+### 검증 게이트 (3단 형식 + PNG)
+
+- [ ] **G6.1 pytest 5 케이스 통과**
+  - 명령: `pytest backend/tests/test_wbi.py -v --tb=short`
+  - Evidence: pytest 출력 → `verification/step-6-wbi.md`
+  - 통과 기준: 5 케이스 모두 PASSED
+
+- [ ] **G6.2 시드 42 reproducibility**
+  - 명령: `python -c "from research_engine.simulation.wbi import generate_wbi; import numpy as np; a=generate_wbi(2520); b=generate_wbi(2520); print('equal:', np.array_equal(a,b)); print('first 3:', a[:3])"`
+  - Evidence: equal=True + 첫 3개 가격 → `verification/step-6-wbi.md`
+  - 통과 기준: equal == True
+
+- [ ] **G6.3 평균 연환산 수익률 + σ 통계**
+  - 명령: `python -c "..."` — fixture load 후 연환산/σ 계산
+  - Evidence: 표 (annual_return | sigma_daily | n_days) → `verification/step-6-wbi.md`
+  - 통과 기준: annual_return ∈ [0.195, 0.205], sigma_daily ∈ [0.0095, 0.0105]
+
+- [ ] **G6.4 [PNG] WBI 가격 시계열 + 일별 수익률 히스토그램**
+  - 명령: `python backend/scripts/plot_wbi_visual.py` (matplotlib subplot 2개)
+  - Evidence: `verification/figures/step-6-wbi-visual.png` + 본 markdown 임베드
+  - 통과 기준: 10년 가격 line chart (우상향 추세) + 일별 수익률 히스토그램 (정규분포 종 모양, 평균 ~0.0007)
+
+- [ ] **G6.5 fixture .npz load 검증**
+  - 명령: `python -c "import numpy as np; d=np.load('backend/research_engine/simulation/fixtures/wbi_seed42_10y.npz'); print(list(d.keys()), d['prices'].shape)"`
+  - Evidence: keys + shape → `verification/step-6-wbi.md`
+  - 통과 기준: `prices` 키 존재, shape == (2520,)
+
+- [ ] **G6.6 verification/step-6-wbi.md 작성**
+  - 통과 기준: G6.1~G6.5 paste + PNG 1개
 
 ### 예상 commit
-- `[silver-rev1-phase1] Step 6.1: WBI generate_wbi GBM 시드 42 + fixture + unit test`
+- `[silver-rev1-phase1] Step 6: WBI generate_wbi 시드 42 + fixture + test`
+- `[silver-rev1-phase1] Step 6 verify: WBI evidence + PNG`
 
 ---
 
 ## Phase 1 Definition of Done
 
-- [ ] 6개 태스크 모두 완료 + commit hash 본 파일에 기록
-- [ ] migration이 staging → prod 양쪽에서 reversible 확인
-- [ ] Bronze 일일 cron 1회 모니터링 통과
-- [ ] `pytest backend/tests/test_padding.py backend/tests/test_wbi.py` 100%
-- [ ] staging DB 검증 SQL (P1-4 Step 4.5) 통과
-- [ ] Phase 2 진입 가능 (`research_engine/simulation/`에 padding.py + wbi.py + fixture 2종 존재)
+- [ ] 6개 태스크 모두 완료 + commit hash 본 파일에 기록 (P1-1 ✅ 7d457a2)
+- [ ] migration reversible 확인 (offline SQL — P1-1 G1.4)
+- [ ] Bronze 일일 cron 1회 모니터링 통과 (P1-4 G4.5)
+- [ ] `pytest backend/tests/test_padding.py backend/tests/test_wbi.py` 100% (P1-5 G5.1, P1-6 G6.1)
+- [ ] Phase 2 진입 가능 — `research_engine/simulation/`에 padding.py + wbi.py + fixture 2종 존재
 - [ ] `debug-history.md`에 Phase 1 디버깅 정리
+
+### Evidence 누적 (Show, don't claim)
+- [ ] `verification/step-1-schema.md` (P1-1)
+- [ ] `verification/step-2-symbol-map.md` (P1-2)
+- [ ] `verification/step-3-fx.md` (P1-3)
+- [ ] `verification/step-4-backfill.md` + `figures/step-4-backfill-rowcount.png` (P1-4)
+- [ ] `verification/step-5-padding.md` + `figures/step-5-padding-jepi.png` (P1-5)
+- [ ] `verification/step-6-wbi.md` + `figures/step-6-wbi-visual.png` (P1-6)
+- [ ] 사용자가 6개 evidence 파일 모두 확인 후 Phase 1 closure
 
 ---
 

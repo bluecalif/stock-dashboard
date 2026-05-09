@@ -42,5 +42,5 @@ PNG 임베드: `![title](figures/<name>.png)`
 | P1-2 | step-2-symbol-map.md | ✅ |
 | P1-3 | step-3-fx.md | ✅ |
 | P1-4 | step-4-backfill.md + PNG | ✅ (Bronze cron G4.5 = 24h 후) |
-| P1-5 | step-5-padding.md + PNG | TODO |
-| P1-6 | step-6-wbi.md + PNG | TODO |
+| P1-5 | step-5-padding.md + PNG | ✅ |
+| P1-6 | step-6-wbi.md + PNG | ✅ |

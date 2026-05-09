@@ -12,9 +12,9 @@
 | P1-1 | Alembic migration: asset_master 5컬럼 + fx_daily | M | — | ✅ Done | `7d457a2` |
 | P1-2 | SYMBOL_MAP 8종 추가 | S | — | ✅ Done | `0eea282` |
 | P1-3 | fx_collector USD/KRW 일봉 | M | P1-1 | ✅ Done | `ba574c0` |
-| P1-4 | 신규 자산 + USD/KRW 10년 backfill (prod) | L | P1-1, P1-2, P1-3 | ✅ Done | (다음 commit) |
-| P1-5 | padding 알고리즘 + JEPI fixture + unit test | M | (P1-4 권장) | TODO | — |
-| P1-6 | WBI synthetic 시드 42 fixture + unit test | S | — | TODO | — |
+| P1-4 | 신규 자산 + USD/KRW 10년 backfill (prod) | L | P1-1, P1-2, P1-3 | ✅ Done | `7d24d68` |
+| P1-5 | padding 알고리즘 + JEPI fixture + unit test | M | (P1-4 권장) | ✅ Done | (다음 commit) |
+| P1-6 | WBI (Warren Buffett Index) synthetic 시드 42 fixture + unit test | S | — | ✅ Done | (다음 commit) |
 
 **Size 분포**: S:2 / M:3 / L:1 (총 6개)
 

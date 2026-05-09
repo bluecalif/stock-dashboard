@@ -60,6 +60,10 @@ def _standardize(df: pd.DataFrame, asset_id: str) -> pd.DataFrame:
     df["asset_id"] = asset_id
     df["source"] = "fdr"
     df["volume"] = df["volume"].fillna(0).astype("int64")  # int32 overflow 방지 (NVDA 등 고거래량)
+    # high/low inversion 수정 (BTC 등 일부 종목 FDR 데이터 아티팩트, 차이 < 0.1%)
+    inv = df["high"] < df["low"]
+    if inv.any():
+        df.loc[inv, ["high", "low"]] = df.loc[inv, ["low", "high"]].values
     df["ingested_at"] = datetime.now(timezone.utc)
 
     cols = ["asset_id", "date", "open", "high", "low", "close", "volume", "source", "ingested_at"]

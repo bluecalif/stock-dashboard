@@ -167,6 +167,29 @@
 - `backend/.env.example` — LLM_REPORT_MODEL 추가
 - `backend/tests/unit/test_agentic_reporter.py` — 모델 분기 테스트 → 단일 모델 테스트로 변경
 
+### PERF-2: Cache Warmup — DataFetcher Cold 최적화
+
+**문제:**
+- DataFetcher cold 요청 시 12s 소요 (DB 쿼리 + 계산)
+- 인메모리 캐시(tool_cache.py)는 서버 재시작 시 소멸 → 첫 요청 항상 cold
+
+**해결:**
+- `cache_warmup.py` 신규 생성 — 서버 시작 시 주요 tool 결과를 백그라운드 프리페치
+- 7개 자산 × 4개 tool + get_correlation = **29개 호출** 병렬 실행
+- FastAPI lifespan hook (`asyncio.create_task`)로 비동기 실행 (서버 시작 블로킹 없음)
+- 17초 소요, 29/29 성공
+
+**결과:**
+
+| 시나리오 | Before | After |
+|---------|--------|-------|
+| Cold (첫 요청) | 12s fetch | ~1.3s (캐시 히트) |
+| E2E Cold | ~26s | ~15s (warm 수준) |
+
+**영향 파일:**
+- `backend/api/services/llm/agentic/cache_warmup.py` — 신규
+- `backend/api/main.py` — lifespan에 warmup_cache() 추가
+
 ## Modified Files Summary
 
 ### Backend
@@ -177,7 +200,10 @@ backend/api/services/llm/agentic/
 ├── knowledge_prompts.py (F.2 신규)
 ├── classifier.py        (F.3 신규, F.10 JSON mode 전환)
 ├── data_fetcher.py      (F.4 신규, F.10 asset_ids 버그 수정)
-└── reporter.py          (F.5 신규, F.10 JSON mode 전환)
+├── reporter.py          (F.5 신규, F.10 JSON mode 전환)
+├── tool_cache.py        (인메모리 당일 캐시)
+├── compressor.py        (Tool Result 압축기)
+└── cache_warmup.py      (서버 시작 시 프리페치 — Cold 최적화)
 
 backend/api/services/chat/
 └── chat_service.py      (F.6 핵심 리팩토링, F.10 에러 로깅)

@@ -82,8 +82,3 @@ Skills in `.claude/skills/` — see each `SKILL.md` for details:
 - **reasoning** (gpt-5-mini/nano): `temperature`, `max_tokens` 미지원 → `max_completion_tokens` 사용
 - **non-reasoning** (gpt-4.1-mini): `temperature=0` 가능. Reporter 전용 (`llm_report_model`)
 
-## Key Design Decisions
-
-- Kiwoom OpenAPI dropped (2026-02-10): 32-bit Python, DLL lock issues
-- FDR is sole data source for weeks 1-4
-- Hantoo REST API integration deferred to week 5 (pre-deployment)

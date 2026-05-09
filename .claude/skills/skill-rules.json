@@ -82,6 +82,35 @@
           "(hook|훅).*(에러|error|디버그|debug)"
         ]
       }
+    },
+    "silver-simulation": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "silver", "silver-rev1", "silver-gen", "silver-masterplan",
+          "simulation", "시뮬레이션", "적립식", "적립",
+          "replay", "Tab A", "Tab B", "Tab C",
+          "strategy_a", "strategy_b", "전략 A", "전략 B",
+          "portfolio", "포트폴리오", "리밸런싱",
+          "WBI", "GBM", "synthetic",
+          "padding", "cyclic returns",
+          "fx_daily", "USD/KRW", "환율",
+          "MDD", "캘린더 연도", "drawdown",
+          "lock 사이클", "lock_until_year", "grace period", "365일 강제 재매수",
+          "JEPI", "JEPY",
+          "compare", "/silver/compare", "CompareMainPage",
+          "SimInput", "compute_kpi"
+        ],
+        "intentPatterns": [
+          "(생성|구현|추가).*(replay|strategy_a|strategy_b|portfolio|padding|wbi|fx|mdd|simulation)",
+          "(create|implement|add).*(replay|strategy|portfolio|padding|wbi|simulation)",
+          "(silver|Silver).*(코딩|구현|작업|시작|진입|phase)",
+          "(Tab A|Tab B|Tab C).*(구현|동작|로직)",
+          "(D-[0-9]+|lock|grace).*(결정|규칙|확인)"
+        ]
+      }
     }
   }
 }

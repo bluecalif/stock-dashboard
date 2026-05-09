@@ -28,6 +28,24 @@ For append:
 Add-Content -Path <path> -Value <content> -Encoding UTF8
 ```
 
+## 2.1) Codex/PowerShell Korean Rendering Exception (Mandatory)
+- This repo's docs may display as mojibake in Codex/PowerShell even when the file itself is valid UTF-8.
+- Do **not** conclude that a document is corrupted only because terminal output looks broken.
+- Treat repository documents as authoritative unless raw-byte verification proves the file is actually damaged.
+- If Korean looks broken in terminal output, do this before raising an encoding issue:
+  1. Verify BOM/bytes with `[IO.File]::ReadAllBytes(...)`.
+  2. Re-read with UTF-8 assumptions.
+  3. If needed, inspect via a non-profile path or byte-based fallback before claiming corruption.
+- Do not spend time "fixing" docs, frontend labels, or lint findings that only appear broken because of this PowerShell/Codex rendering problem unless the user explicitly asks for actual encoding repair.
+- When reviewing project status, record this as an environment/tooling limitation, not as a document defect, unless byte verification contradicts that assumption.
+
+## 2.2) Session Restart Rule
+- At the start of a new session, assume:
+  - docs are intended to be valid UTF-8,
+  - Korean mojibake in PowerShell/Codex is a known reader-side issue,
+  - repeated re-diagnosis of the same symptom is wasteful unless raw bytes indicate real corruption.
+- If `silver-session-summary.md` or similar planning docs look broken in terminal output, continue the review by using structure, file references, and byte checks rather than escalating the doc itself as a project problem.
+
 ## 3) Pre-Write Checklist
 Before creating/editing files:
 1. Confirm exact target path exists/is intended.
@@ -77,3 +95,4 @@ $OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8; Get-Con
 - Primary language for docs: Korean.
 - Primary encoding: UTF-8.
 - Priority: prevent encoding corruption and accidental scope expansion.
+- Known limitation: Codex/PowerShell may misrender Korean while files remain valid.

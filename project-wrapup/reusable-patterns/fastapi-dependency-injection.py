@@ -1,11 +1,29 @@
 """
 ## 용도
-FastAPI 의존성 주입 — DB 세션 관리, JWT 인증, 선택적 인증.
+FastAPI 의존성 주입 — DB 세션 관리, JWT 인증(필수/선택).
+Generator 패턴으로 세션 라이프사이클 자동 관리.
 
-## 사용법
-1. get_db: 모든 DB 접근 엔드포인트에 Depends(get_db)
-2. get_current_user: 인증 필수 엔드포인트에 Depends(get_current_user)
-3. get_current_user_optional: 인증 선택 엔드포인트에 사용
+## 언제 쓰는가
+FastAPI 프로젝트에서 DB 세션과 인증을 DI로 관리할 때.
+일부 엔드포인트는 인증 필수, 일부는 선택(비로그인 허용)일 때.
+
+## 전제조건
+- FastAPI 앱 + SQLAlchemy SessionLocal 설정 완료
+- JWT 토큰 발급/검증 함수 (jwt-auth-flow.py 참조)
+
+## 의존성
+- fastapi: Depends, HTTPException, OAuth2PasswordBearer
+- sqlalchemy.orm: Session
+
+## 통합 포인트
+- dependencies.py에 배치
+- 모든 Router에서 Depends(get_db), Depends(get_current_user) 사용
+- 주의: 백그라운드 태스크에 get_db 세션 전달 금지 (T-003)
+
+## 주의사항
+- get_db 세션은 요청 스코프. 백그라운드 태스크에는 자체 SessionLocal() 생성 필수
+- auto_error=False로 설정한 optional 스킴에서는 토큰 없으면 None 반환
+- 헬스체크 엔드포인트는 get_db DI 없이 직접 DB 접근 권장
 
 ## 출처
 stock-dashboard/backend/api/dependencies.py

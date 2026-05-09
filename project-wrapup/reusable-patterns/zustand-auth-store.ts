@@ -1,12 +1,31 @@
 /**
  * ## 용도
  * Zustand 기반 Auth 상태 관리 + localStorage 토큰 영속성.
- * login, signup, logout, withdraw, refreshTokens, loadUser.
+ * login, logout, withdraw, refreshTokens, loadUser 전체 플로우.
  *
- * ## 사용법
- * 1. authApi에 login, signup, refresh, getMe, withdraw 함수 구현
- * 2. App 마운트 시 loadUser() 호출
- * 3. 컴포넌트에서 useAuthStore() 사용
+ * ## 언제 쓰는가
+ * React + JWT 인증 프로젝트에서 전역 인증 상태를 관리할 때.
+ * 페이지 새로고침 후에도 로그인 상태를 유지해야 할 때.
+ *
+ * ## 전제조건
+ * - JWT 기반 백엔드 인증 API (login, refresh, getMe, withdraw)
+ * - axios-interceptor-refresh.ts로 토큰 자동 주입 설정
+ *
+ * ## 의존성
+ * - zustand: 상태 관리 라이브러리
+ * - authApi: login, signup, refresh, getMe, withdraw API 함수
+ * - localStorage: auth_tokens 키로 토큰 저장
+ *
+ * ## 통합 포인트
+ * - store/ 디렉토리에 배치
+ * - App.tsx에서 useEffect로 loadUser() 호출 (앱 마운트 시)
+ * - 인증 필요 컴포넌트에서 useAuthStore() 사용
+ * - axios-interceptor-refresh.ts와 localStorage 키(auth_tokens) 공유
+ *
+ * ## 주의사항
+ * - loadUser는 앱 마운트 시 1회만 호출. 중복 호출 방지
+ * - refreshTokens 실패 시 자동 로그아웃 — 사용자에게 알림 UI 필요
+ * - localStorage 키를 interceptor와 반드시 일치시킬 것
  *
  * ## 출처
  * stock-dashboard/frontend/src/store/authStore.ts

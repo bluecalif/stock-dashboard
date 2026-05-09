@@ -148,7 +148,13 @@
       "Bash(env)",
       "Bash(python -c \":*)",
       "Bash(wmic process:*)",
-      "Bash(python -m json.tool)"
+      "Bash(python -m json.tool)",
+      "Bash(WMIC PROCESS WHERE Name=''python.exe'' GET ProcessId,CommandLine)",
+      "Bash(python tests/diag_reporter.py)",
+      "Bash(python:*)",
+      "Bash(find /c/Projects-2026/active/stock-dashboard -maxdepth 3 -type f \\\\\\(-name *.toml -o -name *.ini -o -name *.json -o -name .railwayignore -o -name Dockerfile -o -name Procfile \\\\\\))",
+      "Bash(git -C /c/Projects-2026/active/stock-dashboard log --oneline -20)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

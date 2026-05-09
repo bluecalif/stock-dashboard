@@ -1,12 +1,33 @@
 """
 ## 용도
-PostgreSQL INSERT ... ON CONFLICT DO UPDATE (Idempotent UPSERT).
-대용량 데이터를 chunk 단위로 분할 처리 + Job 추적.
+PostgreSQL ON CONFLICT DO UPDATE 기반 멱등 UPSERT.
+chunk 단위 분할 처리 + Job 상태 추적. 수정 필요 (테이블/컬럼/conflict 키 교체).
 
-## 사용법
-1. PriceDaily 등 테이블에 복합 PK/유니크 인덱스 설정 (asset_id, date, source)
-2. _upsert(session, df, chunk_size) 호출
-3. ingest_asset() → fetch → validate → upsert 파이프라인
+## 언제 쓰는가
+외부 데이터 소스에서 주기적으로 데이터를 수집하여 DB에 적재할 때.
+동일 키 데이터가 반복 수집되어도 안전하게 업데이트되어야 할 때 (멱등성).
+
+## 전제조건
+- PostgreSQL (ON CONFLICT 지원)
+- 대상 테이블에 복합 PK 또는 유니크 인덱스 (conflict_keys로 사용)
+- pandas DataFrame 형태의 입력 데이터
+
+## 의존성
+- sqlalchemy.dialects.postgresql: insert (PostgreSQL 전용)
+- pandas: DataFrame → dict 변환
+- dataclasses: IngestResult 결과 객체
+
+## 통합 포인트
+- collector/ 디렉토리에 ingest.py로 배치
+- 스케줄러(cron/GitHub Actions)에서 ingest_asset() 호출
+- job_run 테이블로 수집 작업 상태 추적 (성공/실패/부분실패)
+- numpy 타입은 Python native로 변환 후 전달 필수 (T-007)
+
+## 주의사항
+- chunk_size가 너무 크면 메모리 문제, 너무 작으면 성능 저하 — 1000이 기본값
+- conflict_keys와 실제 DB 인덱스가 일치해야 함
+- numpy.float64/Timestamp → Python native 타입 변환 필수 (T-007)
+- NaN 값 DB 적재 전 체크 필수 (T-006)
 
 ## 출처
 stock-dashboard/backend/collector/ingest.py

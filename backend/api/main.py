@@ -1,5 +1,6 @@
 """FastAPI application — entry point, CORS, error handlers."""
 
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -43,6 +44,12 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan: startup / shutdown hooks."""
     logger.info("Stock Dashboard API starting up")
+
+    # 캐시 프리페치 — 백그라운드로 실행 (서버 시작 블로킹 없음)
+    from api.services.llm.agentic.cache_warmup import warmup_cache
+
+    asyncio.create_task(warmup_cache())
+
     yield
     logger.info("Stock Dashboard API shutting down")
 

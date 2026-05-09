@@ -1,12 +1,32 @@
 """
 ## 용도
-LangGraph + OpenAI 기반 질문 분류기.
-JSON Mode로 구조화 응답, fallback 전략, 대화 히스토리 컨텍스트 빌드.
+LangGraph + OpenAI 기반 질문 분류기. JSON Mode + fallback + 대화 히스토리 컨텍스트.
+수정 필요 (프롬프트/카테고리/ClassificationResult 필드 교체).
 
-## 사용법
-1. ClassificationResult Pydantic 모델 정의
-2. 시스템 프롬프트에 JSON 스키마 힌트 포함
-3. classify_question() 호출 — async
+## 언제 쓰는가
+사용자 질문을 카테고리/의도별로 분류하여 적절한 처리 파이프라인으로 라우팅할 때.
+with_structured_output 대신 안정적인 JSON Mode가 필요할 때 (T-010).
+
+## 전제조건
+- OpenAI API 키 + 결제 설정 (P-008)
+- 분류 카테고리 정의 (프로젝트별로 다름)
+
+## 의존성
+- langchain-openai: ChatOpenAI
+- pydantic: ClassificationResult 스키마
+- json, logging: 파싱 + 에러 로깅
+
+## 통합 포인트
+- services/llm/agentic/ 디렉토리에 배치
+- LangGraph 그래프의 첫 번째 노드(classify)에서 호출
+- ClassificationResult로 다음 노드(data_fetch, report 등) 결정
+- 하이브리드 분류: 정규표현식 먼저, LLM은 fallback (A-007)
+
+## 주의사항
+- with_structured_output 사용 금지 — JSON Mode + 수동 파싱이 프로덕션에서 안정적
+- max_retries=3, request_timeout=10 반드시 명시 (T-012)
+- LLM 출력(asset_ids 등)을 tool에 전달 전 validation 필수 (P-009)
+- reasoning 모델(gpt-5-mini/nano)은 temperature 미지원 — non-reasoning 모델 사용 (T-023)
 
 ## 출처
 stock-dashboard/backend/api/services/llm/agentic/classifier.py

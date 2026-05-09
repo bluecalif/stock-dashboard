@@ -1,266 +1,143 @@
-# Project Overall Context
-> Last Updated: 2026-03-20
-> Status: MVP 완료 (Phase 0~7), Phase A~G 완료
+# Project Overall Context — Silver Gen
+> Gen: silver
+> Last Updated: 2026-05-09
+> Note: Phase 1 dev-docs 작성됨 (`dev/active/silver-rev1-phase1/`) — Phase 1 상세 컨텍스트는 해당 폴더 참조
 
-## 핵심 파일
+## 1. 핵심 참조 파일 (코딩 진입 시 즉시 열어야 함)
 
+### 1.1 기획·명세 (single source of truth)
 | 파일 | 용도 |
-|------|------|
-| `docs/masterplan-v0.md` | MVP 설계 명세서 (아키텍처, DB 스키마, API 12개, 프론트엔드 6페이지) |
-| `docs/post-mvp-implementation-sketch.md` | Post-MVP 제품 요구사항 (대화형 분석 워크스페이스) |
-| `docs/session-compact.md` | 현재 진행 상태 |
-| `.claude/plans/snuggly-growing-willow.md` | Post-MVP 전체 구현 계획 |
-| `docs/post-mvp-phaseCD-detail.md` | Phase C~E 통합 상세 계획 (31 Steps) |
-| `CLAUDE.md` | 프로젝트 규칙, 기술 스택, 컨벤션 |
-| `.claude/skills/backend-dev/SKILL.md` | 백엔드 개발 가이드 (Auth 패턴 포함) |
-| `.claude/skills/frontend-dev/SKILL.md` | 프론트엔드 개발 가이드 (Zustand, SSE, ProtectedRoute 포함) |
-| `.claude/skills/langgraph-dev/SKILL.md` | LangGraph + Gemini 에이전트 가이드 |
-| `dev/active/phaseA-auth/` | Phase A (Auth) dev-docs — ✅ 완료 |
-| `dev/active/phaseB-chatbot/` | Phase B (Chatbot) dev-docs (plan/context/tasks/debug) |
-| `dev/active/phaseC-correlation/` | Phase C (상관도 페이지) dev-docs |
-| `dev/active/phaseD-indicators/` | Phase D (지표 페이지) dev-docs — ✅ 완료 |
-| `dev/active/phaseD-revision/` | Phase D-rev (지표 피드백) dev-docs — 12/13 완료 |
-| `dev/active/phaseE-strategy/` | Phase E (전략 페이지) dev-docs — ✅ 완료 |
-| `dev/active/phaseF-agentic/` | Phase F (Agentic Flow) dev-docs — ✅ 완료 |
-| `dev/active/phaseG-context/` | Phase G (User Context & Guided Experience) dev-docs — 📋 설계 완료 |
+|---|---|
+| `docs/silver-masterplan.md` | **마스터플랜 12 섹션** — 모든 코딩 결정의 기준 |
+| `docs/draft-rev1.md` | §1.1 lock 항목 (탭 A 자산, 적립금 프리셋, 이벤트 순서 등) |
+| `docs/silver-rev1-analysis.md` | Part B 7대 허들 / Part C Gap Map (리스크 추적) |
+| `docs/session-compact.md` | 직전 세션 인계 상태 |
+| `docs/UX-design-ref.JPG` | 다크톤 디자인 레퍼런스 |
 
-## 주요 결정사항
+### 1.2 Bronze gen 코드 진입점 (Silver 작업의 출발점)
+| 파일 | 용도 |
+|---|---|
+| `backend/collector/fdr_client.py:14` | SYMBOL_MAP — Phase 1에서 8종 추가 |
+| `backend/db/models/asset_master.py` (or 동등) | Phase 1 컬럼 추가 대상 |
+| `backend/research_engine/` | Phase 2 simulation/ 신규 추가 위치 |
+| `backend/api/main.py` + `routers/` | Phase 2 라우터 등록 위치 |
+| `backend/api/services/llm/agentic/` | Phase 4 tool registration 정리 대상 |
+| `frontend/src/App.tsx` | Phase 3 라우트 재편 시작점 |
+| `frontend/src/pages/IndicatorSignalPage.tsx` | Phase 3 SignalDetailPage 베이스 |
 
-### MVP 결정사항
-| 일자 | 결정 | 근거 |
-|------|------|------|
-| 2026-02-10 | Kiwoom OpenAPI 폐기 | 32비트 Python 요구, DLL 잠금 이슈 |
-| 2026-02-10 | FDR 단일 소스 (Week 1-4) | 전 자산 검증 통과, 통합 간편 |
-| 2026-02-10 | Hantoo fallback 이연 (v0.9+) | 배포 직전 국내주식 이중화 |
-| 2026-02-10 | Dashboard: React + Recharts + Vite + TS | 시각화 라이브러리 풍부, 타입 안전성 |
-| 2026-02-10 | DB Migration: Alembic | SQLAlchemy 네이티브 통합 |
-| 2026-02-10 | 알림: Discord Webhook | 무료, 설정 간편 |
-| 2026-02-12 | 상관행렬: API on-the-fly 계산 | 별도 DB 테이블 불필요, 7자산 소규모 |
-| 2026-02-12 | Phase 구조 리비전 | Phase 4(API), Phase 5(Frontend) 분리 |
-| 2026-02-13 | Frontend: TailwindCSS 채택 | 유틸리티 CSS, 빠른 프로토타이핑 |
-| 2026-02-13 | Frontend: React useState + useEffect | MVP 수준에서 별도 상태 라이브러리 불필요 |
-| 2026-02-14 | missing_threshold 10%로 상향 | 한국주식 공휴일 캘린더 차이 |
-| 2026-02-14 | NaN 방어: API 스키마 field_validator | DB NaN → JSON 직렬화 실패 방지 |
-| 2026-02-15 | Phase 7: GitHub Actions cron | 무료, 기존 CI/CD 인프라 활용 |
-| 2026-02-15 | Railway Public Networking | GitHub Actions → Railway DB 직접 접속 |
-| 2026-02-15 | cron UTC 09:00 (KST 18:00) | 한국 장 마감 후 충분한 여유 |
+### 1.3 Bronze gen 보존 자산 (재사용 가능)
+| 위치 | 가치 |
+|---|---|
+| `dev/archive/bronze-gen/` | Phase 1~7, A~G 전체 dev-docs 아카이브 |
+| `project-wrapup/lessons-learned.json` | 교훈 41건 (A-004 등 Silver 작업 시 참조) |
+| `project-wrapup/reusable-patterns/` | 패턴 9개 (router-service-repo, idempotent-upsert, langraph-classifier 등) |
+| `project-wrapup/project-blueprint.md` | 설계 순서도 |
 
-### Post-MVP 결정사항 (2026-03-10 확정)
-| 항목 | 결정 | 근거 |
-|------|------|------|
-| Auth | JWT 자체 구현 (python-jose + bcrypt) | 외부 서비스 의존 없이 제어 가능, passlib 제거 (bcrypt 5.x 호환) |
-| LLM 플랫폼 | **LangGraph** (langgraph + langchain-core + langchain-openai) | 명시적 그래프, SSE 이벤트 분리, 내장 checkpointer |
-| LLM 모델 | **OpenAI GPT-5** (심층) + **GPT-5 Mini** (기본) | Gemini 쿼타 초과 (429)로 전환, 심층모드 토글 |
-| Chat 프로토콜 | SSE 스트리밍 (FastAPI StreamingResponse) | WebSocket 대비 구현 간편, HTTP 호환 |
-| 상태 관리 | Zustand 추가 (기존 hooks 유지, 공유 상태만 store) | 공유 상태 관리 필요 (auth, chat, chart) |
-| Embedding | Phase F 진입 시 결정 (OpenAI embedding) | 아직 벡터 검색 요구 불확실 |
-| Vector DB | pgvector (Railway 지원 확인 필요) | 기존 Postgres 내 관리, 운영 단순 |
-| 비용 제어 | 초기 제한 없음, 토큰 사용량 컬럼 미리 설계 | 사용량 추적 후 제한 설정 |
-| 기존 API | auth 없이 하위 호환 유지 | 기존 공개 엔드포인트 접근성 유지 |
-| 페이지 재편 | 홈/가격/상관/지표시그널/전략 (팩터+시그널 통합) | 사용자 관점 단순화 |
-| Phase C~E 통합 | 기존 C(분석)+D(그래프커스텀) → 페이지별 분리(C/D/E) | 각 페이지를 백엔드+프론트+챗봇까지 완결 후 다음 이동 |
-| 하이브리드 분류기 | 정규표현식+키워드 (LLM intent 안 씀) | 레이턴시 최소화, 실패 시 LangGraph fallback |
-| 스토리텔링 | 하드코딩 템플릿+f-string | 추상 점수 금지, 실제 금액/수익률만 사용 |
-| on-the-fly 백테스트 | DB 저장 안 함 | DB에 없는 기간 조합도 즉시 비교 가능 |
-| REST 분석 API | 성공률/전략비교용 1개 라우터 추가 | 페이지 렌더링용 REST 병행 (챗봇 중심 유지) |
-| 지표별 시그널 | on-the-fly 생성 (DB 저장 없음) | factor_daily에서 파생 가능, 신규 테이블 불필요 |
-| 전략→지표 전환 | 기존 strategy 기반 API 하위호환 유지 | Phase E 전략 페이지에서 사용 |
-| 전략 재정의 (E) | 모멘텀=MACD, 역발상=RSI, 위험회피=ATR+vol | indicator_signal_service 시그널 기반 백테스트 |
-| 1년단위 구간 평가 (E) | 연도별 전략 적합도 표시 | 수익률>0 AND win_rate>50% 기준 |
-| Best/Worst annotation (E) | 그래프 내 효과 큰/실패 구간 visual 삽입 | ReferenceArea + 금액 라벨 |
-| 위험회피 손실 회피 (E) | B&H 대비 절감된 손실 금액 표시 | ATR+vol 전략 전용 |
-| 2-Step LLM Agentic (F) | Classifier(gpt-5-mini) + Reporter(deep_mode 선택) | 다단계 에이전트 대비 레이턴시/비용 최소화, LLM 최대 2회 |
-| regex classifier 제거 (F) | LLM Structured Output으로 완전 대체 | 확장성 + 페이지 간 라우팅 가능 |
-| 자동 네비게이션 (F) | 즉시 이동 (확인 없음) | Agentic AI UX 극대화 |
-| 하드코딩 템플릿 제거 (F) | LLM Reporter로 대체 | 자연스러운 큐레이팅 분석 + 동적 follow-up |
-| is_nudge 하위호환 (F) | 파라미터 유지, 내부 무시 | 프론트/백 배포 시점 불일치 방지 |
-| confidence threshold (F) | 0.5 미만 시 LangGraph fallback | 분류 실패 안전망 |
-| UIActionModel Literal (F) | action 필드를 Literal 타입으로 제한 | LLM hallucination 방지 |
-| with_structured_output 폐기 (F) | JSON mode(`response_format=json_object`) + 수동 파싱 | 프로덕션에서 `with_structured_output` 지속 실패 |
-| DataFetcher asset_ids 방어 (F) | 상관 tool에 2개 미만 자산 시 None 전달 (전체 자산) | LLM 출력 validation 필수 |
-| Phase G+H 통합 (G) | H(Onboarding)는 G(Memory)가 선행 조건 | 스키마 1회 변경, 통합 구현 |
-| pgvector 미사용 (G) | 7자산×5페이지 한정 → 구조화 쿼리가 더 정확/빠름 | 나중에 필요 시 추가 |
-| JSONB 집계 (G) | user_activity 1 row/user, 카운터 increment | 이벤트 로그 테이블은 현 규모에서 과도 |
-| Ice-breaking 2문항 (G) | 경험 수준 + 의사결정 성향 | 첫 로그인 마찰 최소화, 행동 기반 progressive profiling |
-| gpt-4o-mini 요약 (G) | 5턴마다 자동 세션 요약, done SSE 후 백그라운드 | 비용 최적화 (분류/보고서 아닌 요약은 경량 모델) |
-| Lazy creation (G) | 첫 접근 시 UPSERT | 기존 users 대상 data migration 불필요 |
-| 모든 파라미터 default=None (G) | 기존 808 테스트 하위 호환 보장 | 새 파라미터 추가 시 기존 코드 무영향 |
+## 2. 데이터 인터페이스 (Silver gen 신규 흐름)
 
-## 자산 목록
+```
+[FDR] ──┬─ SYMBOL_MAP(15종) ──→ price_daily (기존 + 8종 신규)
+        └─ "USD/KRW"        ──→ fx_daily (신규)
 
-| asset_id | 이름 | 카테고리 | FDR 심볼 |
-|----------|------|----------|----------|
-| KS200 | KOSPI200 | index | KS200 |
-| 005930 | 삼성전자 | stock | 005930 |
-| 000660 | SK하이닉스 | stock | 000660 |
-| SOXL | SOXL ETF | etf | SOXL |
-| BTC | Bitcoin | crypto | BTC/KRW |
-| GC=F | Gold | commodity | GC=F |
-| SI=F | Silver | commodity | SI=F |
+asset_master (5컬럼 추가) ─→ simulation 모듈 (currency/annual_yield/allow_padding 참조)
 
-## DB 테이블
+simulation/ ─┬─ replay.py     ──┐
+             ├─ strategy_a.py   │
+             ├─ strategy_b.py   ├──→ /v1/silver/simulate/{replay,strategy,portfolio}
+             ├─ portfolio.py    │
+             ├─ padding.py      │   (매 요청 재계산, rev1은 캐시 없음)
+             ├─ wbi.py          │
+             ├─ fx.py           │
+             └─ mdd.py          ┘
 
-### MVP 테이블 (8개, 운영 중)
-1. `asset_master` — 자산 마스터 (7개 시드)
-2. `price_daily` — 일봉 PK: (asset_id, date, source) — 5,573+ rows
-3. `factor_daily` — 팩터 PK: (asset_id, date, factor_name, version)
-4. `signal_daily` — 전략 신호
-5. `backtest_run` — 백테스트 실행 (run_id UUID PK)
-6. `backtest_equity_curve` — 에쿼티 커브
-7. `backtest_trade_log` — 트레이드 로그
-8. `job_run` — 작업 실행 이력
+fx_daily ──→ /v1/fx/usd-krw
 
-### Post-MVP 신규 테이블 (9개, 계획)
-9. `users` — 사용자 (Phase A)
-10. `user_sessions` — 리프레시 토큰 세션 (Phase A)
-11. `chat_sessions` — 채팅 세션 (Phase B)
-12. `chat_messages` — 채팅 메시지 (Phase B)
-13. `chart_presets` — 차트 프리셋 (향후)
-14. `user_profiles` — 사용자 프로필 (experience_level, decision_style, top_assets, JSONB) (Phase G)
-15. `user_activity` — 사용자 활동 (activity_data JSONB: page_visits, asset_views, question_categories 카운터) (Phase G)
-16. `conversation_summaries` — 세션 요약 (summary_data JSONB: categories, assets, key_findings) (Phase G)
+Agentic LangGraph state machine (Bronze 유지)
+  ├─ tools 제거: strategy_classify, strategy_report
+  ├─ tools 신규: simulation_replay, simulation_strategy, simulation_portfolio
+  └─ tools 유지: dashboard_summary, price_lookup, correlation_matrix
+```
 
-## API 엔드포인트
+## 3. 주요 결정사항 (Silver gen 핵심 lock)
 
-### MVP API (v1) — 12개 운영 중
+> 마스터플랜 §0 인터뷰 답변 21건 + §1.1 lock 6건 = 총 27 결정. 여기는 코딩 시 매번 확인할 항목만 발췌.
 
-#### 조회 API (5개)
-| Method | Path | 설명 |
-|--------|------|------|
-| GET | `/v1/health` | 헬스체크 |
-| GET | `/v1/assets` | 자산 목록 |
-| GET | `/v1/prices/daily` | 가격 조회 |
-| GET | `/v1/factors` | 팩터 조회 |
-| GET | `/v1/signals` | 시그널 조회 |
+| # | 결정 | 출처 | 코딩 영향 |
+|---|---|---|---|
+| D-1 | JEPY → JEPI 통일 | Q1-1 | SYMBOL_MAP, asset_master.display_name |
+| D-2 | history padding = **일별 수익률 cyclic 복제** (가격 점프 X) | Q1-2 | `padding.py` 알고리즘 + 차트 회색 영역 |
+| D-3 | USD/KRW 신규 테이블 `fx_daily` | Q1-3 | Phase 1 migration + fx_collector |
+| D-4 | 배당 = 공시 연 배당률 / 252 균등 분할 | Q1-4 | `replay.py` 보유분에 매일 (1+rate) 적용 |
+| D-5 | WBI = 거래일 등비 + GBM(σ=1%/일, drift 보정), 시드 42, **KRW 자산** | Q2-5/6 | `wbi.py` reproducibility 보장 |
+| D-6 | 트리거 통화 = **현지통화 가격 기준** | Q3-9 | `strategy_a.py` 60거래일 ratio는 USD 가격으로 |
+| D-7 | 전략 A: 강제 재매수 = **매도일 + 365일** (draft 12월 X) | Q4-11 | `strategy_a.py` `forced = date >= sell_date + 365d` |
+| D-8 | 전략 A: lock 범위 = **매도해 ~ 재매수해 포함** | Q4-13 | `lock_until_year` state, 같은 해 매도 시그널 무시 |
+| D-9 | 전략 A: grace period = **12개월** | Q4-14 | 적립 시작일 + 12개월 안에 매도 트리거 무시 |
+| D-10 | MDD = **캘린더 연도** 기준 | Q5-15 | `mdd.py` Jan-Dec 슬라이스 |
+| D-11 | UI = 상단 가로 nav + `+` 버튼 drawer + 모바일 필수 | Q6-16/18/20 | `TabNav`, `AssetPickerDrawer`, 768px breakpoint |
+| D-12 | chat/AI = Bronze Phase F **그대로 유지** | Q6-19 | LangGraph state machine 그대로, tool만 정리 |
+| D-13 | 신호 카드 = 개별 RSI/MACD/ATR + 상태 라벨 (종합 점수 X) | Q7-21 | `IndicatorCard.tsx` |
+| D-14 | Bronze→Silver = **빅뱅 교체** (사용자 1명, 다운타임 0 영향) | Q8-24 | Phase 4 cut-over, feature flag/점진 전환 무의미 |
+| D-15 | StrategyPage drop = **DB 테이블도 drop** | Q8-26 | `backtest_run/equity_curve/trade_log` DROP migration |
+| D-16 | 이벤트 순서 lock: **정기 적립 후 조건 실행** | §1.1 | `replay.py` 적립 → `strategy_a.step()` 순서 |
+| D-17 | KPI 4종 = 최종자산 / 총수익률 / 연환산 / 연도 MDD | §1.1 + §1.2 | `compute_kpi()` 시그니처 고정 |
+| D-18 | Tab A universe = QQQ/SPY/KS200/SCHD/JEPI/WBI **6종** | §8.2 | AssetPickerDrawer 옵션 |
+| D-19 | Tab B 자산 = QQQ/SPY/KS200 **3종만** | §9.2 | 전략 A/B universe 제한 |
+| D-20 | Tab C preset = **4개 고정**, 사용자 비중 편집 불가 | §10.5 | preset 상수 + select UI |
+| D-21 | 신호 자산 = QQQ/SPY/KS200/NVDA/GOOGL/TSLA/SEC/SKH **8종** | §12.3 | SignalDetailPage 자산 select |
 
-#### 백테스트 API (5개)
-| Method | Path | 설명 |
-|--------|------|------|
-| POST | `/v1/backtests/run` | 온디맨드 백테스트 |
-| GET | `/v1/backtests` | 백테스트 목록 |
-| GET | `/v1/backtests/{run_id}` | 백테스트 요약 |
-| GET | `/v1/backtests/{run_id}/equity` | 에쿼티 커브 |
-| GET | `/v1/backtests/{run_id}/trades` | 거래 이력 |
+## 4. 컨벤션 체크리스트
 
-#### 집계 API (2개)
-| Method | Path | 설명 |
-|--------|------|------|
-| GET | `/v1/dashboard/summary` | 대시보드 요약 |
-| GET | `/v1/correlation` | 상관행렬 |
+### 4.1 인코딩 (Windows + Korean)
+- CSV read: `encoding='utf-8-sig'` (BOM)
+- File write: `encoding='utf-8'` 명시
+- Python stdout: `PYTHONUTF8=1`
+- HTTP JSON: `.json()` 자동 UTF-8
 
-### Post-MVP API — 계획
+### 4.2 커밋 / 브랜치
+- 커밋: `[silver-rev1-phaseN] Step X.Y: description`
+- 브랜치: `feature/silver-rev1` (Phase 4 master merge 직전 `v-bronze-final` tag)
 
-#### Auth API (Phase A)
-| Method | Path | 설명 |
-|--------|------|------|
-| POST | `/v1/auth/signup` | 회원가입 |
-| POST | `/v1/auth/login` | 로그인 |
-| POST | `/v1/auth/refresh` | 토큰 갱신 |
-| GET | `/v1/auth/me` | 내 정보 |
+### 4.3 Bash / PowerShell (CLAUDE.md 규칙)
+- Git Bash에서 Windows 경로는 `/c/...` 형식
+- PowerShell `$` 변수: Bash tool에서 .ps1 파일로 분리 작성 → 실행 → cleanup
+- `&&` 체인 금지 (개별 병렬 호출로 분리)
 
-#### Chat API (Phase B)
-| Method | Path | 설명 |
-|--------|------|------|
-| POST | `/v1/chat/sessions` | 채팅 세션 생성 |
-| GET | `/v1/chat/sessions/{session_id}` | 세션 조회 |
-| POST | `/v1/chat/sessions/{session_id}/messages` | 메시지 전송 (SSE) |
+### 4.4 LLM 모델
+- reasoning (gpt-5-mini/nano): `max_completion_tokens` 사용 (`temperature/max_tokens` 미지원)
+- non-reasoning (gpt-4.1-mini): Reporter 전용, `temperature=0` 가능
 
-#### Analysis API (Phase D~E)
-| Method | Path | 설명 | Phase |
-|--------|------|------|-------|
-| GET | `/v1/analysis/signal-accuracy` | 지표 매수/매도 성공률 | D |
-| GET | `/v1/analysis/indicator-comparison` | 지표 예측력 비교 | D |
-| POST | `/v1/analysis/strategy-backtest` | 전략 백테스트 (indicator 시그널 기반, on-the-fly) | E |
+### 4.5 서버 안정성
+- uvicorn --reload 불안정 시: `tasklist | grep python` → `taskkill //F //PID <pid>` 전부 종료 후 재시작
+- 백그라운드 task에 요청 스코프 DB 세션 전달 금지 → 자체 `SessionLocal()` 생성
 
-#### Profile API (Phase G)
-| Method | Path | Auth | 설명 |
-|--------|------|------|------|
-| GET | `/v1/profile` | Required | 현재 사용자 프로필 |
-| POST | `/v1/profile/ice-breaking` | Required | 아이스브레이킹 답변 제출 |
-| GET | `/v1/profile/activity` | Required | 활동 데이터 |
-| POST | `/v1/profile/activity/page-visit` | Required | 페이지 방문 기록 |
+### 4.6 데이터 / DB
+- 자산별 캘린더 차이: forward-fill 가정 (Phase 2 시각적 검증)
+- fractional 정밀도: 12자리 가정 (D-22 후속 결정 필요)
+- DEFAULT 값으로 backward-compatible 컬럼 추가 (Phase 1 Bronze 영향 0 보장)
 
-## 프론트엔드 페이지
+### 4.7 컨벤션 ENFORCEMENT
+- API: Router-Service-Repo 분리 (project-wrapup 패턴)
+- OHLCV: schema 검증 (collector)
+- Pydantic schemas for all I/O
+- FastAPI DI for services
 
-### MVP 페이지 (6개, 운영 중)
-| # | 페이지 | 주요 API 소비 | 차트 종류 |
-|---|--------|-------------|----------|
-| 1 | 대시보드 홈 | `/dashboard/summary` | 요약 카드 + 미니 라인 |
-| 2 | 가격/수익률 | `/prices/daily` | 라인/캔들 + 정규화 비교 |
-| 3 | 상관 히트맵 | `/correlation` | 히트맵 (Recharts) |
-| 4 | 팩터 현황 | `/factors` | RSI/MACD 서브차트 |
-| 5 | 시그널 타임라인 | `/signals` + `/prices/daily` | 가격 + 매매 마커 |
-| 6 | 전략 성과 | `/backtests/*` | 에쿼티 커브 + 메트릭스 |
+## 5. 미해결 후속 결정 (마스터플랜 §11.3 발췌)
 
-### Post-MVP 페이지 변경 (계획)
-- **로그인/회원가입**: 인증 페이지 (Phase A) ✅
-- **채팅 패널**: 우측 슬라이드 (Phase B) ✅
-- **상관도 페이지 확장**: 그룹핑 카드 + ScatterPlot + SpreadChart + 넛지 질문 + 관심 종목 (Phase C)
-- **지표 시그널 통합 페이지**: 팩터+시그널 통합, 성공률 탭, 오버레이 차트, 설정 패널 (Phase D)
-- **전략 페이지 고도화**: 전략 백테스트(모멘텀/역발상/위험회피), 연간 성과, Best/Worst annotation, 내러티브, 기간 설정 (Phase E)
-- 최종 구조: 홈 / 가격 / 상관 / 지표시그널 / 전략 + 채팅 패널
+| 항목 | 결정 시점 |
+|---|---|
+| C-2 fractional 정밀도 자릿수 | Phase 2 코딩 중 사용자 확인 |
+| C-4 신호 빈도 "3회/년" 폐기 여부 | Phase 3 시안 검토 |
+| Tab A 자산 정렬 캘린더 (forward-fill 가정) | Phase 3 시각 검증 |
+| 시뮬레이션 결과 캐시 | Phase 5 (P95 임계 시) |
+| 실제 배당락 데이터 도입 | Phase 5 |
+| 데이터 alerting 신규 자산 확장 | Phase 1 후반 |
+| 카드형 vs step형 (§6.2 lock) | Phase 3 시안 후 |
+| 모바일 nav 동작 (가로 스크롤 vs hamburger) | Phase 3 시안 후 |
 
-## 컨벤션 체크리스트
+## 6. Bronze gen 핵심 교훈 적용 (project-wrapup/lessons-learned)
 
-### 데이터 관련 ✅
-- [x] OHLCV 표준 스키마 준수
-- [x] FDR primary source 사용
-- [x] idempotent UPSERT
-- [x] 지수 백오프 재시도
-- [x] 정합성 검증
-
-### API 관련 ✅
-- [x] Router → Service → Repository 3계층
-- [x] Pydantic 스키마 정의
-- [x] 의존성 주입 패턴
-- [x] CORS 설정
-- [x] Pagination (limit/offset)
-
-### 인코딩 관련 ✅
-- [x] CSV/File read: `encoding='utf-8-sig'`
-- [x] File write: `encoding='utf-8'` explicit
-- [x] `PYTHONUTF8=1` 환경변수
-
-### 배포/운영 관련
-- [x] 환경변수 하드코딩 금지
-- [x] `.env` 파일 gitignore
-- [x] CORS 화이트리스트
-- [x] GitHub Secrets 시크릿 관리
-- [x] CI 파이프라인 (lint + test + build)
-- [x] GitHub Actions cron 일일 자동 수집
-- [ ] DB TLS 연결 강제
-- [ ] DB 백업 + 복구 절차 검증
-
-### Post-MVP 컨벤션 (신규)
-- [x] JWT 토큰 Bearer 헤더 전달
-- [x] get_current_user / get_current_user_optional DI 패턴
-- [x] 기존 공개 API optional auth 유지
-- [x] SSE 이벤트 포맷 (text_delta, tool_call, tool_result, done)
-- [x] Zustand authStore 구현 완료
-- [x] Zustand chatStore (Phase B 완료, deepMode 포함)
-- [x] Zustand chartActionStore (Phase C) ✅
-- [x] Zustand watchlistStore (Phase C) ✅
-- [x] 하이브리드 분류기 (정규표현식+키워드) (Phase C) ✅
-- [x] 분석 REST API (Phase D~E) ✅
-- [x] LangGraph Tool 확장 (5→9개) (Phase C~E) ✅
-- [x] Agentic Flow: 2-Step LLM JSON mode (Phase F) ✅
-- [x] Agentic Flow: 자동 페이지 네비게이션 (Phase F) ✅
-- [x] Agentic Flow: 동적 follow-up 질문 (Phase F) ✅
-- [x] 사용자 데이터 user_id 기준 격리
-- [x] JSONB 원자적 연산 (user_activity 카운터 증가) (Phase G) ✅
-- [x] Lazy creation UPSERT (user_profiles, user_activity) (Phase G) ✅
-- [x] UserContext 프롬프트 주입 (Classifier + Reporter) (Phase G) ✅
-- [x] 백그라운드 세션 요약 (asyncio.create_task, done SSE 후) (Phase G) ✅
-
-## 배포 인프라
-
-| 항목 | 선택 | 상태 |
-|------|------|------|
-| 프론트엔드 호스팅 | Vercel | ✅ 운영 중 |
-| 백엔드 호스팅 | Railway | ✅ 운영 중 |
-| DB 호스팅 | Railway PostgreSQL | ✅ 운영 중 |
-| CI/CD | GitHub Actions | ✅ 운영 중 |
-| 일일 수집 | GitHub Actions cron | ✅ 운영 중 |
-| 알림 | Discord Webhook | ✅ 운영 중 |
-| LLM API | OpenAI GPT-5 / GPT-5 Mini | ✅ 운영 중 |
-| Vector 확장 | pgvector | 보류 (Phase G에서 미사용 결정) |
+- **A-004 (대시보드 ↔ Agentic 데이터 소스 일치)**: Silver에서도 chat이 호출하는 simulation_* tool과 프론트가 호출하는 `/v1/silver/simulate/*`가 동일 함수를 거치도록 설계
+- **PERF-1 (Reporter 모델 분리)**: Silver Phase 5에서 LLM 해설 카드 도입 시 reasoning vs non-reasoning 모델 분리 유지
+- **운영 안정성**: 빅뱅 cut-over 직후 1주 monitoring (Phase 4)
+- **재사용 패턴**: `langraph-classifier.py`, `router-service-repo.py`, `idempotent-upsert.py`, `cascade-fk-models.py` 모두 Silver 작업에서 그대로 적용 가능

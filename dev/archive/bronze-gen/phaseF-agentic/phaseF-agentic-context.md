@@ -140,6 +140,8 @@
 | `backend/api/services/chat/summarizer.py` | gpt-5-nano temperature=0 제거 | `ec2995b` |
 | `backend/.env.example` | LLM_REPORT_MODEL 추가 | `ec2995b` |
 | `backend/tests/unit/test_agentic_reporter.py` | 단일 모델 테스트로 변경 | `ec2995b` |
+| `backend/api/services/llm/agentic/cache_warmup.py` | 신규 — 서버 시작 시 tool 결과 프리페치 | — |
+| `backend/api/main.py` | lifespan에 `warmup_cache()` 백그라운드 태스크 추가 | — |
 
 ### 신규 컨벤션
 - **agentic 패키지 구조**: `backend/api/services/llm/agentic/` 하위에 모듈 배치

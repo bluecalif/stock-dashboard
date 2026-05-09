@@ -1,6 +1,6 @@
 ---
 name: frontend-dev
-description: Stock Dashboard 프론트엔드 개발 가이드. React, Recharts, Vite, TypeScript. 가격/수익률/상관/전략 성과 시각화. API 소비, 컴포넌트 구조, 차트 패턴.
+description: Stock Dashboard 프론트엔드 개발 가이드. React, Recharts, Vite, TypeScript. 가격/수익률/상관/전략 성과 시각화. API 소비, 컴포넌트 구조, 차트 패턴. Silver gen 작업 시(/silver/compare, CompareMainPage, KpiCard, EquityChart, AssetPickerDrawer, 다크 톤, 모바일 768px) `references/silver-design.md`의 디자인 토큰·카드 레시피·차트 그라디언트·pill 셀렉터·반응형 규칙을 함께 로드.
 ---
 
 # Frontend Development Guidelines
@@ -238,13 +238,37 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
 ---
 
+## Silver Visual System (rev1)
+
+silver-rev1은 다크 네이비 톤 + 카드형 KPI + 면적 차트 + pill 셀렉터 + 모바일 필수의 별도 시각 시스템을 가진다. `pages/silver/*` 디렉터리 작업 시(예: `CompareMainPage`, `KpiCard`, `EquityChart`, `AssetPickerDrawer`, `IndicatorCard`, `SignalDetailPage`, 모바일 768px 반응형) 다음 파일을 함께 읽어 디자인 토큰과 컴포넌트 레시피를 따른다:
+
+→ **`.claude/skills/frontend-dev/references/silver-design.md`**
+
+포함 내용:
+- 다크 톤 디자인 토큰 (palette / radius / shadow) — 헥스 하드코딩 금지
+- KpiCard 4종 레시피 (큰 숫자 + 미니 스파크라인 + 푸터 + 양/음 색)
+- EquityChart Recharts 레시피 (녹색 면적 그라디언트 + 멀티 시리즈 색 순서 + 피크 callout)
+- Pill 셀렉터 (기간 / 적립금 입력)
+- Top nav (D-12 상단 가로) + AssetPickerDrawer (Tab별 universe 분기)
+- 모바일 768px 규칙 (KPI 1열, 차트 세로 스택, drawer 풀스크린)
+- silver-rev1 anti-patterns 9건
+
+레퍼런스 시각: `docs/UX-design-ref.JPG` (다크 SaaS 대시보드 톤). silver IA에 맞춰 톤·카드 패턴만 차용 (사이드바 → 상단 가로 nav).
+
+Bronze 페이지(`PricePage`, `CorrelationPage`, `DashboardPage`, `StrategyPage`) 작업 시에는 이 reference 무시 — 기존 톤 유지.
+
+---
+
 ## Related Docs
 
 - `docs/masterplan-v0.md` - API 명세 (섹션 8), 대시보드 화면 정의
+- `docs/silver-masterplan.md` §4 - silver IA & 화면 명세 (Compare 3탭, AssetPickerDrawer 와이어프레임)
+- `docs/UX-design-ref.JPG` - silver 다크 톤 시각 레퍼런스
 - `docs/post-mvp-implementation-sketch.md` - Post-MVP 구현 스케치
 - `.claude/skills/backend-dev/SKILL.md` - 백엔드 API 패턴 (프론트가 소비)
+- `.claude/skills/silver-simulation/SKILL.md` - silver 시뮬레이션 도메인 (KPI 시그니처 정합)
 - `.claude/skills/langgraph-dev/SKILL.md` - LangGraph SSE 백엔드 패턴
 
 ---
 
-**Skill Status**: Core guide + Post-MVP Zustand/SSE/Auth patterns.
+**Skill Status**: Core guide + Post-MVP Zustand/SSE/Auth + Silver Visual System (references/silver-design.md).

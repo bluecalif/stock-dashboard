@@ -1,12 +1,32 @@
 """
 ## 용도
 SQLAlchemy 2.0 CASCADE FK + UUID PK + Mapped 타입 패턴.
-User 삭제 시 관련 데이터(세션, 채팅, 프로필) 자동 정리.
+User 삭제 시 관련 데이터(세션, 채팅, 프로필) 자동 CASCADE 정리.
+수정 필요 (테이블명/컬럼 교체).
 
-## 사용법
-1. User 테이블 정의 (UUID PK, is_active, created_at, updated_at)
-2. 관련 테이블에 ForeignKey(..., ondelete="CASCADE") 설정
-3. user 삭제 시 관련 데이터 자동 삭제 — 별도 삭제 로직 불필요
+## 언제 쓰는가
+사용자→세션→메시지 같은 소유 관계가 있고, 상위 엔티티 삭제 시 하위를 자동 정리할 때.
+회원 탈퇴 기능에서 수동 삭제 로직을 최소화하고 싶을 때.
+
+## 전제조건
+- PostgreSQL (CASCADE FK 지원)
+- SQLAlchemy 2.0+ (Mapped, mapped_column 사용)
+- Alembic 마이그레이션 설정
+
+## 의존성
+- sqlalchemy: DeclarativeBase, Mapped, mapped_column, ForeignKey
+- sqlalchemy.dialects.postgresql: UUID
+- uuid: Python 표준 라이브러리
+
+## 통합 포인트
+- db/models.py에 배치
+- Alembic 마이그레이션으로 테이블 생성
+- Repository 레이어에서 User 삭제 시 db.query(User).delete() 한 번으로 전체 정리
+
+## 주의사항
+- CASCADE는 DB 레벨에서 동작 — SQLAlchemy relationship의 cascade와 혼동 주의
+- 대용량 데이터 CASCADE 삭제 시 잠금 시간 주의. 배치 삭제 검토
+- UUID PK는 인덱스 성능이 정수 PK보다 느림 — 성능 민감 시 트레이드오프 고려
 
 ## 출처
 stock-dashboard/backend/db/models.py

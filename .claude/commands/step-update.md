@@ -1,5 +1,5 @@
 ---
-description: Step 완료 → Phase docs 업데이트 → Git commit (project-overall은 명시 요청 시만)
+description: Step 완료 → Phase docs 업데이트 → Git commit (project-overall은 명시 요청 시만). "Show, don't claim" 정책 적용 — verification/step-N-<topic>.md에 evidence가 paste되고 사용자가 본 후에만 tasks.md 체크박스 flip + commit 허용.
 argument-hint: phase-name step-number [--sync-overall] (예: "phase4-api 4.3" 또는 "phase4-api 4.3 --sync-overall")
 ---
 
@@ -37,6 +37,7 @@ dev/active/[phase-name]/[phase-name]-tasks.md
 dev/active/[phase-name]/[phase-name]-context.md
 dev/active/[phase-name]/[phase-name]-plan.md
 dev/active/[phase-name]/debug-history.md
+dev/active/[phase-name]/verification/step-X-<topic>.md   (해당 step evidence)
 docs/session-compact.md
 ```
 
@@ -51,6 +52,10 @@ dev/active/project-overall/project-overall-context.md
 - [ ] Phase dev-docs 파일 존재 여부 (없으면 `/dev-docs` 먼저 실행 안내)
 - [ ] 현재 브랜치, 커밋되지 않은 변경사항
 - [ ] 완료된 step의 실제 코드 변경 내역 (`git diff --stat`)
+- [ ] **`verification/step-X-<topic>.md` 존재 + 모든 게이트 evidence paste 완료**
+- [ ] **수치/시계열/분포/UI step의 경우 `verification/figures/step-X-*.png` 존재**
+
+> **Show, don't claim**: evidence 파일이 없거나 raw output이 paste되지 않았다면 step 완료 처리 거부. 사용자에게 evidence 작성 요청 후 재호출 안내.
 
 ### 3. Phase Dev-Docs 업데이트
 
@@ -83,6 +88,21 @@ dev/active/project-overall/project-overall-context.md
 - Status / Current Step 갱신
 - Current State 섹션에 완료 항목 추가
 
+#### 3.5 `verification/` 누적 (필수 — Show, don't claim)
+
+evidence 파일이 이미 작성됐는지 확인 후, 없으면 작성:
+
+- `verification/step-X-<topic>.md`에 게이트별 raw output 정리 (명령 / Raw output / 검증 결과 3단)
+- 수치/시계열/분포/UI step의 경우 `verification/figures/step-X-*.png` 생성 + markdown 임베드
+- `verification/README.md`의 진행 현황 표 갱신 (해당 step ✅ 마킹)
+
+> **체크박스 flip 권한 규칙**:
+> - ✅ 가능: evidence가 paste되고 사용자가 raw output을 본 경우
+> - ❌ 금지: Claude만 명령 실행하고 raw output 비공개
+> - ❌ 금지: "정상", "통과" 주장만 있고 evidence 부재
+>
+> evidence가 없으면 step 완료 처리 거부 → 사용자에게 "verification/step-X-<topic>.md를 먼저 작성/검토해 주세요" 안내 후 재호출 대기.
+
 ### 4. project-overall 동기화 (--sync-overall 플래그 또는 명시 요청 시에만)
 
 > **SKIP** 이 섹션은 `--sync-overall` 플래그가 없고 사용자가 요청하지 않았으면 건너뛴다.
@@ -109,6 +129,9 @@ dev/active/project-overall/project-overall-context.md
 
 업데이트 후 아래를 검증:
 - [ ] session-compact.md의 TODO가 실제 진행률과 일치
+- [ ] tasks.md에 체크된 step 모두 `verification/step-X-<topic>.md` evidence 존재
+- [ ] 수치/시계열/분포/UI step 체크 시 `verification/figures/step-X-*.png` 존재
+- [ ] `verification/README.md` 진행 현황 표가 tasks.md와 동기화됨
 
 `--sync-overall` 시 추가 검증:
 - [ ] Phase tasks.md 체크 상태 == project-overall-tasks.md 해당 섹션
@@ -120,11 +143,13 @@ dev/active/project-overall/project-overall-context.md
 ```bash
 # 코드 변경 + 문서 변경 포함
 git add backend/api/ frontend/       # 해당 Phase 코드
-git add dev/active/[phase-name]/     # Phase dev-docs (debug-history.md 포함)
+git add dev/active/[phase-name]/     # Phase dev-docs (debug-history.md + verification/ 포함)
 git add docs/session-compact.md      # session-compact (변경 시)
 # --sync-overall 시에만:
 # git add dev/active/project-overall/
 ```
+
+> `dev/active/[phase-name]/`에는 `verification/step-X-<topic>.md` + `verification/figures/*.png`이 함께 staging되어야 한다 — evidence가 commit에 누락되면 사후 회고 불가.
 
 #### 7.2 Commit Message 형식
 ```

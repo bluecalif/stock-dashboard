@@ -59,7 +59,7 @@ def _standardize(df: pd.DataFrame, asset_id: str) -> pd.DataFrame:
 
     df["asset_id"] = asset_id
     df["source"] = "fdr"
-    df["volume"] = df["volume"].fillna(0).astype(int)
+    df["volume"] = df["volume"].fillna(0).astype("int64")  # int32 overflow 방지 (NVDA 등 고거래량)
     df["ingested_at"] = datetime.now(timezone.utc)
 
     cols = ["asset_id", "date", "open", "high", "low", "close", "volume", "source", "ingested_at"]

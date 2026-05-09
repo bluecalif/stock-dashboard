@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -ExecutionPolicy Bypass -File .claude/hooks/skill-activation-prompt.ps1"
+            "command": "powershell.exe -ExecutionPolicy Bypass -File \"C:\\Users\\User\\Projects-2026\\active\\stock-dashboard\\.claude\\hooks\\skill-activation-prompt.ps1\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell.exe -ExecutionPolicy Bypass -File .claude/hooks/post-tool-use-tracker.ps1"
+            "command": "powershell.exe -ExecutionPolicy Bypass -File \"C:\\Users\\User\\Projects-2026\\active\\stock-dashboard\\.claude\\hooks\\post-tool-use-tracker.ps1\""
           }
         ]
       }

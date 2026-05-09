@@ -10,8 +10,8 @@
 | ID | Title | Size | Depends | Status | Commit |
 |---|---|---|---|---|---|
 | P1-1 | Alembic migration: asset_master 5컬럼 + fx_daily | M | — | ✅ Done | `7d457a2` |
-| P1-2 | SYMBOL_MAP 8종 추가 | S | — | ✅ Done | (다음 commit) |
-| P1-3 | fx_collector USD/KRW 일봉 | M | P1-1 | TODO | — |
+| P1-2 | SYMBOL_MAP 8종 추가 | S | — | ✅ Done | `0eea282` |
+| P1-3 | fx_collector USD/KRW 일봉 | M | P1-1 | ✅ Done | (다음 commit) |
 | P1-4 | 신규 자산 + USD/KRW 10년 backfill (prod) | L | P1-1, P1-2, P1-3 | TODO | — |
 | P1-5 | padding 알고리즘 + JEPI fixture + unit test | M | (P1-4 권장) | TODO | — |
 | P1-6 | WBI synthetic 시드 42 fixture + unit test | S | — | TODO | — |
@@ -151,23 +151,10 @@ P1-4 / P1-5 / P1-6은 PNG 차트 추가 의무 (`verification/figures/`).
 
 ### 검증 게이트 (3단 형식)
 
-- [ ] **G3.1 fx_daily smoke insert (5일치)**
-  - 명령: `python -m collector.fx_collector --start 2026-05-01 --end 2026-05-09`
-  - Evidence: 명령 stdout (insert row 수) → `verification/step-3-fx.md`
-  - 통과 기준: 거래일 ≥ 3 insert 성공, 에러 0
-
-- [ ] **G3.2 최근 5일 row 출력**
-  - 명령: `psql ... -c "select date, usd_krw_close from fx_daily order by date desc limit 5"`
-  - Evidence: 표 (date | usd_krw_close) → `verification/step-3-fx.md`
-  - 통과 기준: 5 row 출력, usd_krw_close 1100~1500 범위 (sanity check)
-
-- [ ] **G3.3 idempotent 재실행 (UPSERT 검증)**
-  - 명령: 동일 구간 두 번 실행 → 전후 `count(*)` 비교
-  - Evidence: before/after count 표 → `verification/step-3-fx.md`
-  - 통과 기준: 두 count 동일 (row 중복 생성 0)
-
-- [ ] **G3.4 verification/step-3-fx.md 작성**
-  - 통과 기준: G3.1~G3.3 paste
+- [x] **G3.1 smoke insert 8 row** — verification/step-3-fx.md
+- [x] **G3.2 최근 8 row + sanity (1444~1488 KRW)** — verification/step-3-fx.md
+- [x] **G3.3 idempotent (before=8, after=8, diff=0)** — verification/step-3-fx.md
+- [x] **G3.4 verification/step-3-fx.md 작성** ✅
 
 ### 예상 commit
 - `[silver-rev1-phase1] Step 3: fx_collector USD/KRW + UPSERT + verify`

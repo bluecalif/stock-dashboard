@@ -23,6 +23,15 @@ SYMBOL_MAP: dict[str, dict] = {
     "BTC": {"fdr_symbol": "BTC/KRW", "category": "crypto", "fallbacks": ["BTC/USD"]},
     "GC=F": {"fdr_symbol": "GC=F", "category": "commodity"},
     "SI=F": {"fdr_symbol": "SI=F", "category": "commodity"},
+    # Silver gen 신규 8종 (마스터플랜 §2.1 / §5.2, JEPY → JEPI 통일 D-1)
+    "QQQ": {"fdr_symbol": "QQQ", "category": "etf"},
+    "SPY": {"fdr_symbol": "SPY", "category": "etf"},
+    "SCHD": {"fdr_symbol": "SCHD", "category": "etf"},
+    "JEPI": {"fdr_symbol": "JEPI", "category": "etf"},
+    "TLT": {"fdr_symbol": "TLT", "category": "etf"},
+    "NVDA": {"fdr_symbol": "NVDA", "category": "stock"},
+    "GOOGL": {"fdr_symbol": "GOOGL", "category": "stock"},
+    "TSLA": {"fdr_symbol": "TSLA", "category": "stock"},
 }
 
 # Legacy constants kept for backward compat in tests; runtime uses settings

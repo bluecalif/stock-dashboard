@@ -39,7 +39,7 @@ PNG 임베드: `![title](figures/<name>.png)`
 | Step | Evidence 파일 | Status |
 |---|---|---|
 | P1-1 | step-1-schema.md | ✅ |
-| P1-2 | step-2-symbol-map.md | TODO |
+| P1-2 | step-2-symbol-map.md | ✅ |
 | P1-3 | step-3-fx.md | TODO |
 | P1-4 | step-4-backfill.md + PNG | TODO |
 | P1-5 | step-5-padding.md + PNG | TODO |

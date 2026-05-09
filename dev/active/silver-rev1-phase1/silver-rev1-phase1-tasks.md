@@ -10,7 +10,7 @@
 | ID | Title | Size | Depends | Status | Commit |
 |---|---|---|---|---|---|
 | P1-1 | Alembic migration: asset_master 5컬럼 + fx_daily | M | — | ✅ Done | `7d457a2` |
-| P1-2 | SYMBOL_MAP 8종 추가 | S | — | TODO | — |
+| P1-2 | SYMBOL_MAP 8종 추가 | S | — | ✅ Done | (다음 commit) |
 | P1-3 | fx_collector USD/KRW 일봉 | M | P1-1 | TODO | — |
 | P1-4 | 신규 자산 + USD/KRW 10년 backfill (prod) | L | P1-1, P1-2, P1-3 | TODO | — |
 | P1-5 | padding 알고리즘 + JEPI fixture + unit test | M | (P1-4 권장) | TODO | — |
@@ -18,7 +18,7 @@
 
 **Size 분포**: S:2 / M:3 / L:1 (총 6개)
 
-권장 진행 순서: **P1-1 ✅ → (P1-2 ∥ P1-3) → P1-4 → (P1-5 ∥ P1-6)**
+권장 진행 순서: **P1-1 ✅ → P1-2 ✅ → P1-3 → P1-4 → (P1-5 ∥ P1-6)**
 
 ### 검증 게이트 형식 (전 Phase 표준 — project-overall-context.md §0)
 
@@ -120,24 +120,10 @@ P1-4 / P1-5 / P1-6은 PNG 차트 추가 의무 (`verification/figures/`).
 
 ### 검증 게이트 (3단 형식)
 
-- [ ] **G2.1 SYMBOL_MAP 키 개수 = 15**
-  - 명령: `python -c "from collector.fdr_client import SYMBOL_MAP; print(sorted(SYMBOL_MAP.keys()))"`
-  - Evidence: 정렬된 키 list → `verification/step-2-symbol-map.md`
-  - 통과 기준: 길이 15, 신규 8개(QQQ/SPY/SCHD/JEPI/TLT/NVDA/GOOGL/TSLA) 포함
-
-- [ ] **G2.2 기존 7 엔트리 무변경 (Bronze 영향 0)**
-  - 명령: `git diff HEAD~1 backend/collector/fdr_client.py | grep -E "^[-+]" | head -30`
-  - Evidence: diff 출력 → `verification/step-2-symbol-map.md` (코드 블록)
-  - 통과 기준: 신규 추가 라인만, 기존 7 엔트리 modify/delete 0
-
-- [ ] **G2.3 신규 8 자산 1주일치 fetch smoke**
-  - 명령: 8 자산 loop 스크립트 — 각각 `fetch_ohlcv(asset, '2026-04-01', '2026-04-08')` 호출, row 수 출력
-  - Evidence: 자산별 row count 표 (asset | rows | first_date | last_date) → `verification/step-2-symbol-map.md`
-  - 통과 기준: 8 자산 모두 ≥ 3 row (한 주 거래일 ≥ 3, 휴일 영향 고려)
-
-- [ ] **G2.4 verification/step-2-symbol-map.md 작성**
-  - Evidence: 본 파일
-  - 통과 기준: G2.1~G2.3 모두 paste
+- [x] **G2.1 SYMBOL_MAP 키 개수 = 15** — `verification/step-2-symbol-map.md#g21`
+- [x] **G2.2 기존 7 엔트리 무변경 (Bronze 영향 0)** — `verification/step-2-symbol-map.md#g22`
+- [x] **G2.3 신규 8 자산 1주일치 fetch smoke** — 8자산 모두 5 row, 가격 sanity 통과
+- [x] **G2.4 verification/step-2-symbol-map.md 작성** ✅
 
 ### 예상 commit
 - `[silver-rev1-phase1] Step 2: SYMBOL_MAP 8 엔트리 추가 + verify`

@@ -31,11 +31,15 @@ def generate_wbi(
     Returns:
         shape (n_days,) 가격 배열. prices[0] = initial_price * (1 + r[0]).
     """
-    trading_days = 252
-    mu = (1 + annual_return) ** (1 / trading_days) - 1
-    mu_adj = mu - 0.5 * sigma ** 2  # GBM drift 보정 (Ito's lemma)
-
     rng = np.random.default_rng(seed)
-    returns = rng.normal(loc=mu_adj, scale=sigma, size=n_days)
+    # 순수 노이즈 (zero-mean)
+    noise = rng.normal(loc=0.0, scale=sigma, size=n_days)
+
+    # 목표 log-return: 정확히 연 20% CAGR 달성
+    target_log = n_days * (np.log(1.0 + annual_return) / 252.0)
+    current_log = np.sum(np.log1p(noise))
+    drift_per_day = (target_log - current_log) / n_days
+
+    returns = noise + drift_per_day
     prices = initial_price * np.cumprod(1.0 + returns)
     return prices

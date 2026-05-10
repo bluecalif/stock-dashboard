@@ -154,8 +154,9 @@ def _build_tool_args(
             }
 
         case "simulation_replay":
+            _tab_a = ["QQQ", "SPY", "KS200", "SCHD", "JEPI", "WBI"]
             return {
-                "asset_code": default_asset if default_asset in ["QQQ", "SPY", "KS200", "SCHD", "JEPI", "WBI"] else "QQQ",
+                "asset_code": default_asset if default_asset in _tab_a else "QQQ",
                 "monthly_amount": params.get("monthly_amount", 1_000_000),
                 "period_years": params.get("period_years", 10),
             }

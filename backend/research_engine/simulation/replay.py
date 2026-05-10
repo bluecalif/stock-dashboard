@@ -14,12 +14,11 @@ from datetime import date as date_type
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from db.models import AssetMaster, FxDaily, PriceDaily
+from db.models import AssetMaster, PriceDaily
 from research_engine.simulation.fx import load_fx_series
 from research_engine.simulation.mdd import mdd_by_calendar_year
 from research_engine.simulation.padding import pad_returns, prices_with_padding
 from research_engine.simulation.wbi import generate_wbi
-
 
 # ── 공개 타입 ─────────────────────────────────────────────────────────────────
 
@@ -198,6 +197,7 @@ def replay(
         (curve, kpi) tuple
     """
     from datetime import date as _date
+
     from dateutil.relativedelta import relativedelta
 
     end_date = _date.today()

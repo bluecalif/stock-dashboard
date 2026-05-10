@@ -46,6 +46,13 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
 
+[tool.ruff.lint.per-file-ignores]
+"scripts/**" = ["E501", "E702", "E401", "E402", "F401", "I001"]
+"tests/**" = ["E501"]
+"db/alembic/versions/**" = ["E402", "E501"]
+"api/services/simulation_service.py" = ["E501"]
+"research_engine/simulation/strategy_a.py" = ["E501"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

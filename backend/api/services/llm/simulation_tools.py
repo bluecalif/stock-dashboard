@@ -126,7 +126,8 @@ def simulation_portfolio(
     """Tab C 포트폴리오 적립식 — 고정 비중 60/20/20 포트폴리오 성과.
 
     Args:
-        preset_key: 포트폴리오 preset 키 (QQQ_TLT_BTC / KS200_TLT_BTC / TECH_TLT_BTC / SEC_SKH_TLT_BTC)
+        preset_key: 포트폴리오 preset 키
+            (QQQ_TLT_BTC / KS200_TLT_BTC / TECH_TLT_BTC / SEC_SKH_TLT_BTC)
         monthly_amount: 월 적립금 (원 단위, 기본 100만)
         period_years: 기간 (3 / 5 / 10년, 기본 10)
     """

@@ -11,3 +11,224 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* ── Silver rev1 디자인 토큰 ── */
+:root {
+  --bg-app: #0A0E1A;
+  --bg-card: #131826;
+  --bg-card-elevated: #1A2030;
+  --bg-pill-active: #2A3447;
+  --bg-pill-inactive: transparent;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --glow-card: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+
+  --accent-green: #3DD68C;
+  --accent-green-soft: rgba(61, 214, 140, 0.18);
+  --accent-blue: #60A5FA;
+  --accent-blue-soft: rgba(96, 165, 250, 0.14);
+  --accent-violet: #A78BFA;
+  --accent-amber: #F59E0B;
+  --accent-red: #EF4444;
+
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+  --space-card-padding: 20px;
+}
+
+/* ── Silver Top Nav ── */
+.silver-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.silver-top-nav__brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.silver-top-nav__items {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.silver-top-nav__items::-webkit-scrollbar {
+  display: none;
+}
+
+.silver-nav-link {
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 150ms, color 150ms;
+}
+
+.silver-nav-link:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.silver-nav-link--active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.silver-top-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.silver-profile-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 150ms, border-color 150ms;
+}
+
+.silver-profile-btn:hover {
+  color: var(--text-secondary);
+  border-color: var(--border-card);
+}
+
+/* ── Silver Main ── */
+.silver-shell {
+  min-height: 100dvh;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.silver-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Silver KPI Card ── */
+.silver-kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: var(--space-card-padding);
+  box-shadow: var(--glow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
+}
+
+.silver-kpi-card__label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.silver-kpi-card__value {
+  color: var(--text-primary);
+  font-size: 32px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.silver-kpi-card__value--positive { color: var(--accent-green); }
+.silver-kpi-card__value--negative { color: var(--accent-red); }
+
+.silver-kpi-card__footer {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin-top: auto;
+}
+
+/* ── Silver Pill Group ── */
+.silver-pill-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-card);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+}
+
+.silver-pill {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+  white-space: nowrap;
+}
+
+.silver-pill:hover {
+  color: var(--text-primary);
+}
+
+.silver-pill--active {
+  background: var(--bg-pill-active);
+  color: var(--text-primary);
+}
+
+/* ── Silver Card (general) ── */
+.silver-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: var(--space-card-padding);
+  box-shadow: var(--glow-card);
+}
+
+/* ── Mobile 768px ── */
+@media (max-width: 768px) {
+  .silver-top-nav {
+    padding: 10px 16px;
+    gap: 8px;
+  }
+
+  .silver-main {
+    padding: 16px;
+  }
+
+  .silver-kpi-card__value {
+    font-size: 26px;
+  }
+
+  .silver-kpi-card {
+    min-height: 110px;
+    padding: 16px;
+  }
+}

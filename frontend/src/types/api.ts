@@ -293,3 +293,64 @@ export interface SpreadResponse {
   asset_names: Record<string, string>;
   normalized_prices: NormalizedPrices | null;
 }
+
+// ── Silver Simulation (Phase 2 API, 마스터플랜 §3) ──────────────────────────
+
+export interface EquityPoint {
+  date: string;       // "YYYY-MM-DD"
+  krw_value: number;
+  local_value: number;
+  shares: number;
+}
+
+export interface SimKpi {
+  final_asset_krw: number;
+  total_return: number;       // 0.2839 = +28.39%
+  annualized_return: number;  // 0.1440 = +14.40%
+  yearly_worst_mdd: number;   // -0.2624 = -26.24%
+  total_deposit_krw: number;
+}
+
+// Tab A — replay
+export interface ReplayRequest {
+  asset_code: string;
+  monthly_amount: number;
+  period_years: 3 | 5 | 10;
+  base_currency?: "KRW";
+}
+
+export interface ReplayResponse {
+  asset_code: string;
+  curve: EquityPoint[];
+  kpi: SimKpi;
+}
+
+// Tab B — strategy
+export interface StrategyRequest {
+  asset_code: string;
+  strategy: "A" | "B";
+  monthly_amount: number;
+  period_years: 3 | 5 | 10;
+}
+
+export interface StrategyResponse {
+  asset_code: string;
+  strategy: string;
+  curve: EquityPoint[];
+  kpi: SimKpi;
+  event_count: number;
+}
+
+// Tab C — portfolio
+export interface PortfolioRequest {
+  preset_key: string;
+  monthly_amount: number;
+  period_years: 3 | 5 | 10;
+}
+
+export interface PortfolioResponse {
+  preset_key: string;
+  preset_name: string;
+  curve: EquityPoint[];
+  kpi: SimKpi;
+}

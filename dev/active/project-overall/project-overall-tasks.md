@@ -11,7 +11,7 @@
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | ✅ 완료 (7/7, last: `1f7e426`) |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | ✅ 완료 (5/5, last: `80a23de`) |
-| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | ✅ 완료 (7/7, last: 이번 커밋) |
+| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | ✅ 완료 (7/7, last: `fe7c654`) |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
 | **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 25/29 |
 

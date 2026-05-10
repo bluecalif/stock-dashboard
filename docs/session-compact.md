@@ -28,7 +28,7 @@ P4-1~P4-6 완료, P4-7 (1주 monitoring) 진행 중.
 
 - **Phase 4 진행률**: 7/7 ✅ 완료 (2026-05-10)
 - **Project 진행률**: 25/29 (Phase 1~4 ✅, Phase 5 미착수)
-- **최신 커밋**: (이번 커밋 — P4-7 완료)
+- **최신 커밋**: `fe7c654` (P4-7 완료)
 - **Branch**: master
 - **Prod URLs**:
   - Backend: `https://backend-production-e5bc.up.railway.app`

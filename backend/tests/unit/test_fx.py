@@ -12,7 +12,6 @@ import pytest
 
 from research_engine.simulation.fx import load_fx_series
 
-
 # ── Mock helpers ──────────────────────────────────────────────────────────────
 
 

@@ -18,7 +18,7 @@ from api.schemas.simulation import (
     SimulateStrategyRequest,
     SimulateStrategyResponse,
 )
-from db.models import FxDaily, PriceDaily
+from db.models import PriceDaily
 from research_engine.simulation.portfolio import PRESETS, Portfolio
 from research_engine.simulation.replay import EquityPoint, KpiResult, compute_kpi, replay
 from research_engine.simulation.strategy_a import StrategyA
@@ -70,8 +70,9 @@ def _load_price_and_fx(
     db: Session, asset_code: str, period_years: int
 ) -> tuple[pd.Series, pd.Series | None, str, float]:
     """DB에서 가격 + 환율 로드. returns (prices, fx_series, currency, annual_yield)."""
-    from db.models import AssetMaster
     from dateutil.relativedelta import relativedelta
+
+    from db.models import AssetMaster
 
     end_date = date_type.today()
     start_date = end_date - relativedelta(years=period_years)
@@ -203,6 +204,7 @@ def simulate_strategy(db: Session, req: SimulateStrategyRequest) -> SimulateStra
 def simulate_portfolio(db: Session, req: SimulatePortfolioRequest) -> SimulatePortfolioResponse:
     """Tab C 포트폴리오 적립식 시뮬레이션."""
     from dateutil.relativedelta import relativedelta
+
     from research_engine.simulation.replay import _first_trading_days_of_month
 
     if req.preset_key not in PRESETS:

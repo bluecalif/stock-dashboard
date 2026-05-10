@@ -3,8 +3,7 @@
 replay_core()를 중심으로 DB 없이 순수 로직 검증.
 """
 
-from datetime import date, timedelta
-from decimal import Decimal
+from datetime import date
 
 import numpy as np
 import pandas as pd
@@ -14,10 +13,8 @@ from research_engine.simulation.replay import (
     EquityPoint,
     KpiResult,
     compute_kpi,
-    replay,
     replay_core,
 )
-
 
 # ── 헬퍼 ─────────────────────────────────────────────────────────────────────
 

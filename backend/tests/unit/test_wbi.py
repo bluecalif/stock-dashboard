@@ -6,7 +6,6 @@ WBI (Warren Buffett Index) synthetic GBM 검증.
 """
 
 import numpy as np
-import pytest
 
 from research_engine.simulation.wbi import generate_wbi
 

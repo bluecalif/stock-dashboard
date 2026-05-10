@@ -39,7 +39,7 @@ def run_backfill():
             print(f"  → {r.status}: {r.row_count} rows")
 
     # 2. USD/KRW 10년 fx_daily backfill
-    print(f"\n▶ USD/KRW fx_daily backfill...")
+    print("\n▶ USD/KRW fx_daily backfill...")
     fx_result = fx_run(START, END)
     results["USD/KRW"] = fx_result
     print(f"  → {fx_result['status']}: {fx_result['rows']} rows")

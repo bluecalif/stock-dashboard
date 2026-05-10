@@ -1,13 +1,17 @@
 """P1-5 padding + P1-6 WBI 시각화 PNG 생성."""
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, ".")
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
+
 plt.rcParams["font.family"] = ["Malgun Gothic", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
 import numpy as np
+
 from research_engine.simulation.padding import pad_returns, prices_with_padding
 from research_engine.simulation.wbi import generate_wbi
 
@@ -30,7 +34,7 @@ x_act = range(padding_len, TARGET)
 ax.fill_between(x_pad, prices[:padding_len], alpha=0.25, color="#aaaaaa", label="Padding 구간 (cyclic)")
 ax.plot(x_pad, prices[:padding_len], color="#aaaaaa", linewidth=0.8)
 ax.plot(x_act, prices[padding_len:], color="#4e9af1", linewidth=1.2, label="Actual JEPI (2020~)")
-ax.axvline(padding_len, color="#e74c3c", linestyle="--", linewidth=1, label=f"padding / actual 경계")
+ax.axvline(padding_len, color="#e74c3c", linestyle="--", linewidth=1, label="padding / actual 경계")
 ax.set_title("P1-5: JEPI padding 시계열 (5년→10년, reverse-cumprod)")
 ax.set_xlabel("Trading Day"); ax.set_ylabel("Price ($)")
 ax.legend(fontsize=8); ax.spines[["top","right"]].set_visible(False)

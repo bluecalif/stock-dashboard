@@ -10,7 +10,6 @@ import pytest
 
 from research_engine.simulation.mdd import mdd_by_calendar_year
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 

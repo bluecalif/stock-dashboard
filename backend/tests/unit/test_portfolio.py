@@ -7,7 +7,6 @@ import pytest
 
 from research_engine.simulation.portfolio import PRESETS, Portfolio
 
-
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 

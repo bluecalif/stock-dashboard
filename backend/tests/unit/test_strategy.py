@@ -15,7 +15,6 @@ from dateutil.relativedelta import relativedelta
 from research_engine.simulation.strategy_a import STATE_NEUTRAL, STATE_SOLD, StrategyA
 from research_engine.simulation.strategy_b import StrategyB
 
-
 # ── StrategyA helpers ────────────────────────────────────────────────────────
 
 

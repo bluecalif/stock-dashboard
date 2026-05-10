@@ -10,7 +10,7 @@ D-lock:
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 from typing import Literal
 
 from dateutil.relativedelta import relativedelta

@@ -1,16 +1,19 @@
 """P1-4 backfill row count bar chart 생성."""
 import sys
+
 sys.path.insert(0, ".")
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
+
 # Windows Korean font
 plt.rcParams["font.family"] = ["Malgun Gothic", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
 import matplotlib.patches as mpatches
 from sqlalchemy import text
+
 from db.session import SessionLocal
 
 SILVER_ASSETS = ["QQQ","SPY","SCHD","JEPI","TLT","NVDA","GOOGL","TSLA"]

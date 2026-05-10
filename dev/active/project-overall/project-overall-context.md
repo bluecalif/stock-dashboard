@@ -194,6 +194,14 @@ Agentic LangGraph state machine (Bronze 유지)
 | 카드형 vs step형 (§6.2 lock) | Phase 3 시안 후 |
 | 모바일 nav 동작 (가로 스크롤 vs hamburger) | Phase 3 시안 후 |
 
+## 5b. Phase 4 추가 결정사항 (prod 버그 수정)
+
+| # | 결정 | 출처 | 코딩 영향 |
+|---|---|---|---|
+| D-P4-4 | WBI GBM drift 재스케일링 — 항상 20% CAGR 보장 | prod 버그 C | `wbi.py`: target_log 기반 drift_per_day 조정 |
+| D-P4-5 | simulation_service `_load_price_and_fx` NaN 필터 의무화 | prod 버그 B | `r.close is not None` + `.dropna()` |
+| D-P4-6 | DCA annualized < 자산 CAGR = 정상 (평균 투자 기간 ≈ period/2) | prod 버그 C 분석 | UI 라벨/설명에 "DCA 기준 연환산" 명시 권장 |
+
 ## 6. Bronze gen 핵심 교훈 적용 (project-wrapup/lessons-learned)
 
 - **A-004 (대시보드 ↔ Agentic 데이터 소스 일치)**: Silver에서도 chat이 호출하는 simulation_* tool과 프론트가 호출하는 `/v1/silver/simulate/*`가 동일 함수를 거치도록 설계

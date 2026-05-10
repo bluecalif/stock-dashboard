@@ -1,6 +1,22 @@
 # Phase 4 Context — 빅뱅 Cut-over
 > Gen: silver
-> Last Updated: 2026-05-10
+> Last Updated: 2026-05-10 (prod 버그 수정 3종)
+
+---
+
+## 8. P4-7 Monitoring — prod 버그 수정 (2026-05-10)
+
+| 파일 | 변경 내용 | 커밋 |
+|------|-----------|------|
+| `backend/research_engine/simulation/replay.py` | WBI: `trading_dates` 먼저 생성 후 `len()`으로 n_days 맞춤 | `8fc9013` |
+| `backend/api/services/simulation_service.py` | `_load_price_and_fx`: `r.close is not None` 필터 + `.dropna()` | `8fc9013` |
+| `backend/research_engine/simulation/wbi.py` | zero-mean 노이즈 + drift 보정으로 20% CAGR 보장 | `1d82073` |
+| `backend/research_engine/simulation/fixtures/wbi_seed42_10y.npz` | 새 generate_wbi 기준 fixture 재생성 | `1d82073` |
+
+**결정사항**:
+- D-P4-4: WBI GBM은 기대값이 아닌 정확한 CAGR 달성을 보장해야 함 (drift 재스케일링)
+- D-P4-5: `_load_price_and_fx`에서 price NaN 필터링 필수 (DB에서 가져온 Series는 항상 dropna)
+- D-P4-6: DCA annualized return (10.52%)이 자산 CAGR (20%)보다 낮은 것은 DCA 특성 (정상)
 
 ---
 

@@ -1,6 +1,6 @@
 # Phase 4 Debug History — 빅뱅 Cut-over
 > Gen: silver
-> Last Updated: 2026-05-10
+> Last Updated: 2026-05-10 (버그 수정 3종 추가)
 
 버그·디버깅 이력이 발생하면 여기에 추가.
 
@@ -16,6 +16,55 @@
 **수정**: ...
 **교훈**: ...
 ```
+
+---
+
+## [2026-05-10] P4-7 (monitoring) — prod 버그 3종 발견 및 수정
+
+### 버그 A: 단일자산 Tab A — WBI 배열 길이 불일치
+
+**증상**: WBI 자산 추가 시 "시뮬레이션 조회에 실패했습니다." 에러 (`500`).
+
+**원인**: `replay.py`에서 `n_days = period_years * 252`로 생성한 `generate_wbi(n_days)`가 2520개를 반환하지만, `pd.date_range(end=today, periods=n_days, freq="B")`는 오늘이 non-business day(일요일)일 때 2519개를 반환. 배열 길이 불일치로 `pd.Series()` 생성 실패.
+
+**수정**: `trading_dates = pd.date_range(...)`를 먼저 생성 후 `n_days = len(trading_dates)`로 맞춤. → `8fc9013`
+
+**교훈**: `pd.date_range(periods=N, freq="B")`는 `end`가 non-business day일 때 실제 N-1개를 생성할 수 있음. 배열 길이는 항상 date_range 결과 기준으로 맞춰야 함.
+
+---
+
+### 버그 B: 자산 vs 전략 Tab B — KS200 선택 시 화이트 스크린
+
+**증상**: Tab B에서 KS200 선택 시 페이지 전체 화이트 스크린.
+
+**원인**:
+1. `price_daily`에 KS200 NaN 가격 4개 존재
+2. `_load_price_and_fx()`에서 NaN 필터링 없이 Series 생성 → `shares = monthly / NaN = NaN`
+3. KPI: `final_asset_krw = NaN` → Pydantic JSON 직렬화 시 `null`
+4. 프론트에서 `null` KPI 렌더링 중 TypeError → React 컴포넌트 크래시
+
+**수정**: `_load_price_and_fx()`에서 `r.close is not None` 필터 + `.dropna()` 추가. → `8fc9013`
+
+**교훈**: DB에서 가져온 가격 Series는 항상 NaN 필터링 필수. `replay.py`의 `replay()`는 이미 `.dropna()`를 했지만, `simulate_strategy()`의 `_load_price_and_fx()`는 누락됐음.
+
+---
+
+### 버그 C: WBI 연 수익률 2.7% (목표 20%)
+
+**증상**: WBI 단일 자산 DCA 10년 결과에서 annualized return이 2.7%로 표시 (사용자 기대: ~10%).
+
+**원인**: `generate_wbi(seed=42)`의 GBM 경로가 우연히 20% 기대값에서 크게 벗어남. seed=42 경로의 WBI 자산 자체 CAGR = 5.63% (기대 20%).
+
+**수정**: zero-mean 노이즈 + log-return 기반 drift 보정으로 정확히 20% CAGR 달성 보장.
+```python
+# 기존: mu_adj drift로 기대값만 설정 → seed에 따라 크게 벗어남
+# 수정: noise=(0-mean) + target_log 기반 drift 조정
+target_log = n_days * (np.log(1 + annual_return) / 252)
+drift_per_day = (target_log - sum(log(1+noise))) / n_days
+```
+→ WBI CAGR: 5.63% → 19.95%, fixture 재생성. → `1d82073`
+
+**교훈**: GBM "기대값" ≠ 특정 seed "실현값". 벤치마크 자산처럼 CAGR을 보장해야 하는 경우에는 drift 재스케일링 필요. DCA annualized (10.52%)가 자산 CAGR (20%)보다 낮은 것은 DCA 특성상 정상 (평균 투자 기간 ≈5년).
 
 ---
 

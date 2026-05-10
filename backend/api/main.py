@@ -20,10 +20,12 @@ from api.routers import (
     correlation,
     dashboard,
     factors,
+    fx,
     health,
     prices,
     profile,
     signals,
+    simulation,
 )
 from config.settings import settings
 
@@ -117,3 +119,5 @@ app.include_router(dashboard.router)
 app.include_router(correlation.router)
 app.include_router(chat.router)
 app.include_router(profile.router)
+app.include_router(simulation.router)
+app.include_router(fx.router)

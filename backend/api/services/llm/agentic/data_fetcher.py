@@ -12,16 +12,19 @@ import logging
 from typing import Any
 
 from api.repositories import asset_repo
+from api.services.llm.simulation_tools import (
+    simulation_portfolio,
+    simulation_replay,
+    simulation_strategy,
+)
 from api.services.llm.tools import (
     analyze_correlation_tool,
     analyze_indicators,
-    backtest_strategy,
     get_correlation,
     get_factors,
     get_prices,
     get_signals,
     get_spread,
-    list_backtests,
 )
 from db.session import SessionLocal
 
@@ -36,11 +39,13 @@ _TOOL_MAP = {
     "get_factors": get_factors,
     "get_correlation": get_correlation,
     "get_signals": get_signals,
-    "list_backtests": list_backtests,
     "analyze_correlation_tool": analyze_correlation_tool,
     "get_spread": get_spread,
     "analyze_indicators": analyze_indicators,
-    "backtest_strategy": backtest_strategy,
+    # Silver gen simulation tools (A-004: simulation_service 직접 호출)
+    "simulation_replay": simulation_replay,
+    "simulation_strategy": simulation_strategy,
+    "simulation_portfolio": simulation_portfolio,
 }
 
 
@@ -148,10 +153,26 @@ def _build_tool_args(
                 "days": params.get("days", 30),
             }
 
-        case "list_backtests":
+        case "simulation_replay":
             return {
-                "strategy_id": params.get("strategy_name"),
-                "asset_id": default_asset if asset_ids else None,
+                "asset_code": default_asset if default_asset in ["QQQ", "SPY", "KS200", "SCHD", "JEPI", "WBI"] else "QQQ",
+                "monthly_amount": params.get("monthly_amount", 1_000_000),
+                "period_years": params.get("period_years", 10),
+            }
+
+        case "simulation_strategy":
+            return {
+                "asset_code": default_asset if default_asset in ["QQQ", "SPY", "KS200"] else "QQQ",
+                "strategy": params.get("strategy", "A"),
+                "monthly_amount": params.get("monthly_amount", 1_000_000),
+                "period_years": params.get("period_years", 10),
+            }
+
+        case "simulation_portfolio":
+            return {
+                "preset_key": params.get("preset_key", "QQQ_TLT_BTC"),
+                "monthly_amount": params.get("monthly_amount", 1_000_000),
+                "period_years": params.get("period_years", 10),
             }
 
         case "analyze_correlation_tool":
@@ -173,13 +194,6 @@ def _build_tool_args(
             return {
                 "asset_id": default_asset,
                 "forward_days": params.get("forward_days", 5),
-            }
-
-        case "backtest_strategy":
-            return {
-                "asset_id": default_asset,
-                "strategy_name": params.get("strategy_name", "momentum"),
-                "period": params.get("period", "2Y"),
             }
 
         case _:

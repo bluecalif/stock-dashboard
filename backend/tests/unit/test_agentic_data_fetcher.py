@@ -45,13 +45,24 @@ class TestBuildToolArgs:
         assert args["asset_a"] == "KS200"
         assert args["asset_b"] == "005930"
 
-    def test_backtest_strategy_args(self):
+    def test_simulation_replay_args(self):
         c = self._make_classification(
-            params={"strategy_name": "contrarian", "period": "1Y"},
+            asset_ids=["QQQ"],
+            params={"monthly_amount": 500_000, "period_years": 5},
         )
-        args = _build_tool_args("backtest_strategy", c)
-        assert args["strategy_name"] == "contrarian"
-        assert args["period"] == "1Y"
+        args = _build_tool_args("simulation_replay", c)
+        assert args["asset_code"] == "QQQ"
+        assert args["monthly_amount"] == 500_000
+        assert args["period_years"] == 5
+
+    def test_simulation_strategy_args(self):
+        c = self._make_classification(
+            asset_ids=["SPY"],
+            params={"strategy": "B", "period_years": 3},
+        )
+        args = _build_tool_args("simulation_strategy", c)
+        assert args["asset_code"] == "SPY"
+        assert args["strategy"] == "B"
 
     def test_analyze_indicators_args(self):
         c = self._make_classification(params={"forward_days": 10})

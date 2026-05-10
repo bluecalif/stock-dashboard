@@ -134,6 +134,17 @@ async function shot(page, filename) {
   log(`📸 ${filename}`);
 }
 
+// ── 온보딩 모달 사전 제거 ────────────────────────────────────────────────────
+// IceBreakingModal은 profile.onboarding_completed=false 일 때 매 페이지 진입마다 표시됨.
+// Escape/클릭으로는 닫히지 않으므로 API로 먼저 완료 처리 필수.
+async function completeOnboarding(accessToken) {
+  await fetch(`${BACKEND_URL}/v1/profile/ice-breaking`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+    body: JSON.stringify({ experience_level: "intermediate", decision_style: "logic" }),
+  });
+}
+
 // ── Auth: API 로그인 → localStorage 주입 ──────────────────────────────────────
 async function getTokens(email, password) {
   const res = await fetch(`${BACKEND_URL}/v1/auth/login`, {
@@ -193,10 +204,25 @@ async function main() {
     log(`차트 카드: ${chartVisible}`);
     await shot(page, "step-2-tab-a-desktop.png");
 
-    // 탭 전환 예시
+    // 탭 전환 — 로딩이 끝난 뒤 촬영 (단순 delay는 부족; waitForFunction 필수)
+    // 핵심: waitForSelector(".silver-chart-card")는 이전 탭 카드를 즉시 감지해 버림
+    // → loading이 없어지고 chart가 있을 때까지 폴링
+    async function waitForTabResult(page) {
+      await page.waitForFunction(
+        () => {
+          const loading = document.querySelector(".silver-loading");
+          const chart   = document.querySelector(".silver-chart-card");
+          const error   = document.querySelector(".silver-error");
+          return !loading && (chart || error);
+        },
+        { timeout: 30000 }
+      ).catch(() => {});
+      await delay(1000);
+    }
+
     const tabs = await page.$$('button[role="tab"]');
-    if (tabs[1]) { await tabs[1].click(); await delay(3000); await shot(page, "step-2-tab-b.png"); }
-    if (tabs[2]) { await tabs[2].click(); await delay(3000); await shot(page, "step-2-tab-c.png"); }
+    if (tabs[1]) { await tabs[1].click(); await waitForTabResult(page); await shot(page, "step-2-tab-b.png"); }
+    if (tabs[2]) { await tabs[2].click(); await waitForTabResult(page); await shot(page, "step-2-tab-c.png"); }
 
     // 모바일 뷰포트
     await page.setViewport({ width: 768, height: 900 });
@@ -249,9 +275,9 @@ cd /tmp/pw_test && node verify-<step>.cjs
 |------|------|------|
 | `ERR_FAILED` CORS 에러 | localhost 간 CORS | `--disable-web-security` + `--user-data-dir` 추가 |
 | 인증 리다이렉트 | localStorage 주입 시점 | `goto(FRONTEND_URL)` 후 inject → 이후 대상 URL 이동 |
-| 온보딩 모달 차단 | 신규 세션 Chat 모달 | `page.keyboard.press("Escape")` 또는 배경 클릭 |
-| `waitForSelector` timeout | API 느림 또는 에러 | timeout 20~25초, `.catch(()=>{})` 로 timeout 무시 후 스크린샷 |
-| 탭 클릭 후 변화 없음 | 렌더링 지연 | 클릭 후 `delay(3000~5000)` |
+| 온보딩 모달 차단 | `profile.onboarding_completed=false` → 매 페이지마다 재표시, Escape 무효 | 토큰 획득 후 `POST /v1/profile/ice-breaking` 호출로 사전 완료 처리 |
+| 탭 스크린샷 전부 동일 | `waitForSelector(".silver-chart-card")`가 이전 탭 카드를 즉시 감지 | `waitForFunction`으로 loading 없어지고 chart 있을 때까지 폴링 |
+| `waitForSelector` timeout | API 느림 또는 에러 | timeout 20~30초, `.catch(()=>{})` 로 timeout 무시 후 스크린샷 |
 
 ---
 

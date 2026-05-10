@@ -1,7 +1,7 @@
 # Phase 3 Tasks — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (2/5)
+> Status: In Progress (3/5)
 
 ## DoD (Definition of Done)
 
@@ -104,12 +104,12 @@
 
 ### Sub-steps
 
-- [ ] `pages/silver/SignalDetailPage.tsx` 신규 작성 (IndicatorSignalPage에서 시작)
-- [ ] 자산 select: QQQ/SPY/KS200/NVDA/GOOGL/TSLA/005930/000660 (8종 고정)
-- [ ] 지표 탭: RSI / MACD / ATR (성공률 탭 제거)
-- [ ] 상태 라벨: "과매수 (RSI 74)", "골든크로스 (MACD)", "고변동성 (ATR)" 형식
-- [ ] 차트: 가격 라인 + 지표 overlay (기존 IndicatorOverlayChart 재사용)
-- [ ] verification/step-3-signals.md 작성
+- [x] `pages/silver/SignalDetailPage.tsx` 신규 작성 (IndicatorSignalPage에서 시작)
+- [x] 자산 select: QQQ/SPY/KS200/NVDA/GOOGL/TSLA/005930/000660 (8종 고정)
+- [x] 지표 탭: RSI / MACD / ATR (성공률 탭 제거)
+- [x] 상태 라벨: "과매수 (RSI 74)", "골든크로스 (MACD)", "고변동성 (ATR)" 형식
+- [x] 차트: 가격 라인 + 지표 overlay (기존 IndicatorOverlayChart 재사용)
+- [x] verification/step-3-signals.md 작성
 
 ### G3.1 — SignalDetailPage 기본 렌더링
 - 명령: 브라우저에서 `/silver/signals` 접속, QQQ 선택, RSI 탭
@@ -200,7 +200,7 @@
 | 태스크 | 완료일 | commit hash |
 |---|---|---|
 | P3-1 | 2026-05-10 | `eb4c821` |
-| P3-2 | — | — |
-| P3-3 | — | — |
+| P3-2 | 2026-05-10 | `22a5b89` |
+| P3-3 | 2026-05-10 | TBD |
 | P3-4 | — | — |
 | P3-5 | — | — |

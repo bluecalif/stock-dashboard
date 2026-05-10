@@ -211,3 +211,25 @@ Phase 3에서는 Bronze 라우트를 redirect만 추가. 기존 `DashboardPage`,
 | Tab A | QQQ / SPY / KS200 / SCHD / JEPI / WBI (6종) | 6종 | QQQ, SPY, KS200 |
 | Tab B | QQQ / SPY / KS200 (3종) | 1종 | QQQ |
 | Tab C | preset 4개 선택 (비중 편집 불가) | 1개 | qqqtltbtc |
+
+---
+
+## 7. P3-3 변경사항 (2026-05-10)
+
+### 변경된 파일
+
+| 파일 | 변경 내용 |
+|---|---|
+| `frontend/src/pages/silver/SignalDetailPage.tsx` | 플레이스홀더 → 전체 구현 (351줄) |
+| `dev/active/silver-rev1-phase3/verification/step-3-signals.md` | G3.1~G3.3 evidence |
+| `dev/active/silver-rev1-phase3/verification/figures/step-3-signals-desktop.png` | RSI 탭 스크린샷 |
+| `dev/active/silver-rev1-phase3/verification/figures/step-3-signals-indicator-closeup.png` | IndicatorCard 클로즈업 |
+| `dev/active/silver-rev1-phase3/verification/figures/step-3-signals-macd.png` | MACD 탭 스크린샷 |
+
+### 주요 결정사항
+
+| # | 결정 | 이유 |
+|---|---|---|
+| D-P3-3-1 | QQQ/SPY/NVDA/GOOGL/TSLA 팩터 미계산 → `run_research.py` 실행으로 해결 | 7코어 자산에만 팩터 있었음. D-21 universe 전체 지원 위해 2년치 재계산 |
+| D-P3-3-2 | 상태 라벨 IndicatorCard 재사용 ("고변동성" → "고변동" 사용) | IndicatorCard TS 타입 union에 "고변동"만 정의됨 |
+| D-P3-3-3 | 날짜 범위 고정 (최근 1년), picker 미제공 | Silver 신호 페이지 단순화 방향 (초보자 UX) |

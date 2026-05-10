@@ -5,60 +5,94 @@
 
 ## Goal
 
-Silver gen Phase 3 프론트엔드 구현 — P3-1 완료 후 P3-2 (11개 컴포넌트) 착수 준비.
+Silver gen Phase 3 — P3-2 verification 완료 + P3-3 SignalDetailPage 구현 시작.
 
 ## Completed
 
-- [x] **Phase 2 마무리**: P2-7 fixtures JSON 생성 + 커밋 (`1f7e426`) + tasks.md 완료 표시
-- [x] **project-overall 동기화**: Phase 2 ✅ 완료 (7/7, 13/29), Phase 3 진입 조건 갱신 (`630af0d`)
-- [x] **Phase 3 dev-docs 작성**: plan/context/tasks/debug-history/verification README 5파일 (`4ccecdf`)
-- [x] **P3-1 완료** (`eb4c821`):
-  - `frontend/src/index.css` — Silver CSS 토큰 (`:root` 변수) + `.silver-top-nav`, `.silver-card`, `.silver-pill-group` 등 컴포넌트 클래스
-  - `frontend/src/pages/silver/components/SilverLayout.tsx` — 상단 가로 nav (적립식 비교/신호/Chat), ChatPanel 유지, 다크 셸
-  - `frontend/src/pages/silver/CompareMainPage.tsx` — 플레이스홀더
-  - `frontend/src/pages/silver/SignalDetailPage.tsx` — 플레이스홀더
-  - `frontend/src/App.tsx` — Silver 라우트 추가 + Bronze 5개 → `/silver/compare` redirect + Bronze 직접 접근 `/bronze/*` 보존
-  - `frontend/src/api/simulation.ts` — `fetchReplay` / `fetchStrategy` / `fetchPortfolio`
-  - `frontend/src/types/api.ts` — `EquityPoint`, `SimKpi`, `ReplayResponse`, `StrategyResponse`, `PortfolioResponse` 타입 추가
+- [x] **TabC preset 키 수정 커밋** (`f5870fd`): `qqqtltbtc` → `QQQ_TLT_BTC` 등 4개
+- [x] **CORS 해결**: Puppeteer `--disable-web-security` + `--user-data-dir` 플래그 추가
+- [x] **KS200 NaN 버그 수정** (`ee46fc9`): `replay.py`에 `.dropna()` 추가
+  - 원인: FDR이 한국 공휴일(2016-12-26 등)에 `close=NaN` 행 삽입 → JSON 직렬화 500
+  - 미국 자산은 공휴일 날짜 행 자체가 없어 NaN 없음
+- [x] **P3-2 verification evidence 확정** (`ee46fc9`):
+  - `verification/figures/` 스크린샷 8개
+  - `verification/step-2-components.md` 전 게이트(G2.1~G2.5) PASS
+- [x] **tasks.md P3-2 완료 처리** (`22a5b89`): Status 2/5
+- [x] **IceBreakingModal 모달 문제 수정** (`473a624`):
+  - 원인: `profile.onboarding_completed=false` → 매 페이지 진입마다 재등장, Escape 무효
+  - 수정: 토큰 획득 후 `POST /v1/profile/ice-breaking` 선호출로 사전 완료
+- [x] **탭 스크린샷 중복 문제 수정** (`473a624`):
+  - 원인: `waitForSelector(".silver-chart-card")`가 이전 탭 카드 즉시 감지
+  - 수정: `waitForFunction`으로 loading 소멸 + chart 출현까지 폴링
+- [x] **e2e-verify 스킬 생성** (`91dc0c4`): curl + Puppeteer 통합 검증 워크플로우
+  - 온보딩 사전완료 패턴, waitForFunction 탭 대기 패턴 포함
 
 ## Current State
 
-- **Phase 3 진행 중** (1/5 완료)
-- `/silver/compare` → CompareMainPage 플레이스홀더 렌더링 (라우트 동작)
-- `/` 및 Bronze 라우트(`/prices`, `/correlation` 등) → `/silver/compare` redirect
-- Bronze 페이지는 `/bronze/*` 경로로 여전히 직접 접근 가능 (Phase 4까지 유지)
-- `npm run build` 통과 (TypeScript 오류 없음)
-- Railway prod DB: asset_master 15행, price_daily 37,671행, fx_daily 2,603행
-- alembic head: `d8334483342c`
+- **Phase 3 진행 중** (2/5 완료)
+- 서버: 백엔드 PID 17614 (port 8000), 프론트 npm run dev (port 5173)
+- 최근 커밋: `473a624` (검증 스크린샷 수정 + e2e-verify 스킬)
 
-### Changed Files (이번 세션)
-- `frontend/src/index.css` — Silver 토큰 + CSS 클래스 추가
-- `frontend/src/App.tsx` — Silver 라우트 + Bronze redirect
-- `frontend/src/pages/silver/components/SilverLayout.tsx` — 신규
-- `frontend/src/pages/silver/CompareMainPage.tsx` — 신규 (플레이스홀더)
-- `frontend/src/pages/silver/SignalDetailPage.tsx` — 신규 (플레이스홀더)
-- `frontend/src/api/simulation.ts` — 신규
-- `frontend/src/types/api.ts` — Silver 타입 추가
-- `dev/active/silver-rev1-phase3/silver-rev1-phase3-tasks.md` — P3-1 완료 표시
-- `docs/session-compact.md` — 현재 파일
+### P3-3 분석 완료 (구현 미착수)
+
+기존 파일 확인 완료:
+- `pages/silver/SignalDetailPage.tsx` — 현재 플레이스홀더만 있음 (구현 필요)
+- `pages/IndicatorSignalPage.tsx` — 참고 베이스 (성공률 탭 포함, Bronze 스타일)
+- `components/charts/IndicatorOverlayChart.tsx` — 재사용 가능, Props: `{prices, factors, assetId, selectedFactors, signalDates, indicatorId}`
+- `pages/silver/components/IndicatorCard.tsx` — 재사용 가능, Props: `{assetLabel, indicators[]}`
+
+### P3-3 핵심 스펙
+
+- **자산 select**: QQQ / SPY / KS200 / NVDA / GOOGL / TSLA / 005930 / 000660 (8종 고정)
+- **지표 탭**: [RSI] [MACD] [ATR] 3개만 (성공률 탭 제거, "매수/매도 추천" 표현 금지)
+- **상태 라벨 형식**: "과매수 (RSI 74)", "골든크로스 (MACD)", "고변동성 (ATR)"
+- **차트**: `IndicatorOverlayChart` 재사용 (가격 라인 + 지표 overlay)
+- **Silver 다크 톤**: CSS var 기반 (`--bg-card`, `--text-primary` 등)
+
+### Indicator Factor 매핑 (IndicatorSignalPage에서 확인)
+
+```
+rsi_14: ["rsi_14"]
+macd:   ["macd", "macd_signal"]
+atr_vol: ["atr_14", "vol_20"]
+```
+
+### 상태 라벨 계산 로직
+
+- RSI > 70 → "과매수", RSI < 30 → "과매도", else → "중립"
+- MACD 히스토그램 양(+)전환 → "골든크로스", 음(-)전환 → "데드크로스"
+- ATR/가격 > 3% → "고변동성"
+
+### API 엔드포인트
+
+- 가격: `GET /v1/prices/daily?asset_id=&start_date=&end_date=&limit=`
+- 팩터: `GET /v1/factors?asset_id=&factor_name=&start_date=&end_date=&limit=`
+- 시그널: `fetchIndicatorSignals({asset_id, indicator_id, start_date, end_date})`
 
 ## Remaining / TODO
 
-### Phase 3
+### ~~P3-3 (M) — SignalDetailPage 구현~~ ✅ 완료 (2026-05-10)
 
-- [x] P3-1: App.tsx + SilverLayout + routes + API 클라이언트 `eb4c821`
-- [ ] **P3-2 (L)**: 11개 컴포넌트 + CompareMainPage 완성
-- [ ] **P3-3 (M)**: SignalDetailPage 완성 (8종 자산, RSI/MACD/ATR)
-- [ ] **P3-4 (L)**: 모바일 반응형 768px
-- [ ] **P3-5 (S)**: AssetPickerDrawer 탭별 universe 검증
+- [x] `pages/silver/SignalDetailPage.tsx` 구현 완료
+- [x] `verification/step-3-signals.md` 작성 (G3.1~G3.3 PASS)
+- [x] QQQ/SPY/NVDA/GOOGL/TSLA 팩터 데이터 생성 (`run_research.py`)
+
+### P3-4 (L) — 모바일 반응형 768px
+
+- [ ] `SilverLayout.tsx` 모바일 nav: `overflow-x: auto`
+- [ ] `CommonInputPanel.tsx` 모바일 pill 줄바꿈
+- [ ] KPI 그리드: 데스크탑 2열 → 모바일 1열
+- [ ] `EquityChart.tsx`: 모바일 280px, 데스크탑 360px
+- [ ] `AssetPickerDrawer.tsx`: 768px 미만 `width: 100vw`
+
+### P3-5 (S) — AssetPickerDrawer E2E 검증
 
 ## Key Decisions
 
-- **SilverLayout 분리**: Bronze `Layout`/`Sidebar`와 완전 분리. Silver 라우트만 SilverLayout 감쌈
-- **Bronze 보존 경로**: `/bronze/*` — Phase 4 삭제 전까지 직접 접근 가능하게 유지
-- **CSS 전략**: CSS 변수(`:root`) + Tailwind 혼용. `index.css`에 Silver 토큰 + 컴포넌트 클래스
-- **simulation.ts**: 기존 axios `apiClient` 재사용, POST 3종
-- **Chat**: 별도 `/silver/chat` 라우트 없이 SilverLayout 내 ChatPanel 플로팅 버튼 유지 (Bronze AI 그대로)
+- **KS200 NaN**: `.dropna()` 추가 위치 — `_load_price_series` 직후 (strategy/portfolio 엔진은 별도 검토 필요)
+- **Puppeteer CORS**: `--disable-web-security` (테스트 전용) — vite proxy 수정 거부 이력 유지
+- **온보딩 모달**: API 선호출로 완료 처리 — localStorage 조작이나 Escape보다 안정적
+- **탭 대기**: `waitForFunction` 폴링 — `waitForSelector`는 이전 탭 DOM 즉시 감지로 부적합
 
 ## Context
 
@@ -66,51 +100,43 @@ Silver gen Phase 3 프론트엔드 구현 — P3-1 완료 후 P3-2 (11개 컴포
 
 ### 핵심 참조
 
-- `dev/active/silver-rev1-phase3/silver-rev1-phase3-tasks.md` — P3-2 게이트 상세
-- `dev/active/silver-rev1-phase3/silver-rev1-phase3-context.md` — API 타입, 디자인 토큰, 컨벤션
-- `.claude/skills/frontend-dev/references/silver-design.md` — 디자인 토큰 + 컴포넌트 레시피 (필수)
-- `docs/silver-masterplan.md` §4, §6 — IA 와이어프레임 + 컴포넌트 명세
-- `backend/api/schemas/simulation.py` — Pydantic 스키마 (이미 TypeScript 타입 변환 완료)
-
-### P3-2 구현 순서 (추천)
-
-1. `CommonInputPanel.tsx` + `TabNav.tsx` (기간/적립금 pill, 탭 전환)
-2. `EquityChart.tsx` (Recharts AreaChart, multi-series, JEPI padding 회색 영역)
-3. `KpiCard.tsx` + `InterpretCard.tsx` + `RiskCard.tsx` + `IndicatorCard.tsx`
-4. `AssetPickerDrawer.tsx` (Tab별 universe 분기: A 6종 / B 3종 / C preset 4개)
-5. `TabA_SingleAsset.tsx` → `TabB_AssetVsStrategy.tsx` → `TabC_AssetVsPortfolio.tsx`
-6. `CompareMainPage.tsx` (전체 조합)
-
-### Tab C Preset 목록 (lock)
-
-| preset_key | 비중 |
-|---|---|
-| `QQQ_TLT_BTC` | QQQ 60% / TLT 20% / BTC 20% |
-| `KS200_TLT_BTC` | KS200 60% / TLT 20% / BTC 20% |
-| `TECH_TLT_BTC` | (NVDA+GOOGL+TSLA) 60% / TLT 20% / BTC 20% |
-| `SAMSUNG_TLT_BTC` | (005930+000660) 60% / TLT 20% / BTC 20% |
+- `dev/active/silver-rev1-phase3/silver-rev1-phase3-tasks.md` — P3-3 게이트 (G3.1~G3.3)
+- `frontend/src/pages/IndicatorSignalPage.tsx` — 참고 베이스 (재사용 로직 포함)
+- `frontend/src/components/charts/IndicatorOverlayChart.tsx` — 재사용 차트 컴포넌트
+- `frontend/src/pages/silver/components/IndicatorCard.tsx` — 재사용 상태 카드
+- `.claude/skills/frontend-dev/references/silver-design.md` — Silver 디자인 토큰
+- `/tmp/pw_test/verify-p3-2.cjs` — Puppeteer 검증 스크립트 (P3-3용으로 확장 필요)
 
 ### 환경
 
-- 서버: `uvicorn api.main:app --port 8000` (backend/)
-- 프론트: `npm run dev` (frontend/, port 5173)
+- 백엔드: `uvicorn api.main:app --port 8000` (실행 중)
+- 프론트: `npm run dev` (port 5173)
+- 테스트 계정: `verify@silver.dev` / `silver2026`
 - 커밋 형식: `[silver-rev1-phase3] P3-N: description`
+
+### 주의사항
+
+- `fetchIndicatorAccuracy`, `fetchIndicatorComparisonV2` — P3-3에서 사용 금지 (성공률 탭 제거)
+- "매수/매도 추천" 표현 금지 (D-21)
+- 지표 탭은 [RSI] [MACD] [ATR] 3개만
+- 상태 라벨에 구체적 수치 병기 필수: "과매수 (RSI 74)"
 
 ## Next Action
 
-### P3-2: 11개 컴포넌트 + CompareMainPage 완성
+### P3-3 SignalDetailPage 구현
 
-`frontend/src/pages/silver/components/` 에 아래 순서로 구현:
+`frontend/src/pages/silver/SignalDetailPage.tsx`를 다음 스펙으로 작성:
 
-1. **CommonInputPanel.tsx**: 기간 pill (3년/5년/10년), 적립금 pill (30/50/100/200/300만원) — `silver-pill-group` CSS 클래스 사용
-2. **TabNav.tsx**: [단일자산] [자산vs전략] [자산vs포트폴리오] 탭 전환 — `silver-pill--active` 스타일
-3. **EquityChart.tsx**: Recharts `AreaChart`, multi-series (SERIES_COLORS 순서), JEPI padding `<ReferenceArea>` 회색
-4. **KpiCard.tsx**: 4종 KPI (최종자산/총수익/연환산/MDD), tabular-nums, 양음 색상
-5. **InterpretCard.tsx**: 초보자 문구 템플릿
-6. **RiskCard.tsx**: worst MDD + amber 톤 경고
-7. **IndicatorCard.tsx**: RSI/MACD/ATR 현재값 + 상태 라벨
-8. **AssetPickerDrawer.tsx**: 우측 슬라이드, Tab별 universe 분기
-9. **TabA_SingleAsset.tsx**: `fetchReplay` 호출 + 차트 + KPI
-10. **TabB_AssetVsStrategy.tsx**: `fetchReplay` + `fetchStrategy` 병렬 호출
-11. **TabC_AssetVsPortfolio.tsx**: `fetchReplay` + `fetchPortfolio` 호출
-12. **CompareMainPage.tsx**: 전체 조합 (공통 상태 + 탭 전환)
+```
+1. 자산 드롭다운 (8종): Silver 다크 스타일 <select>
+2. 지표 탭 (Silver TabNav 패턴): [RSI] [MACD] [ATR]
+3. IndicatorCard: 현재 지표값 + 상태 라벨 (최신 factor 데이터 기반)
+4. IndicatorOverlayChart: 1년 가격 + 지표 overlay
+5. 로딩/에러 처리
+6. 성공률 탭 완전 제거
+```
+
+데이터 흐름:
+- 자산 선택 or 탭 변경 → `fetchPrices` + `fetchFactors` 병렬 호출
+- 최신 factor 값으로 상태 라벨 계산 → IndicatorCard 렌더
+- 전체 factor 데이터 → IndicatorOverlayChart

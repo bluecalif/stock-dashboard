@@ -31,7 +31,8 @@
 
 ### Phase 3 진입 조건
 - ✅ Phase 2 API 계약 확정 (`/v1/silver/simulate/*`, `/v1/fx/usd-krw`)
-- dev/active/silver-rev1-phase3/ 작성 필요 (미착수)
+- ✅ `dev/active/silver-rev1-phase3/` dev-docs 작성 완료 (2026-05-10)
+- 코딩 착수 가능 — P3-1부터 시작
 
 ### Phase 1 산출물 (2026-05-09)
 - `asset_master` 10컬럼 (5+5), 15행 (Bronze 7 + Silver 8), alembic head `d8334483342c`

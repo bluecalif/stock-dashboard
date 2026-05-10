@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | ✅ 완료 (7/7, last: `1f7e426`) |
-| Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 미착수 |
+| Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 🟡 dev-docs 완료 (2026-05-10) |
 | Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
 | **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 13/29 |
@@ -66,15 +66,17 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
 ## Phase 3 — 프론트엔드 (Bronze와 병행 운영)
 
-진입 조건: Phase 2 API 계약 확정 + `dev/active/silver-rev1-phase3/` 작성
+진입 조건: ✅ Phase 2 API 계약 확정 + ✅ dev-docs 작성 완료 (2026-05-10)
 
-- [ ] **P3-1 (M)** `pages/silver/CompareMainPage.tsx` + 라우트 등록 (`/silver/compare`)
-- [ ] **P3-2 (L)** `components/` 10개 — CommonInputPanel / TabNav / TabA_SingleAsset / TabB_AssetVsStrategy / TabC_AssetVsPortfolio / AssetPickerDrawer / EquityChart / KpiCard / InterpretCard / RiskCard / IndicatorCard
+상세: `dev/active/silver-rev1-phase3/silver-rev1-phase3-tasks.md`
+
+- [ ] **P3-1 (M)** `App.tsx` 라우트 재편 + `SilverLayout` (상단 가로 nav) + `/silver/compare` 등록
+- [ ] **P3-2 (L)** `pages/silver/components/` 11개 — SilverLayout / CommonInputPanel / TabNav / TabA_SingleAsset / TabB_AssetVsStrategy / TabC_AssetVsPortfolio / AssetPickerDrawer / EquityChart / KpiCard / InterpretCard / RiskCard / IndicatorCard + `api/simulation.ts`
 - [ ] **P3-3 (M)** `SignalDetailPage.tsx` (`/silver/signals`) — IndicatorSignalPage 단순화 후신, 8종 자산 select + RSI/MACD/ATR
 - [ ] **P3-4 (L)** 모바일 반응형 — 768px breakpoint, 차트 세로 스택, KPI 1열, drawer 풀스크린 모달, nav 가로 스크롤 (vs hamburger 결정)
-- [ ] **P3-5 (S)** AssetPickerDrawer 동작 — 6종 (Tab A) / 3종 (Tab B) / preset (Tab C) 분기
+- [ ] **P3-5 (S)** AssetPickerDrawer 동작 검증 — 6종 (Tab A) / 3종 (Tab B) / preset (Tab C) 분기
 
-검증: UI 흐름, 모바일 768px, drawer 동작, EquityChart multi-series 색 구분.
+검증: UI 흐름, 모바일 768px, drawer 동작, EquityChart multi-series 색 구분. (PNG 스크린샷 의무)
 
 ---
 

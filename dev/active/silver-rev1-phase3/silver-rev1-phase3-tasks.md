@@ -1,7 +1,7 @@
 # Phase 3 Tasks — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: Planning (0/5)
+> Status: In Progress (1/5)
 
 ## DoD (Definition of Done)
 
@@ -199,7 +199,7 @@
 
 | 태스크 | 완료일 | commit hash |
 |---|---|---|
-| P3-1 | — | — |
+| P3-1 | 2026-05-10 | `eb4c821` |
 | P3-2 | — | — |
 | P3-3 | — | — |
 | P3-4 | — | — |

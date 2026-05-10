@@ -1,7 +1,7 @@
 # Project Overall Plan — Silver Gen
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (Phase 1 ✅ 완료, Phase 2 🟡 진행 중)
+> Status: In Progress (Phase 1 ✅ 완료, Phase 2 ✅ 완료, Phase 3 미착수)
 
 ## 1. Summary (개요)
 
@@ -20,11 +20,18 @@
 - `pages/silver/CompareMainPage.tsx` + 10개 컴포넌트 + `SignalDetailPage.tsx`
 - 빅뱅 cut-over 완료 (`v-bronze-final` tag로 보존)
 
-## 2. Current State (Phase 2 진행 중, 2026-05-10)
+## 2. Current State (Phase 2 ✅ 완료, 2026-05-10)
 
-### Phase 2 시작 조건 확인
-- G4.5 Bronze cron: 7자산 전체 max(date) = 2026-05-08 ✅ (T-1 영업일)
-- Phase 2 dev-docs: `dev/active/silver-rev1-phase2/` 작성 완료 ✅
+### Phase 2 산출물 (2026-05-10)
+- `simulation/` 패키지 8파일 완성 (`__init__` + `padding` + `wbi` + `fx` + `mdd` + `replay` + `strategy_a` + `strategy_b` + `portfolio`)
+- API 4종 동작: `/v1/silver/simulate/{replay,strategy,portfolio}` + `/v1/fx/usd-krw`
+- 61 unit tests PASSED (fx 7 + mdd 8 + replay 10 + strategy 13 + portfolio 7 + padding 8 + wbi 8)
+- QQQ 10년 DCA cross-check: 총수익률 +283.99%, 연환산 +14.40%, worst MDD -26.24% (2020 COVID)
+- verification/ evidence 7종 + PNG 3종 + fixtures/qqq_10y_replay_reference.json
+
+### Phase 3 진입 조건
+- ✅ Phase 2 API 계약 확정 (`/v1/silver/simulate/*`, `/v1/fx/usd-krw`)
+- dev/active/silver-rev1-phase3/ 작성 필요 (미착수)
 
 ### Phase 1 산출물 (2026-05-09)
 - `asset_master` 10컬럼 (5+5), 15행 (Bronze 7 + Silver 8), alembic head `d8334483342c`

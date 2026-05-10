@@ -1,18 +1,18 @@
 # Project Overall Tasks — Silver Gen
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (Phase 1 완료 — 6/29, Phase 2 dev-docs 완료)
+> Status: In Progress (Phase 1 ✅ 완료, Phase 2 ✅ 완료 — 13/29)
 
 ## Summary
 
 | Phase | 폴더 | 태스크 수 | Size 분포 | 상태 |
 |---|---|---|---|---|
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
-| Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | 🟡 진행 중 (dev-docs 완료) |
+| Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | ✅ 완료 (7/7, last: `1f7e426`) |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 미착수 |
 | Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
-| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 6/29 |
+| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 13/29 |
 
 > 각 Phase 상세 태스크는 해당 Phase 폴더의 `-tasks.md`에 commit hash 포함하여 추적. 본 파일은 Phase 단위 요약만.
 
@@ -45,21 +45,22 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
 ---
 
-## Phase 2 — 시뮬레이션 엔진 (Bronze 영향 0)
+## Phase 2 — 시뮬레이션 엔진 (Bronze 영향 0) ✅ 완료
 
 진입 조건: ✅ Phase 1 완료 + ✅ dev-docs 작성 완료 (2026-05-10)
+완료일: 2026-05-10 | 61 unit tests PASSED
 
 상세: `dev/active/silver-rev1-phase2/silver-rev1-phase2-tasks.md`
 
-- [ ] **P2-1 (S)** `simulation/` 디렉터리 구조 확인 + `__init__.py` exports 정비 (이미 존재, 정비만)
-- [ ] **P2-2 (M)** `fx.py` (USD↔KRW forward-fill) + `mdd.py` (캘린더 연도) — utility 나머지 2종 (`padding.py`/`wbi.py`는 Phase 1 완료)
-- [ ] **P2-3 (L)** `replay.py` — 적립식 replay (Tab A), 매월 첫 거래일 적립 + 배당 매일 재투자 + USD fractional 매수
-- [ ] **P2-4 (XL)** `strategy_a.py` — lock 사이클 (강제 재매수 365일, lock_until_year, grace 12개월, 60거래일 ratio ≥1.20 trigger) + `strategy_b.py` (70% 정기 + 30% 대기, 20거래일 -10% 또는 12월 강제) + `portfolio.py` (60/20/20 + 연 1회 리밸런싱)
-- [ ] **P2-5 (M)** `routers/simulation.py` — `POST /v1/silver/simulate/{replay,strategy,portfolio}` (Pydantic schema, FastAPI DI)
-- [ ] **P2-6 (M)** `routers/fx.py` — `GET /v1/fx/usd-krw`
-- [ ] **P2-7 (L)** integration test + cross-check fixture — QQQ 10년 적립 결과를 Portfoliovisualizer/curvo 외부 도구와 ±2% 일치 검증
+- [x] **P2-1 (S)** `simulation/` 디렉터리 구조 확인 + `__init__.py` exports 정비 — `f7d5f3e`
+- [x] **P2-2 (M)** `fx.py` (USD↔KRW forward-fill) + `mdd.py` (캘린더 연도) — `f7d5f3e`
+- [x] **P2-3 (L)** `replay.py` — 적립식 replay (Tab A), 매월 첫 거래일 적립 + 배당 매일 재투자 + USD fractional 매수 — `1ff60f1`
+- [x] **P2-4 (XL)** `strategy_a.py` + `strategy_b.py` + `portfolio.py` (60/20/20 + 연 1회 리밸런싱) — `350376d`
+- [x] **P2-5 (M)** `routers/simulation.py` — `POST /v1/silver/simulate/{replay,strategy,portfolio}` — `a666f2d`
+- [x] **P2-6 (M)** `routers/fx.py` — `GET /v1/fx/usd-krw` — `a666f2d`
+- [x] **P2-7 (L)** QQQ 10년 cross-check fixture (총수익률 +283.99%, 연환산 +14.40%, worst MDD -26.24%) — `1f7e426`
 
-검증: KPI 4종 산출, lock 사이클 unit test, grace period, 자산별 캘린더 forward-fill.
+검증: KPI 4종 산출, lock 사이클 unit test, grace period, 자산별 캘린더 forward-fill. ✅ 전부 PASS
 
 ---
 

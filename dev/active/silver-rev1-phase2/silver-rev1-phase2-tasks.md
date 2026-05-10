@@ -1,15 +1,15 @@
 # Phase 2 Tasks — 시뮬레이션 엔진
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: Planning (0/7)
+> Status: Complete (7/7)
 
 ## DoD (Definition of Done)
 
-- [ ] simulation/ 8개 파일 완성 (`__init__` + `padding` + `wbi` + `fx` + `mdd` + `replay` + `strategy_a` + `strategy_b` + `portfolio`)
-- [ ] API 4종 동작: `/v1/silver/simulate/{replay,strategy,portfolio}` + `/v1/fx/usd-krw`
-- [ ] QQQ 10년 적립 KPI ↔ 외부 도구 ±2% 일치 (G7.1 evidence paste)
-- [ ] verification/ evidence 7종 + PNG 3종 누적
-- [ ] `project-overall-tasks.md` Phase 2 섹션 동기화 (`/step-update --sync-overall`)
+- [x] simulation/ 8개 파일 완성 (`__init__` + `padding` + `wbi` + `fx` + `mdd` + `replay` + `strategy_a` + `strategy_b` + `portfolio`)
+- [x] API 4종 동작: `/v1/silver/simulate/{replay,strategy,portfolio}` + `/v1/fx/usd-krw`
+- [x] QQQ 10년 적립 KPI ↔ 외부 도구 ±2% 일치 (G7.1 evidence paste)
+- [x] verification/ evidence 7종 + PNG 3종 누적
+- [x] `project-overall-tasks.md` Phase 2 섹션 동기화 (`/step-update --sync-overall`)
 
 ---
 
@@ -19,9 +19,9 @@
 
 ### Sub-steps
 
-- [ ] `simulation/` 하위 파일 목록 확인 (Phase 1 산출물 존재 여부)
-- [ ] `__init__.py`에 Phase 2 예정 모듈 `__all__` 플레이스홀더 추가 (구현 전 설계 명확화)
-- [ ] verification/step-1-structure.md 작성
+- [x] `simulation/` 하위 파일 목록 확인 (Phase 1 산출물 존재 여부)
+- [x] `__init__.py`에 Phase 2 예정 모듈 `__all__` 플레이스홀더 추가 (구현 전 설계 명확화)
+- [x] verification/step-1-structure.md 작성
 
 ### G1.1 — 디렉터리 구조 확인
 - 명령: `ls backend/research_engine/simulation/`
@@ -41,11 +41,11 @@
 
 ### Sub-steps
 
-- [ ] `fx.py` 구현 — `load_fx_series(db_session, start, end) -> pd.Series` (forward-fill)
-- [ ] `mdd.py` 구현 — `mdd_by_calendar_year(curve_krw) -> dict[int, float]` (마스터플랜 §3.7)
-- [ ] `test_fx.py` — 결측일 forward-fill, 날짜 범위 경계 (4 tests 이상)
-- [ ] `test_mdd.py` — 알려진 drawdown 값 검증 (4 tests 이상)
-- [ ] verification/step-2-fx-mdd.md + figures/step-2-mdd-bar.png 작성
+- [x] `fx.py` 구현 — `load_fx_series(db_session, start, end) -> pd.Series` (forward-fill)
+- [x] `mdd.py` 구현 — `mdd_by_calendar_year(curve_krw) -> dict[int, float]` (마스터플랜 §3.7)
+- [x] `test_fx.py` — 결측일 forward-fill, 날짜 범위 경계 (4 tests 이상)
+- [x] `test_mdd.py` — 알려진 drawdown 값 검증 (4 tests 이상)
+- [x] verification/step-2-fx-mdd.md + figures/step-2-mdd-bar.png 작성
 
 ### G2.1 — `fx.py` forward-fill 검증
 - 명령: `python -c "from research_engine.simulation.fx import load_fx_series; ..."`  (KR 휴장일인 날짜 포함 범위 조회)
@@ -77,12 +77,12 @@
 
 ### Sub-steps
 
-- [ ] `replay.py` 구현 — `replay(asset_code, monthly_amount_krw, period_years, session) -> tuple[list[EquityPoint], KpiResult]`
-- [ ] WBI 경로 분기 — `asset_code == "WBI"` 시 `wbi.py` 호출
-- [ ] JEPI 경로 분기 — `allow_padding=True` 시 `padding.py` 호출
-- [ ] `compute_kpi()` 구현 (마스터플랜 §3.8)
-- [ ] `test_replay.py` — 기본 smoke, 배당 재투자 효과, USD/KRW 환산, JEPI padding 경로 (6 tests 이상)
-- [ ] verification/step-3-replay.md + figures/step-3-replay-qqq.png
+- [x] `replay.py` 구현 — `replay(asset_code, monthly_amount_krw, period_years, session) -> tuple[list[EquityPoint], KpiResult]`
+- [x] WBI 경로 분기 — `asset_code == "WBI"` 시 `wbi.py` 호출
+- [x] JEPI 경로 분기 — `allow_padding=True` 시 `padding.py` 호출
+- [x] `compute_kpi()` 구현 (마스터플랜 §3.8)
+- [x] `test_replay.py` — 기본 smoke, 배당 재투자 효과, USD/KRW 환산, JEPI padding 경로 (6 tests 이상)
+- [x] verification/step-3-replay.md + figures/step-3-replay-qqq.png
 
 ### G3.1 — 기본 smoke test
 - 명령: `python -m pytest backend/tests/unit/test_replay.py::test_replay_basic -v`
@@ -124,12 +124,12 @@
 
 ### Sub-steps
 
-- [ ] `strategy_a.py` — `StrategyA` class (마스터플랜 §3.4 코드 그대로, D-lock 적용)
-- [ ] `strategy_b.py` — `StrategyB` class (마스터플랜 §3.5)
-- [ ] `portfolio.py` — `Portfolio` class (마스터플랜 §3.6, 60/20/20 preset, 연 리밸런싱)
-- [ ] `test_strategy.py` — grace period, lock 사이클, 강제 재매수 365일, 12월 강제 매수 (8 tests 이상)
-- [ ] `test_portfolio.py` — preset 비중, 연 리밸런싱 동작 (4 tests 이상)
-- [ ] verification/step-4-strategy.md + figures/step-4-lock-cycle.png
+- [x] `strategy_a.py` — `StrategyA` class (마스터플랜 §3.4 코드 그대로, D-lock 적용)
+- [x] `strategy_b.py` — `StrategyB` class (마스터플랜 §3.5)
+- [x] `portfolio.py` — `Portfolio` class (마스터플랜 §3.6, 60/20/20 preset, 연 리밸런싱)
+- [x] `test_strategy.py` — grace period, lock 사이클, 강제 재매수 365일, 12월 강제 매수 (8 tests 이상)
+- [x] `test_portfolio.py` — preset 비중, 연 리밸런싱 동작 (4 tests 이상)
+- [x] verification/step-4-strategy.md + figures/step-4-lock-cycle.png
 
 ### G4.1 — grace period (D-9)
 - 명령: `python -m pytest backend/tests/unit/test_strategy.py::test_strategy_a_grace_period -v`
@@ -174,10 +174,10 @@
 
 ### Sub-steps
 
-- [ ] `api/services/simulation_service.py` — DB 조회 + simulation 호출 조율
-- [ ] `api/routers/simulation.py` — `POST /v1/silver/simulate/replay` / `strategy` / `portfolio`
-- [ ] `api/main.py`에 `include_router(simulation_router)` 추가
-- [ ] 기존 라우터 영향 없음 확인 (Bronze 엔드포인트 smoke)
+- [x] `api/services/simulation_service.py` — DB 조회 + simulation 호출 조율
+- [x] `api/routers/simulation.py` — `POST /v1/silver/simulate/replay` / `strategy` / `portfolio`
+- [x] `api/main.py`에 `include_router(simulation_router)` 추가
+- [x] 기존 라우터 영향 없음 확인 (Bronze 엔드포인트 smoke)
 
 ### G5.1 — API 기동 + replay 엔드포인트 응답
 - 명령: `curl -X POST http://localhost:8000/v1/silver/simulate/replay -H "Content-Type: application/json" -d '{"asset_codes":["QQQ"],"monthly_amount":1000000,"period_years":3,"base_currency":"KRW"}'`
@@ -202,9 +202,9 @@
 
 ### Sub-steps
 
-- [ ] `api/services/fx_service.py` — fx_daily 조회 + forward-fill
-- [ ] `api/routers/fx.py` — `GET /v1/fx/usd-krw?start=YYYY-MM-DD&end=YYYY-MM-DD`
-- [ ] `api/main.py`에 `include_router(fx_router)` 추가
+- [x] `api/services/fx_service.py` — fx_daily 조회 + forward-fill
+- [x] `api/routers/fx.py` — `GET /v1/fx/usd-krw?start=YYYY-MM-DD&end=YYYY-MM-DD`
+- [x] `api/main.py`에 `include_router(fx_router)` 추가
 
 ### G6.1 — fx 엔드포인트 기본 동작
 - 명령: `curl "http://localhost:8000/v1/fx/usd-krw?start=2024-01-01&end=2024-01-31"`
@@ -224,10 +224,10 @@
 
 ### Sub-steps
 
-- [ ] integration test 스크립트 작성 — API 호출 → KPI 추출
-- [ ] Portfoliovisualizer에서 QQQ 10년 100만원/월 적립 결과 수동 캡처 (참고값)
-- [ ] cross-check fixture 저장 (`fixtures/qqq_10y_replay_reference.json`)
-- [ ] verification/step-7-crosscheck.md + figures/step-7-crosscheck.png
+- [x] integration test 스크립트 작성 — API 호출 → KPI 추출
+- [x] Portfoliovisualizer에서 QQQ 10년 100만원/월 적립 결과 수동 캡처 (참고값)
+- [x] cross-check fixture 저장 (`fixtures/qqq_10y_replay_reference.json`)
+- [x] verification/step-7-crosscheck.md + figures/step-7-crosscheck.png
 
 ### G7.1 — QQQ 10년 KPI cross-check (의무)
 - 명령: `curl -X POST http://localhost:8000/v1/silver/simulate/replay -d '{"asset_codes":["QQQ"],"monthly_amount":1000000,"period_years":10}'`
@@ -250,10 +250,10 @@
 
 | 태스크 | 완료일 | commit hash |
 |---|---|---|
-| P2-1 | — | — |
-| P2-2 | — | — |
-| P2-3 | — | — |
-| P2-4 | — | — |
-| P2-5 | — | — |
-| P2-6 | — | — |
-| P2-7 | — | — |
+| P2-1 | 2026-05-10 | `f7d5f3e` |
+| P2-2 | 2026-05-10 | `f7d5f3e` |
+| P2-3 | 2026-05-10 | `1ff60f1` |
+| P2-4 | 2026-05-10 | `350376d` |
+| P2-5 | 2026-05-10 | `a666f2d` |
+| P2-6 | 2026-05-10 | `a666f2d` |
+| P2-7 | 2026-05-10 | `1f7e426` |

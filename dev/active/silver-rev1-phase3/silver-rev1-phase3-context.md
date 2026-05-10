@@ -214,6 +214,32 @@ Phase 3에서는 Bronze 라우트를 redirect만 추가. 기존 `DashboardPage`,
 
 ---
 
+## 8. P3-4 변경사항 (2026-05-10)
+
+### 변경된 파일
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `frontend/src/index.css` | `@media (max-width: 768px)`: `.silver-kpi-grid: 1fr`, `.silver-pill-group: flex-wrap: wrap`, `.silver-top-nav__items: flex: 1; min-width: 0` |
+| `frontend/src/index.css` | `.silver-equity-chart-wrap { height: 360px }` + 768px에서 `280px` |
+| `frontend/src/pages/silver/components/EquityChart.tsx` | `silver-equity-chart-wrap` 래퍼 div 추가, `ResponsiveContainer height="100%"` |
+| `dev/active/silver-rev1-phase3/verification/step-4-mobile.md` | G4.1~G4.4 evidence |
+| `dev/active/silver-rev1-phase3/verification/figures/step-4-mobile-nav.png` | 768px nav 스크린샷 |
+| `dev/active/silver-rev1-phase3/verification/figures/step-4-mobile-kpi.png` | 768px KPI 1열 스크린샷 |
+| `dev/active/silver-rev1-phase3/verification/figures/step-4-mobile-drawer.png` | 768px drawer 풀스크린 스크린샷 |
+| `dev/active/silver-rev1-phase3/verification/figures/step-4-iphonese.png` | 375px smoke test 스크린샷 |
+
+### 주요 결정사항
+
+| # | 결정 | 이유 |
+|---|---|---|
+| D-P3-4-1 | nav 가로 스크롤은 `silver-top-nav__items`에 이미 적용됨 (신규 CSS 불필요) | 기존 overflow-x: auto + scrollbar-width: none으로 구현 완료 |
+| D-P3-4-2 | `EquityChart`에 CSS 기반 반응형 height 적용 (`silver-equity-chart-wrap`) | React state/hook 없이 CSS media query로 처리, `height` prop으로 override 가능 |
+| D-P3-4-3 | drawer `width: 100vw`는 이미 768px media query에 구현됨 | AssetPickerDrawer.tsx 변경 불필요 |
+| D-P3-4-4 | `.silver-pill-group { flex-wrap: wrap }` → TabNav도 375px에서 줄바꿈 | 탭 이름이 모두 보이는 UX가 가로 스크롤보다 초보자에게 유리 |
+
+---
+
 ## 7. P3-3 변경사항 (2026-05-10)
 
 ### 변경된 파일

@@ -1,7 +1,7 @@
 # Phase 3 Tasks — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (3/5)
+> Status: In Progress (4/5)
 
 ## DoD (Definition of Done)
 
@@ -136,13 +136,13 @@
 
 ### Sub-steps
 
-- [ ] `SilverLayout.tsx` 모바일 nav: 768px 미만 가로 스크롤 (overflow-x: auto)
-- [ ] `CommonInputPanel.tsx` 모바일: pill 그룹 줄바꿈 또는 스크롤
-- [ ] KPI 그리드: `grid-cols-2` (데스크탑) → `grid-cols-1` (모바일)
-- [ ] `EquityChart.tsx`: `ResponsiveContainer height` 모바일 280px, 데스크탑 360px
-- [ ] `AssetPickerDrawer.tsx`: 768px 미만 `width: 100vw` 풀스크린
-- [ ] 전 Silver 페이지 모바일 검증
-- [ ] verification/step-4-mobile.md 작성
+- [x] `SilverLayout.tsx` 모바일 nav: 768px 미만 가로 스크롤 (overflow-x: auto)
+- [x] `CommonInputPanel.tsx` 모바일: pill 그룹 줄바꿈 (flex-wrap: wrap)
+- [x] KPI 그리드: `grid-cols-2` (데스크탑) → `grid-cols-1` (모바일)
+- [x] `EquityChart.tsx`: `silver-equity-chart-wrap` div + CSS 280px/360px 반응형
+- [x] `AssetPickerDrawer.tsx`: 768px 미만 `width: 100vw` 풀스크린
+- [x] 전 Silver 페이지 모바일 검증
+- [x] verification/step-4-mobile.md 작성
 
 ### G4.1 — 모바일 nav 가로 스크롤
 - 명령: 브라우저 DevTools → 768px 뷰포트로 `/silver/compare` 접속
@@ -202,5 +202,5 @@
 | P3-1 | 2026-05-10 | `eb4c821` |
 | P3-2 | 2026-05-10 | `22a5b89` |
 | P3-3 | 2026-05-10 | `f64b9fa` |
-| P3-4 | — | — |
+| P3-4 | 2026-05-10 | (다음 커밋) |
 | P3-5 | — | — |

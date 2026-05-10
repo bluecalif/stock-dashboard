@@ -16,7 +16,7 @@
 | P3-1 | 라우트 등록 + SilverLayout | `step-1-routes.md` | `figures/step-1-*.png` | ✅ 완료 |
 | P3-2 | 컴포넌트 + API 연동 | `step-2-components.md` | `figures/step-2-*.png` | ✅ 완료 |
 | P3-3 | SignalDetailPage | `step-3-signals.md` | `figures/step-3-*.png` | ✅ 완료 |
-| P3-4 | 모바일 768px | `step-4-mobile.md` | `figures/step-4-*.png` | ⬜ 미착수 |
+| P3-4 | 모바일 768px | `step-4-mobile.md` | `figures/step-4-*.png` | ✅ 완료 |
 | P3-5 | AssetPickerDrawer 분기 | `step-5-drawer.md` | `figures/step-5-*.png` | ⬜ 미착수 |
 
 ---

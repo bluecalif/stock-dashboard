@@ -27,6 +27,7 @@ type Props = {
   series: SeriesDef[];
   paddingStart?: string;
   height?: number;
+  className?: string;
 };
 
 function yFormatter(v: number): string {
@@ -46,10 +47,15 @@ export default function EquityChart({
   data,
   series,
   paddingStart,
-  height = 360,
+  height,
+  className,
 }: Props) {
   return (
-    <ResponsiveContainer width="100%" height={height}>
+    <div
+      className={`silver-equity-chart-wrap${className ? ` ${className}` : ""}`}
+      style={height !== undefined ? { height } : undefined}
+    >
+    <ResponsiveContainer width="100%" height="100%">
       <AreaChart data={data} margin={{ top: 16, right: 16, bottom: 8, left: 8 }}>
         <defs>
           {series.map((s, i) => (
@@ -131,5 +137,6 @@ export default function EquityChart({
         ))}
       </AreaChart>
     </ResponsiveContainer>
+    </div>
   );
 }

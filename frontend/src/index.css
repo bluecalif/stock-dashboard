@@ -509,11 +509,21 @@ body {
   font-size: 14px;
 }
 
+/* ── Silver Equity Chart Wrap ── */
+.silver-equity-chart-wrap {
+  height: 360px;
+}
+
 /* ── Mobile 768px ── */
 @media (max-width: 768px) {
   .silver-top-nav {
     padding: 10px 16px;
     gap: 8px;
+  }
+
+  .silver-top-nav__items {
+    flex: 1;
+    min-width: 0;
   }
 
   .silver-main {
@@ -530,16 +540,18 @@ body {
   }
 
   .silver-kpi-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .silver-drawer {
     width: 100vw;
   }
-}
 
-@media (max-width: 480px) {
-  .silver-kpi-grid {
-    grid-template-columns: 1fr;
+  .silver-pill-group {
+    flex-wrap: wrap;
+  }
+
+  .silver-equity-chart-wrap {
+    height: 280px;
   }
 }

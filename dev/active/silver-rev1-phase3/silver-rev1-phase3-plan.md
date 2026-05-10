@@ -1,7 +1,8 @@
 # Phase 3 Plan — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (P3-3 완료, P3-4/P3-5 진행 예정)
+> Last Updated: 2026-05-10
+> Status: In Progress (P3-4 완료, P3-5 진행 예정)
 
 ---
 

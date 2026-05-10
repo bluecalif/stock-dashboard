@@ -1,14 +1,14 @@
 # Project Overall Tasks — Silver Gen
 > Gen: silver
-> Last Updated: 2026-05-09
-> Status: In Progress (Phase 1 완료 — 6/29)
+> Last Updated: 2026-05-10
+> Status: In Progress (Phase 1 완료 — 6/29, Phase 2 dev-docs 완료)
 
 ## Summary
 
 | Phase | 폴더 | 태스크 수 | Size 분포 | 상태 |
 |---|---|---|---|---|
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
-| Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | 미착수 |
+| Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | 🟡 진행 중 (dev-docs 완료) |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | 미착수 |
 | Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
@@ -47,10 +47,12 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
 ## Phase 2 — 시뮬레이션 엔진 (Bronze 영향 0)
 
-진입 조건: ✅ Phase 1 완료 → **`/dev-docs create phase 2 silver-rev1-phase2`로 시작**
+진입 조건: ✅ Phase 1 완료 + ✅ dev-docs 작성 완료 (2026-05-10)
 
-- [ ] **P2-1 (S)** `backend/research_engine/simulation/` 디렉터리 + `__init__.py`
-- [ ] **P2-2 (M)** `padding.py` (cyclic returns) + `wbi.py` (GBM 시드 42) + `fx.py` (USD↔KRW forward-fill) + `mdd.py` (캘린더 연도) — utility 4종
+상세: `dev/active/silver-rev1-phase2/silver-rev1-phase2-tasks.md`
+
+- [ ] **P2-1 (S)** `simulation/` 디렉터리 구조 확인 + `__init__.py` exports 정비 (이미 존재, 정비만)
+- [ ] **P2-2 (M)** `fx.py` (USD↔KRW forward-fill) + `mdd.py` (캘린더 연도) — utility 나머지 2종 (`padding.py`/`wbi.py`는 Phase 1 완료)
 - [ ] **P2-3 (L)** `replay.py` — 적립식 replay (Tab A), 매월 첫 거래일 적립 + 배당 매일 재투자 + USD fractional 매수
 - [ ] **P2-4 (XL)** `strategy_a.py` — lock 사이클 (강제 재매수 365일, lock_until_year, grace 12개월, 60거래일 ratio ≥1.20 trigger) + `strategy_b.py` (70% 정기 + 30% 대기, 20거래일 -10% 또는 12월 강제) + `portfolio.py` (60/20/20 + 연 1회 리밸런싱)
 - [ ] **P2-5 (M)** `routers/simulation.py` — `POST /v1/silver/simulate/{replay,strategy,portfolio}` (Pydantic schema, FastAPI DI)

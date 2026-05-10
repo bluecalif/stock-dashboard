@@ -2,7 +2,7 @@
 > Gen: silver
 > Last Updated: 2026-05-10
 > Last Updated: 2026-05-10
-> Status: In Progress (P3-4 완료, P3-5 진행 예정)
+> Status: **완료** (P3-1~P3-5 전 태스크 완료)
 
 ---
 

@@ -1,7 +1,7 @@
 # Phase 3 Tasks — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (4/5)
+> Status: **완료** (5/5)
 
 ## DoD (Definition of Done)
 
@@ -172,11 +172,11 @@
 
 ### Sub-steps
 
-- [ ] Tab A에서 drawer 열기 → 6종 universe 확인 (QQQ/SPY/KS200/SCHD/JEPI/WBI)
-- [ ] Tab B에서 drawer 열기 → 3종 universe 확인 (QQQ/SPY/KS200)
-- [ ] Tab C에서 preset select → 4개 preset 표시 확인
-- [ ] Tab A 기본 선택 (QQQ/SPY/KS200 체크) 확인
-- [ ] verification/step-5-drawer.md 작성
+- [x] Tab A에서 drawer 열기 → 6종 universe 확인 (QQQ/SPY/KS200/SCHD/JEPI/WBI)
+- [x] Tab B에서 drawer 열기 → 3종 universe 확인 (QQQ/SPY/KS200)
+- [x] Tab C에서 preset select → 4개 preset 표시 확인
+- [x] Tab A 기본 선택 (QQQ/SPY/KS200 체크) 확인
+- [x] verification/step-5-drawer.md 작성
 
 ### G5.1 — Tab A universe (6종)
 - 명령: Tab A 탭 → `+ 추가` 클릭 → 체크박스 목록 확인
@@ -203,4 +203,4 @@
 | P3-2 | 2026-05-10 | `22a5b89` |
 | P3-3 | 2026-05-10 | `f64b9fa` |
 | P3-4 | 2026-05-10 | `200f1c0` |
-| P3-5 | — | — |
+| P3-5 | 2026-05-10 | (다음 커밋) |

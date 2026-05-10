@@ -1,7 +1,7 @@
 # Phase 3 Tasks — 프론트엔드 신규 페이지
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (1/5)
+> Status: In Progress (2/5)
 
 ## DoD (Definition of Done)
 
@@ -24,11 +24,11 @@
 
 ### Sub-steps
 
-- [ ] `frontend/src/pages/silver/components/SilverLayout.tsx` 작성 (상단 가로 nav + Outlet)
-- [ ] `App.tsx` — `/silver/*` 라우트 추가, Bronze 5개 라우트에 `<Navigate to="/silver/compare" />` redirect 추가
-- [ ] `frontend/src/api/simulation.ts` — API 클라이언트 함수 (fetchReplay, fetchStrategy, fetchPortfolio)
-- [ ] `frontend/src/types/api.ts` — Silver 시뮬레이션 타입 추가 (SimulationResult, KpiResult, EquityPoint)
-- [ ] verification/step-1-routes.md 작성
+- [x] `frontend/src/pages/silver/components/SilverLayout.tsx` 작성 (상단 가로 nav + Outlet)
+- [x] `App.tsx` — `/silver/*` 라우트 추가, Bronze 5개 라우트에 `<Navigate to="/silver/compare" />` redirect 추가
+- [x] `frontend/src/api/simulation.ts` — API 클라이언트 함수 (fetchReplay, fetchStrategy, fetchPortfolio)
+- [x] `frontend/src/types/api.ts` — Silver 시뮬레이션 타입 추가 (SimulationResult, KpiResult, EquityPoint)
+- [x] verification/step-1-routes.md 작성
 
 ### G1.1 — `/silver/compare` 라우트 접근 동작
 - 명령: `npm run dev` 기동 후 브라우저에서 `http://localhost:5173/silver/compare` 접속
@@ -55,19 +55,19 @@
 
 ### Sub-steps
 
-- [ ] `CommonInputPanel.tsx` — 기간 pill (3/5/10년), 적립금 pill (30/50/100/200/300만원)
-- [ ] `TabNav.tsx` — [단일자산] [자산vs전략] [자산vs포트폴리오] pill
-- [ ] `EquityChart.tsx` — Recharts AreaChart, multi-series, JEPI padding 회색 영역
-- [ ] `KpiCard.tsx` — 4종 KPI (최종자산/총수익/연환산/MDD), tabular-nums, 양음 색상
-- [ ] `InterpretCard.tsx` — 초보자 해석 문구 (템플릿 문자열)
-- [ ] `RiskCard.tsx` — 연도 MDD worst 강조 + 경고 톤
-- [ ] `IndicatorCard.tsx` — RSI/MACD/ATR 현재값 + 상태 라벨 (Q7-21)
-- [ ] `AssetPickerDrawer.tsx` — 탭별 universe 분기 (§6), 우측 슬라이드, 모바일 풀스크린
-- [ ] `TabA_SingleAsset.tsx` — replay API 호출 + EquityChart + KpiCard 렌더링
-- [ ] `TabB_AssetVsStrategy.tsx` — strategy API 호출 (Type A/B 선택 UI 포함)
-- [ ] `TabC_AssetVsPortfolio.tsx` — portfolio API 호출 + preset select
-- [ ] `CompareMainPage.tsx` — 공통 상태 (기간/적립금), 탭 전환, 컴포넌트 조합
-- [ ] verification/step-2-components.md 작성
+- [x] `CommonInputPanel.tsx` — 기간 pill (3/5/10년), 적립금 pill (30/50/100/200/300만원)
+- [x] `TabNav.tsx` — [단일자산] [자산vs전략] [자산vs포트폴리오] pill
+- [x] `EquityChart.tsx` — Recharts AreaChart, multi-series, JEPI padding 회색 영역
+- [x] `KpiCard.tsx` — 4종 KPI (최종자산/총수익/연환산/MDD), tabular-nums, 양음 색상
+- [x] `InterpretCard.tsx` — 초보자 해석 문구 (템플릿 문자열)
+- [x] `RiskCard.tsx` — 연도 MDD worst 강조 + 경고 톤
+- [x] `IndicatorCard.tsx` — RSI/MACD/ATR 현재값 + 상태 라벨 (Q7-21)
+- [x] `AssetPickerDrawer.tsx` — 탭별 universe 분기 (§6), 우측 슬라이드, 모바일 풀스크린
+- [x] `TabA_SingleAsset.tsx` — replay API 호출 + EquityChart + KpiCard 렌더링
+- [x] `TabB_AssetVsStrategy.tsx` — strategy API 호출 (Type A/B 선택 UI 포함)
+- [x] `TabC_AssetVsPortfolio.tsx` — portfolio API 호출 + preset select
+- [x] `CompareMainPage.tsx` — 공통 상태 (기간/적립금), 탭 전환, 컴포넌트 조합
+- [x] verification/step-2-components.md 작성
 
 ### G2.1 — Tab A KPI 렌더링 (실제 API 연동)
 - 명령: 브라우저에서 `/silver/compare` Tab A, QQQ/SPY/KS200, 10년, 100만원 설정 후 결과 확인

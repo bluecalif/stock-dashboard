@@ -222,7 +222,7 @@ def replay(
     annual_yield = float(asset.annual_yield)
     allow_padding: bool = bool(asset.allow_padding)
 
-    raw_prices = _load_price_series(session, asset_code, start_date, end_date)
+    raw_prices = _load_price_series(session, asset_code, start_date, end_date).dropna()
     if raw_prices.empty:
         raise ValueError(f"price_daily에 {asset_code} 데이터 없음 ({start_date} ~ {end_date})")
 

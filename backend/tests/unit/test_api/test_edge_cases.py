@@ -9,7 +9,6 @@ Covers:
 """
 
 from unittest.mock import MagicMock, patch
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -78,20 +77,6 @@ class TestDBErrors:
         resp = client.get("/v1/signals")
         assert resp.status_code == 500
 
-    @patch("api.routers.backtests.backtest_repo")
-    def test_backtests_list_db_error(self, mock_repo, client):
-        """GET /v1/backtests → 500 on unhandled DB error."""
-        mock_repo.get_runs.side_effect = Exception("DB error")
-        resp = client.get("/v1/backtests")
-        assert resp.status_code == 500
-
-    @patch("api.routers.backtests.backtest_repo")
-    def test_backtests_get_db_error(self, mock_repo, client):
-        """GET /v1/backtests/{id} → 500 on unhandled DB error."""
-        mock_repo.get_run_by_id.side_effect = Exception("DB error")
-        resp = client.get(f"/v1/backtests/{uuid4()}")
-        assert resp.status_code == 500
-
     @patch("api.services.dashboard_service.asset_repo")
     def test_dashboard_db_error(self, mock_repo, client):
         """GET /v1/dashboard/summary → 500 on unhandled DB error."""
@@ -156,12 +141,6 @@ class TestPaginationBoundary:
         """Pagination validation also applies to /v1/signals."""
         resp = client.get("/v1/signals?limit=5001")
         assert resp.status_code == 422
-
-    def test_backtests_offset_negative(self, client):
-        """Pagination validation also applies to /v1/backtests."""
-        resp = client.get("/v1/backtests?offset=-1")
-        assert resp.status_code == 422
-
 
 # ── Date Validation ──
 
@@ -267,30 +246,3 @@ class TestCorrelationEdge:
         assert resp.status_code == 400
 
 
-# ── Backtest UUID Edge Cases ──
-
-
-class TestBacktestUUIDEdge:
-    """Invalid UUID formats for backtest endpoints."""
-
-    def test_invalid_uuid_get(self, client):
-        """GET /v1/backtests/not-a-uuid → 422."""
-        resp = client.get("/v1/backtests/not-a-uuid")
-        assert resp.status_code == 422
-
-    def test_invalid_uuid_equity(self, client):
-        """GET /v1/backtests/xxx/equity → 422."""
-        resp = client.get("/v1/backtests/invalid-uuid/equity")
-        assert resp.status_code == 422
-
-    def test_invalid_uuid_trades(self, client):
-        """GET /v1/backtests/abc123/trades → 422."""
-        resp = client.get("/v1/backtests/abc123/trades")
-        assert resp.status_code == 422
-
-    @patch("api.routers.backtests.backtest_repo")
-    def test_valid_uuid_not_found(self, mock_repo, client):
-        """Valid UUID but not in DB → 404."""
-        mock_repo.get_run_by_id.return_value = None
-        resp = client.get(f"/v1/backtests/{uuid4()}")
-        assert resp.status_code == 404

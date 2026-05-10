@@ -147,10 +147,10 @@ class TestIngestAll:
             assert statuses["005930"] == "fetch_failed"
             # Others should succeed
             success_count = sum(1 for r in results if r.status == "success")
-            assert success_count == 6  # 7 total - 1 failed
+            assert success_count == 14  # 15 total - 1 failed
 
     def test_ingest_all_returns_all_assets(self, sample_ohlcv_df):
-        """Must attempt all 7 assets."""
+        """Must attempt all 15 assets (Bronze 7 + Silver 8)."""
         with patch("collector.ingest.fetch_ohlcv", return_value=sample_ohlcv_df):
             results = ingest_all("2026-01-01", "2026-01-10")
-            assert len(results) == 7
+            assert len(results) == 15

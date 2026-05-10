@@ -10,8 +10,11 @@ from collector.fdr_client import SYMBOL_MAP, _standardize, fetch_ohlcv
 
 class TestSymbolMap:
     def test_symbol_map_completeness(self):
-        """All 7 assets must be in SYMBOL_MAP."""
-        expected = {"KS200", "005930", "000660", "SOXL", "BTC", "GC=F", "SI=F"}
+        """All 15 assets (Bronze 7 + Silver 8) must be in SYMBOL_MAP."""
+        expected = {
+            "KS200", "005930", "000660", "SOXL", "BTC", "GC=F", "SI=F",
+            "QQQ", "SPY", "SCHD", "JEPI", "TLT", "NVDA", "GOOGL", "TSLA",
+        }
         assert set(SYMBOL_MAP.keys()) == expected
 
     def test_symbol_map_fdr_symbol(self):

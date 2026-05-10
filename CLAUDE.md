@@ -63,7 +63,7 @@ Pydantic schemas for all I/O. FastAPI DI for services.
 ## Skills System
 
 Skills in `.claude/skills/` — see each `SKILL.md` for details:
-`backend-dev`, `frontend-dev`
+`backend-dev`, `frontend-dev`, `e2e-verify`
 
 ## Workflow Conventions
 

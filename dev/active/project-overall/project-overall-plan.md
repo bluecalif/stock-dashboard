@@ -1,7 +1,8 @@
 # Project Overall Plan — Silver Gen
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (Phase 1 ✅ 완료, Phase 2 ✅ 완료, Phase 3 미착수)
+> Last Updated: 2026-05-10
+> Status: In Progress (Phase 1 ✅ 완료, Phase 2 ✅ 완료, Phase 3 ✅ 완료, Phase 4 Planning)
 
 ## 1. Summary (개요)
 
@@ -20,7 +21,22 @@
 - `pages/silver/CompareMainPage.tsx` + 10개 컴포넌트 + `SignalDetailPage.tsx`
 - 빅뱅 cut-over 완료 (`v-bronze-final` tag로 보존)
 
-## 2. Current State (Phase 2 ✅ 완료, 2026-05-10)
+## 2. Current State (Phase 3 ✅ 완료, 2026-05-10)
+
+### Phase 3 산출물 (2026-05-10)
+- `/silver/compare` Tab A/B/C 완전 동작 (QQQ/SPY/KS200 등 KPI + 차트)
+- `/silver/signals` 8종 자산 RSI/MACD/ATR 정상 렌더링
+- 모바일 768px + iPhone SE 375px 반응형 검증 완료
+- AssetPickerDrawer 탭별 분기 (Tab A 6종 / Tab B 3종 / Tab C preset 4개) 검증 완료
+- verification/ evidence 5종 + PNG 14장 누적
+- Phase 4 dev-docs 작성 완료 (2026-05-10)
+
+### Phase 4 진입 조건
+- ✅ Phase 3 완료 (모든 Silver 페이지 동작 확인)
+- ✅ `dev/active/silver-rev1-phase4/` dev-docs 작성 완료 (2026-05-10)
+- staging 전체 검증 후 T-0 cut-over 진행
+
+## 2b. Current State (Phase 2 ✅ 완료, 2026-05-10)
 
 ### Phase 2 산출물 (2026-05-10)
 - `simulation/` 패키지 8파일 완성 (`__init__` + `padding` + `wbi` + `fx` + `mdd` + `replay` + `strategy_a` + `strategy_b` + `portfolio`)

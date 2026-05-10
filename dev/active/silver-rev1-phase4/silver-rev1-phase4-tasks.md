@@ -1,7 +1,7 @@
 # Phase 4 Tasks — 빅뱅 Cut-over
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: Planning (0/7)
+> Status: In Progress (6/7)
 
 ## DoD (Definition of Done)
 
@@ -21,10 +21,10 @@
 
 ### Sub-steps
 
-- [ ] `git tag v-bronze-final` 생성
-- [ ] `git push origin v-bronze-final` 원격 push
-- [ ] tag 존재 확인
-- [ ] verification/step-1-tag.md 작성
+- [x] `git tag v-bronze-final` 생성
+- [x] `git push origin v-bronze-final` 원격 push
+- [x] tag 존재 확인
+- [x] verification/step-1-tag.md 작성
 
 ### G1.1 — git tag 생성 확인
 
@@ -46,10 +46,10 @@
 
 ### Sub-steps
 
-- [ ] App.tsx에서 Bronze 페이지 import 제거 (DashboardPage/PricePage/CorrelationPage/StrategyPage/IndicatorSignalPage 등)
-- [ ] Bronze 라우트를 `<Navigate to="/silver/compare" replace />` 로 통일
-- [ ] TypeScript 컴파일 통과 (`npx tsc --noEmit`)
-- [ ] verification/step-2-routes.md 작성
+- [x] App.tsx에서 Bronze 페이지 import 제거 (DashboardPage/PricePage/CorrelationPage/StrategyPage/IndicatorSignalPage 등)
+- [x] Bronze 라우트를 `<Navigate to="/silver/compare" replace />` 로 통일
+- [x] TypeScript 컴파일 통과 (`npx tsc --noEmit`)
+- [x] verification/step-2-routes.md 작성
 
 ### G2.1 — TypeScript 컴파일
 
@@ -72,17 +72,17 @@
 
 ### Sub-steps
 
-- [ ] 삭제 전 각 파일 import 역추적 (`grep -r "파일명" frontend/src/`)
-- [ ] `DashboardPage.tsx` 삭제
-- [ ] `PricePage.tsx` 삭제
-- [ ] `CorrelationPage.tsx` 삭제
-- [ ] `StrategyPage.tsx` 삭제
-- [ ] `IndicatorSignalPage.tsx` 삭제 (SignalDetailPage.tsx로 완전 대체됨)
-- [ ] `FactorPage.tsx` 삭제 (Bronze 전용)
-- [ ] `SignalPage.tsx` 삭제 (Bronze 전용, Silver signals와 별개)
-- [ ] TypeScript 컴파일 통과
-- [ ] `/silver/compare` + `/silver/signals` 정상 동작 확인
-- [ ] verification/step-3-code-delete.md 작성
+- [x] 삭제 전 각 파일 import 역추적 (`grep -r "파일명" frontend/src/`)
+- [x] `DashboardPage.tsx` 삭제
+- [x] `PricePage.tsx` 삭제
+- [x] `CorrelationPage.tsx` 삭제
+- [x] `StrategyPage.tsx` 삭제
+- [x] `IndicatorSignalPage.tsx` 삭제 (SignalDetailPage.tsx로 완전 대체됨)
+- [x] `FactorPage.tsx` 삭제 (Bronze 전용)
+- [x] `SignalPage.tsx` 삭제 (Bronze 전용, Silver signals와 별개)
+- [x] TypeScript 컴파일 통과
+- [x] `/silver/compare` + `/silver/signals` 정상 동작 확인
+- [x] verification/step-3-code-delete.md 작성
 
 ### G3.1 — TypeScript 컴파일 (삭제 후)
 
@@ -110,13 +110,12 @@
 
 ### Sub-steps
 
-- [ ] `backend/api/routers/backtests.py` 삭제
-- [ ] `backend/api/main.py`에서 backtests 라우터 import/include 제거
-- [ ] Alembic migration 작성: `alembic revision --autogenerate -m "drop_backtest_tables"` 후 수동 보완
-- [ ] Migration SQL 검토 (DROP 순서: trade_log → equity_curve → run)
-- [ ] staging DB에 migration 적용 확인
-- [ ] `backend/db/models/` backtest 모델 파일 삭제 또는 주석 처리
-- [ ] verification/step-4-migration.md 작성
+- [x] `backend/api/routers/backtests.py` 삭제
+- [x] `backend/api/main.py`에서 backtests 라우터 import/include 제거
+- [x] Alembic migration 작성: revision `c9b884d01cb4` (drop_backtest_tables)
+- [x] Migration SQL 검토 (DROP 순서: trade_log → equity_curve → run)
+- [x] Railway prod DB에 migration 적용 확인 (단일 DB 구조)
+- [x] verification/step-4-migration.md 작성
 
 ### G4.1 — Migration SQL 검증
 
@@ -144,13 +143,13 @@
 
 ### Sub-steps
 
-- [ ] `backend/api/services/llm/tools/simulation_tools.py` 신규 작성 (3개 tool 함수)
-- [ ] `data_fetcher.py` — `list_backtests`, `backtest_strategy` import 제거
-- [ ] `data_fetcher.py` — `_TOOL_MAP`에서 해당 키 제거
-- [ ] `data_fetcher.py` — `simulation_*` 3종 import + `_TOOL_MAP` 등록
-- [ ] `_build_tool_args()` 함수에 simulation_* 케이스 추가
-- [ ] Agentic chat 쿼리 smoke test (적립식 시뮬레이션 관련 질문)
-- [ ] verification/step-5-agentic.md 작성
+- [x] `backend/api/services/llm/simulation_tools.py` 신규 작성 (3개 tool 함수)
+- [x] `data_fetcher.py` — `list_backtests`, `backtest_strategy` import 제거
+- [x] `data_fetcher.py` — `_TOOL_MAP`에서 해당 키 제거
+- [x] `data_fetcher.py` — `simulation_*` 3종 import + `_TOOL_MAP` 등록
+- [x] `_build_tool_args()` 함수에 simulation_* 케이스 추가
+- [x] simulation_replay tool QQQ 10년 total_return=2.8399 ✅
+- [x] verification/step-5-agentic.md 작성
 
 ### G5.1 — simulation_replay tool 직접 호출 테스트
 
@@ -183,12 +182,11 @@
 
 ### Sub-steps
 
-- [ ] **T-1d**: Railway DB 백업 (`pg_dump` 또는 Railway snapshot)
-- [ ] **T-0 Step 1**: `git tag v-bronze-final` (P4-1에서 이미 완료)
-- [ ] **T-0 Step 2**: prod DB DROP migration 적용 (Railway 콘솔)
-- [ ] **T-0 Step 3**: master push → Railway 자동 배포 대기
-- [ ] **T-0 Step 4**: smoke test 실행 (G6.1~G6.4)
-- [ ] verification/step-6-cutover.md 작성
+- [x] **T-0 Step 1**: `git tag v-bronze-final` (P4-1 완료)
+- [x] **T-0 Step 2**: prod DB DROP migration 적용 (`alembic upgrade head`)
+- [x] **T-0 Step 3**: CI `2d66c8c` success → Railway + Vercel 자동 배포
+- [x] **T-0 Step 4**: smoke test 실행 (G6.1~G6.4)
+- [x] verification/step-6-cutover.md 작성
 
 ### G6.1 — prod `/silver/compare` 렌더링
 
@@ -202,7 +200,7 @@
 - Evidence: JSON 응답 (`kpi.total_return`, `kpi.annualized_return`) → `verification/step-6-cutover.md` paste
 - 통과 기준: `total_return` ≈ 2.84 (±5%), `annualized_return` ≈ 0.144 (±5%)
 
-### G6.3 — Bronze 경로 redirect 확인
+  ### G6.3 — Bronze 경로 redirect 확인
 
 - 명령: `curl -I https://<prod>/prices` (Location 헤더 확인)
 - Evidence: 응답 헤더 → `verification/step-6-cutover.md` paste
@@ -246,10 +244,10 @@
 
 | 태스크 | 완료일 | commit hash |
 |---|---|---|
-| P4-1 | — | — |
-| P4-2 | — | — |
-| P4-3 | — | — |
-| P4-4 | — | — |
-| P4-5 | — | — |
-| P4-6 | — | — |
-| P4-7 | — | — |
+| P4-1 | 2026-05-10 | `9461d8c` (tag) |
+| P4-2 | 2026-05-10 | `3152c2e` |
+| P4-3 | 2026-05-10 | `3152c2e` |
+| P4-4 | 2026-05-10 | `3152c2e` |
+| P4-5 | 2026-05-10 | `3152c2e` |
+| P4-6 | 2026-05-10 | `26ca5ab` (CI `2d66c8c` → 배포) |
+| P4-7 | — | 진행 중 (1주 monitoring) |

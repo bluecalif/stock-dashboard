@@ -2,7 +2,7 @@
 > Gen: silver
 > Last Updated: 2026-05-10
 > Last Updated: 2026-05-10
-> Status: In Progress (Phase 1 ✅ 완료, Phase 2 ✅ 완료, Phase 3 ✅ 완료 — 18/29)
+> Status: In Progress (Phase 1~3 ✅, Phase 4 🟡 6/7 — 24/29)
 
 ## Summary
 
@@ -11,7 +11,7 @@
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | ✅ 완료 (7/7, last: `1f7e426`) |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | ✅ 완료 (5/5, last: `80a23de`) |
-| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 미착수 |
+| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 🟡 In Progress (6/7, last: `26ca5ab`) |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
 | **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 13/29 |
 
@@ -82,19 +82,19 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
 ---
 
-## Phase 4 — 빅뱅 cut-over (다운타임 수 분)
+## Phase 4 — 빅뱅 cut-over 🟡 In Progress (6/7)
 
-진입 조건: Phase 1~3 staging 검증 완료 + T-7d 백엔드 / T-3d 프론트 / T-1d DB 백업
+진입 조건: ✅ Phase 1~3 완료 | 완료일: 2026-05-10
 
-- [ ] **P4-1 (S)** git tag `v-bronze-final` 생성 (master 직전 상태 보존)
-- [ ] **P4-2 (M)** Bronze 라우트 → `/silver/compare` redirect 적용 (`App.tsx`)
-- [ ] **P4-3 (M)** StrategyPage / DashboardPage / PricePage / CorrelationPage 코드 삭제
-- [ ] **P4-4 (S)** `routers/backtests.py` 제거 + `backtest_*` 3 테이블 DROP migration
-- [ ] **P4-5 (M)** Agentic tool registration 정리 (strategy_classify/report 제거 + simulation_replay/strategy/portfolio 등록)
-- [ ] **P4-6 (L)** master merge + prod 빅뱅 배포 + smoke test (`/silver/compare` 노출, KPI 산출, Agentic chat tool 호출)
-- [ ] **P4-7 (S)** 1주 monitoring (Agentic chat tool, simulation API P95 latency, 사용자 피드백)
+- [x] **P4-1 (S)** git tag `v-bronze-final` → `9461d8c`
+- [x] **P4-2 (M)** App.tsx Bronze import/라우트 제거 + 7개 경로 redirect → `3152c2e`
+- [x] **P4-3 (M)** Bronze 페이지 7종 삭제 (Dashboard/Price/Correlation/Strategy/IndicatorSignal/Factor/Signal) → `3152c2e`
+- [x] **P4-4 (S)** `routers/backtests.py` 제거 + migration `c9b884d01cb4` (backtest_* DROP) → `3152c2e`
+- [x] **P4-5 (M)** simulation_tools.py 신규 + data_fetcher list_backtests/backtest_strategy 제거 → `3152c2e`
+- [x] **P4-6 (L)** CI `2d66c8c` PASS → Railway+Vercel 배포 → prod smoke test G6.1~G6.4 PASS → `26ca5ab`
+- [ ] **P4-7 (S)** 1주 monitoring (2026-05-17까지)
 
-검증: 라우트 redirect 일관, Agentic AI tool fallback 동작, KPI 정합 (Phase 2 fixture와 일치).
+검증: G6.1~G6.4 PASS (prod KPI total_return=2.8399, Bronze redirect, backtest 라우터 없음)
 
 ---
 

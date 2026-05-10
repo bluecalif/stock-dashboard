@@ -21,7 +21,7 @@
 - `pages/silver/CompareMainPage.tsx` + 10개 컴포넌트 + `SignalDetailPage.tsx`
 - 빅뱅 cut-over 완료 (`v-bronze-final` tag로 보존)
 
-## 2. Current State (Phase 3 ✅ 완료, 2026-05-10)
+## 2. Current State (Phase 4 🟡 진행 중, 2026-05-10)
 
 ### Phase 3 산출물 (2026-05-10)
 - `/silver/compare` Tab A/B/C 완전 동작 (QQQ/SPY/KS200 등 KPI + 차트)

@@ -13,13 +13,13 @@
 
 | Step | 주제 | evidence 파일 | PNG | 상태 |
 |---|---|---|---|---|
-| P4-1 | git tag v-bronze-final | `step-1-tag.md` | — | ⬜ 미착수 |
-| P4-2 | App.tsx 라우트 정리 | `step-2-routes.md` | `figures/step-2-redirect.png` | ⬜ 미착수 |
-| P4-3 | Bronze 코드 삭제 | `step-3-code-delete.md` | `figures/step-3-silver-pages.png` | ⬜ 미착수 |
-| P4-4 | DROP migration | `step-4-migration.md` | — | ⬜ 미착수 |
-| P4-5 | Agentic tool 정리 | `step-5-agentic.md` | — | ⬜ 미착수 |
-| P4-6 | 빅뱅 배포 + smoke test | `step-6-cutover.md` | `figures/step-6-prod-compare.png` | ⬜ 미착수 |
-| P4-7 | 1주 monitoring | `step-7-monitoring.md` | — | ⬜ 미착수 |
+| P4-1 | git tag v-bronze-final | `step-1-tag.md` | — | ✅ 완료 |
+| P4-2 | App.tsx 라우트 정리 | `step-2-routes.md` | `figures/step-2-redirect.png` | ✅ 완료 |
+| P4-3 | Bronze 코드 삭제 | `step-3-code-delete.md` | `figures/step-3-silver-pages.png` | ✅ 완료 |
+| P4-4 | DROP migration | `step-4-migration.md` | — | ✅ 완료 |
+| P4-5 | Agentic tool 정리 | `step-5-agentic.md` | — | ✅ 완료 |
+| P4-6 | 빅뱅 배포 + smoke test | `step-6-cutover.md` | `figures/step-6-prod-compare.png` | ✅ 완료 |
+| P4-7 | 1주 monitoring | `step-7-monitoring.md` | — | 🟡 진행 중 |
 
 ---
 

@@ -205,11 +205,11 @@ def replay(
 
     # WBI: DB 조회 없이 GBM synthetic 생성
     if asset_code == "WBI":
-        n_days = period_years * 252
-        wbi_prices = generate_wbi(n_days, seed=42)
         trading_dates = pd.date_range(
-            end=pd.Timestamp(end_date), periods=n_days, freq="B"
+            end=pd.Timestamp(end_date), periods=period_years * 252, freq="B"
         )
+        n_days = len(trading_dates)  # 실제 business day 수로 맞춤
+        wbi_prices = generate_wbi(n_days, seed=42)
         prices = pd.Series(wbi_prices, index=trading_dates, name="close")
         return replay_core(prices, None, "KRW", 0.0, monthly_amount_krw, period_years)
 

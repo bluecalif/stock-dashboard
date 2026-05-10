@@ -88,9 +88,9 @@ def _load_price_and_fx(
         .all()
     )
     prices = pd.Series(
-        {pd.Timestamp(r.date): float(r.close) for r in rows},
+        {pd.Timestamp(r.date): float(r.close) for r in rows if r.close is not None},
         name="close",
-    ) if rows else pd.Series(dtype=float)
+    ).dropna() if rows else pd.Series(dtype=float)
 
     fx_series: pd.Series | None = None
     if currency == "USD" and not prices.empty:

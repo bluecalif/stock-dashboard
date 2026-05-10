@@ -10,30 +10,30 @@ import { mergeEquityData, formatKRW, formatPct } from "./silverUtils";
 
 const PRESETS = [
   {
-    key: "qqqtltbtc",
+    key: "QQQ_TLT_BTC",
     label: "QQQ + TLT + BTC",
     sub: "60 / 20 / 20",
     primaryAsset: "QQQ",
     primaryLabel: "QQQ",
   },
   {
-    key: "ks200tltbtc",
+    key: "KS200_TLT_BTC",
     label: "KS200 + TLT + BTC",
     sub: "60 / 20 / 20",
     primaryAsset: "KS200",
     primaryLabel: "KS200",
   },
   {
-    key: "techblendtltbtc",
+    key: "TECH_TLT_BTC",
     label: "테크 + TLT + BTC",
     sub: "60 / 20 / 20",
     primaryAsset: "QQQ",
     primaryLabel: "QQQ (대리)",
   },
   {
-    key: "samsungtltbtc",
-    label: "삼성 반도체 + TLT + BTC",
-    sub: "60 / 20 / 20",
+    key: "SEC_SKH_TLT_BTC",
+    label: "삼성+하이닉스 + TLT + BTC",
+    sub: "30 / 30 / 20 / 20",
     primaryAsset: "005930",
     primaryLabel: "삼성전자",
   },
@@ -50,7 +50,7 @@ type Props = {
 };
 
 export default function TabC_AssetVsPortfolio({ periodYears, monthlyAmount }: Props) {
-  const [presetKey, setPresetKey] = useState<string>("qqqtltbtc");
+  const [presetKey, setPresetKey] = useState<string>("QQQ_TLT_BTC");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [replayResult, setReplayResult] = useState<ReplayResponse | null>(null);

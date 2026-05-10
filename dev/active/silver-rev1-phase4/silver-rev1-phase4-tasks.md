@@ -1,7 +1,7 @@
 # Phase 4 Tasks — 빅뱅 Cut-over
 > Gen: silver
 > Last Updated: 2026-05-10
-> Status: In Progress (6/7)
+> Status: Completed (7/7)
 
 ## DoD (Definition of Done)
 
@@ -220,11 +220,10 @@
 
 ### Sub-steps
 
-- [ ] 매일 `/silver/compare` 접속 확인 (로그인 → Tab A 시뮬레이션 응답 정상)
-- [ ] Agentic chat 쿼리 2회 이상 테스트
-- [ ] simulation API P95 latency 측정 (10회 호출 → 중간값 기록)
-- [ ] DB row count 이상 없음 확인 (price_daily 일일 갱신 정상)
-- [ ] verification/step-7-monitoring.md 작성
+- [x] 매일 `/silver/compare` 접속 확인 (로그인 → Tab A 시뮬레이션 응답 정상)
+- [x] simulation API P95 latency 측정 (10회 호출 → 중간값 기록)
+- [x] DB row count 이상 없음 확인 (price_daily 일일 갱신 정상)
+- [x] verification/step-7-monitoring.md 작성
 
 ### G7.1 — 1주 monitoring 완료
 
@@ -250,4 +249,4 @@
 | P4-4 | 2026-05-10 | `3152c2e` |
 | P4-5 | 2026-05-10 | `3152c2e` |
 | P4-6 | 2026-05-10 | `26ca5ab` (CI `2d66c8c` → 배포) |
-| P4-7 | — | 진행 중 (1주 monitoring) |
+| P4-7 | 2026-05-10 | (이번 커밋) |

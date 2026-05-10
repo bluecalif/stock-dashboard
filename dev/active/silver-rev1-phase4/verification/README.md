@@ -19,7 +19,7 @@
 | P4-4 | DROP migration | `step-4-migration.md` | — | ✅ 완료 |
 | P4-5 | Agentic tool 정리 | `step-5-agentic.md` | — | ✅ 완료 |
 | P4-6 | 빅뱅 배포 + smoke test | `step-6-cutover.md` | `figures/step-6-prod-compare.png` | ✅ 완료 |
-| P4-7 | 1주 monitoring | `step-7-monitoring.md` | — | 🟡 진행 중 |
+| P4-7 | 1주 monitoring | `step-7-monitoring.md` | `figures/p4-7-tab-a-loaded.png` `figures/p4-7-tab-b-strategy.png` `figures/p4-7-tab-c-portfolio.png` `figures/p4-7-mobile-768.png` | ✅ 완료 |
 
 ---
 

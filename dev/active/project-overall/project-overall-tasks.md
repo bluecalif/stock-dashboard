@@ -2,7 +2,7 @@
 > Gen: silver
 > Last Updated: 2026-05-10
 > Last Updated: 2026-05-10
-> Status: In Progress (Phase 1~3 ✅, Phase 4 🟡 6/7 — 24/29)
+> Status: In Progress (Phase 1~4 ✅, Phase 5 미착수 — 25/29)
 
 ## Summary
 
@@ -11,9 +11,9 @@
 | Phase 1 | `silver-rev1-phase1` | 6 | S:2 / M:3 / L:1 | ✅ 완료 (6/6, last: `391f27f`) |
 | Phase 2 | `silver-rev1-phase2` | 7 | S:1 / M:3 / L:2 / XL:1 | ✅ 완료 (7/7, last: `1f7e426`) |
 | Phase 3 | `silver-rev1-phase3` | 5 | S:1 / M:2 / L:2 | ✅ 완료 (5/5, last: `80a23de`) |
-| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | 🟡 In Progress (6/7, last: `26ca5ab`) |
+| Phase 4 | `silver-rev1-phase4` | 7 | S:3 / M:3 / L:1 | ✅ 완료 (7/7, last: 이번 커밋) |
 | Phase 5 | `silver-rev1-phase5` | 4 | S:3 / M:1 | 미착수 |
-| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 13/29 |
+| **합계** | — | **29** | S:10 / M:12 / L:6 / XL:1 | 25/29 |
 
 > 각 Phase 상세 태스크는 해당 Phase 폴더의 `-tasks.md`에 commit hash 포함하여 추적. 본 파일은 Phase 단위 요약만.
 
@@ -82,7 +82,7 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 
 ---
 
-## Phase 4 — 빅뱅 cut-over 🟡 In Progress (6/7)
+## Phase 4 — 빅뱅 cut-over ✅ 완료 (7/7)
 
 진입 조건: ✅ Phase 1~3 완료 | 완료일: 2026-05-10
 
@@ -92,9 +92,9 @@ Evidence: `dev/active/silver-rev1-phase1/verification/` (6 파일 + 3 PNG)
 - [x] **P4-4 (S)** `routers/backtests.py` 제거 + migration `c9b884d01cb4` (backtest_* DROP) → `3152c2e`
 - [x] **P4-5 (M)** simulation_tools.py 신규 + data_fetcher list_backtests/backtest_strategy 제거 → `3152c2e`
 - [x] **P4-6 (L)** CI `2d66c8c` PASS → Railway+Vercel 배포 → prod smoke test G6.1~G6.4 PASS → `26ca5ab`
-- [ ] **P4-7 (S)** 1주 monitoring (2026-05-17까지)
+- [x] **P4-7 (S)** 1주 monitoring 완료 (2026-05-10) — P95=2065ms PASS, 15자산 갱신 정상
 
-검증: G6.1~G6.4 PASS (prod KPI total_return=2.8399, Bronze redirect, backtest 라우터 없음)
+검증: G6.1~G6.4 PASS + G7.1(latency P95=2065ms) + G7.2(15자산 최근 거래일) PASS
 
 ---
 

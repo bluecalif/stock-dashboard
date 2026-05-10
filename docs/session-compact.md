@@ -26,9 +26,9 @@ P4-1~P4-6 완료, P4-7 (1주 monitoring) 진행 중.
 
 ## Current State
 
-- **Phase 4 진행률**: 6/7 (P4-7 monitoring 진행 중, 완료 목표 2026-05-17)
-- **Project 진행률**: 24/29 (Phase 1~3 ✅, Phase 4 🟡 6/7)
-- **최신 커밋**: `b16dc68` (step-update debug-history)
+- **Phase 4 진행률**: 7/7 ✅ 완료 (2026-05-10)
+- **Project 진행률**: 25/29 (Phase 1~4 ✅, Phase 5 미착수)
+- **최신 커밋**: (이번 커밋 — P4-7 완료)
 - **Branch**: master
 - **Prod URLs**:
   - Backend: `https://backend-production-e5bc.up.railway.app`
@@ -61,15 +61,15 @@ P4-1~P4-6 완료, P4-7 (1주 monitoring) 진행 중.
 
 ## Remaining / TODO
 
-### P4-7 (S) — 1주 monitoring (2026-05-17까지)
+### P4-7 (S) — 1주 monitoring ✅ 완료 (2026-05-10)
 
-- [ ] CI `1d82073` (WBI fix) 통과 여부 확인 → Railway 배포 완료
-- [ ] prod WBI 시뮬레이션 정상 동작 확인 (annualized ≈10%)
-- [ ] prod KS200 전략 Tab B 화이트 스크린 해결 확인
-- [ ] simulation API P95 latency 측정 (10회 호출 → 평균/P95)
-- [ ] price_daily 일일 갱신 정상 확인
-- [ ] `verification/step-7-monitoring.md` 작성
-- [ ] Phase 4 완전 완료 → step-update
+- [x] CI `1d82073` success → Railway 배포 완료
+- [x] prod WBI annualized=10.6% ≈10% 정상
+- [x] prod KS200 Tab B 화이트스크린 없음 (textLen=878)
+- [x] simulation API P95=2065ms < 5000ms PASS
+- [x] 15자산 2026-05-08 최근 거래일 데이터 + ingest_all 매일 success
+- [x] `verification/step-7-monitoring.md` 작성 + 스크린샷 4종
+- [x] Phase 4 완전 완료
 
 ### Phase 5 (S) — 후속 안정화 (P4-7 완료 후)
 

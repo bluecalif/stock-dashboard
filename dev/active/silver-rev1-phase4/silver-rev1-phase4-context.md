@@ -1,6 +1,23 @@
 # Phase 4 Context — 빅뱅 Cut-over
 > Gen: silver
-> Last Updated: 2026-05-10 (prod 버그 수정 3종)
+> Last Updated: 2026-05-10 (P4-7 monitoring 완료 — Phase 4 전체 7/7)
+
+---
+
+## 9. P4-7 Monitoring — 완료 (2026-05-10)
+
+**G7.1 PASS** — Simulation API latency 10회: avg=1858ms, P95=2065ms < 5000ms (캐시 도입 불필요)  
+**G7.2 PASS** — 15자산 전부 2026-05-08(금, 최근 거래일) 데이터 보유, 오늘 10:05 ingest_all success  
+**UI PASS** — Tab A/B/C 전 탭 정상, Tab B 화이트스크린 없음(textLen=878), 모바일 768px 반응형 정상, 콘솔 에러 없음  
+**결정사항**: D-P4-7: P95=2065ms → Phase 5 캐시 도입 검토 불필요 (임계 5초 이하)
+
+| 파일 | 내용 |
+|------|------|
+| `dev/active/silver-rev1-phase4/verification/step-7-monitoring.md` | G7.1+G7.2 evidence |
+| `verification/figures/p4-7-tab-a-loaded.png` | Tab A 차트 스크린샷 |
+| `verification/figures/p4-7-tab-b-strategy.png` | Tab B 화이트스크린 없음 확인 |
+| `verification/figures/p4-7-tab-c-portfolio.png` | Tab C 포트폴리오 차트 |
+| `verification/figures/p4-7-mobile-768.png` | 모바일 반응형 스크린샷 |
 
 ---
 
